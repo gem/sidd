@@ -1,0 +1,1421 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>widgetDataInput</class>
+ <widget class="QWidget" name="widgetDataInput">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>845</width>
+    <height>653</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <widget class="QWidget" name="widgetSurvey" native="true">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>310</y>
+     <width>401</width>
+     <height>181</height>
+    </rect>
+   </property>
+   <widget class="QLabel" name="lb_svy_select_file">
+    <property name="geometry">
+     <rect>
+      <x>13</x>
+      <y>141</y>
+      <width>71</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Select file:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="img_lb_svy_desc_help">
+    <property name="geometry">
+     <rect>
+      <x>280</x>
+      <y>40</y>
+      <width>16</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="resources/SIDDResource.qrc">:/imgs/icons/help.png</pixmap>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_svy_desc">
+    <property name="geometry">
+     <rect>
+      <x>13</x>
+      <y>43</y>
+      <width>271</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>What type of survey / field data do you have?</string>
+    </property>
+   </widget>
+   <widget class="QToolButton" name="btn_svy_select_file">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>360</x>
+      <y>140</y>
+      <width>41</width>
+      <height>19</height>
+     </rect>
+    </property>
+    <property name="cursor">
+     <cursorShape>ArrowCursor</cursorShape>
+    </property>
+    <property name="text">
+     <string>...</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="radio_svy_op3">
+    <property name="geometry">
+     <rect>
+      <x>16</x>
+      <y>107</y>
+      <width>381</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Sampled buildings from survey area</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="radio_svy_op1">
+    <property name="geometry">
+     <rect>
+      <x>16</x>
+      <y>67</y>
+      <width>381</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>No Data</string>
+    </property>
+    <property name="checked">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="radio_svy_op2">
+    <property name="geometry">
+     <rect>
+      <x>16</x>
+      <y>87</y>
+      <width>381</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Complete building stock/survey area</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="txt_svy_select_file">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>93</x>
+      <y>141</y>
+      <width>261</width>
+      <height>20</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_svy_title">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>331</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Survey &amp; field data</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QWidget" name="widgetResult" native="true">
+   <property name="geometry">
+    <rect>
+     <x>420</x>
+     <y>340</y>
+     <width>411</width>
+     <height>301</height>
+    </rect>
+   </property>
+   <widget class="QLabel" name="lb_verify_title">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>301</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>You have supplied the following types of data:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="img_lb_verify_fp">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>38</y>
+      <width>21</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="img_lb_verify_zones">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>59</y>
+      <width>21</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_verify_fp">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>38</y>
+      <width>111</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Footprint</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_verify_svy">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>80</y>
+      <width>111</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Survey</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_verify_zones">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>59</y>
+      <width>111</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Zones</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="img_lb_verify_svy">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>80</y>
+      <width>21</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_verify_aggregation">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>113</y>
+      <width>171</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>With aggregation</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="img_lb_verify_agg_grid">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>150</y>
+      <width>21</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="img_lb_verify_agg_zone">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>130</y>
+      <width>21</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_verify_agg_zone">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>130</y>
+      <width>131</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Zone</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_verify_agg_grid">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>150</y>
+      <width>131</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>GED Compatible Grid</string>
+    </property>
+   </widget>
+   <widget class="QTextBrowser" name="txt_verify_text">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>40</y>
+      <width>221</width>
+      <height>201</height>
+     </rect>
+    </property>
+    <property name="html">
+     <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:8pt;&quot;&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_verify">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>260</x>
+      <y>270</y>
+      <width>141</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="cursor">
+     <cursorShape>ArrowCursor</cursorShape>
+    </property>
+    <property name="text">
+     <string>Verify Input Data</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QWidget" name="widgetAggr" native="true">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>490</y>
+     <width>401</width>
+     <height>151</height>
+    </rect>
+   </property>
+   <widget class="QRadioButton" name="radio_aggr_op2">
+    <property name="geometry">
+     <rect>
+      <x>14</x>
+      <y>92</y>
+      <width>381</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>GED Compatible 30 arc-second grid</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_aggr_desc">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>43</y>
+      <width>281</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>How do you wish to aggregate your output data?</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_aggr_title">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>331</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Aggregation</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="radio_aggr_op1">
+    <property name="geometry">
+     <rect>
+      <x>14</x>
+      <y>71</y>
+      <width>381</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Output into defined zones </string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="img_lb_aggr_desc_help">
+    <property name="geometry">
+     <rect>
+      <x>291</x>
+      <y>41</y>
+      <width>16</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="resources/SIDDResource.qrc">:/imgs/icons/help.png</pixmap>
+    </property>
+   </widget>
+   <widget class="QToolButton" name="btn_aggr_grid_select_file">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>360</x>
+      <y>120</y>
+      <width>41</width>
+      <height>19</height>
+     </rect>
+    </property>
+    <property name="cursor">
+     <cursorShape>ArrowCursor</cursorShape>
+    </property>
+    <property name="text">
+     <string>...</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="txt_aggr_grid_select_file">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>80</x>
+      <y>120</y>
+      <width>271</width>
+      <height>20</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_aggr_grid_select_file">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>120</y>
+      <width>71</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Select file:</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QWidget" name="widgetFootprint" native="true">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>90</y>
+     <width>401</width>
+     <height>221</height>
+    </rect>
+   </property>
+   <widget class="QComboBox" name="cb_fp_story_field">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>280</x>
+      <y>152</y>
+      <width>121</width>
+      <height>22</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="radio_fp_op2">
+    <property name="geometry">
+     <rect>
+      <x>13</x>
+      <y>80</y>
+      <width>381</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Building footprints with height</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="txt_fp_select_file">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>80</x>
+      <y>122</y>
+      <width>271</width>
+      <height>20</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_fp_select_file">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>122</y>
+      <width>71</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Select file:</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="radio_fp_op3">
+    <property name="geometry">
+     <rect>
+      <x>13</x>
+      <y>100</y>
+      <width>381</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Building footprints without height</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_fp_title">
+    <property name="geometry">
+     <rect>
+      <x>3</x>
+      <y>3</y>
+      <width>341</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Building footprint data</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_fp_desc">
+    <property name="geometry">
+     <rect>
+      <x>4</x>
+      <y>38</y>
+      <width>305</width>
+      <height>13</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>What type of data do you have for building footprints?</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="cb_fp_proj">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>280</x>
+      <y>180</y>
+      <width>121</width>
+      <height>22</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_fp_proj">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>182</y>
+      <width>151</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Select/verify projection:</string>
+    </property>
+   </widget>
+   <widget class="QToolButton" name="btn_fp_select_file">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>360</x>
+      <y>120</y>
+      <width>41</width>
+      <height>19</height>
+     </rect>
+    </property>
+    <property name="cursor">
+     <cursorShape>ArrowCursor</cursorShape>
+    </property>
+    <property name="text">
+     <string>...</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="radio_fp_op1">
+    <property name="geometry">
+     <rect>
+      <x>13</x>
+      <y>60</y>
+      <width>381</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>No Data</string>
+    </property>
+    <property name="checked">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_fp_story_field">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>152</y>
+      <width>241</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Select field containing number of stories:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="img_lb_fp_desc_help">
+    <property name="geometry">
+     <rect>
+      <x>321</x>
+      <y>34</y>
+      <width>16</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="resources/SIDDResource.qrc">:/imgs/icons/help.png</pixmap>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QWidget" name="widgetTitle" native="true">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>831</width>
+     <height>91</height>
+    </rect>
+   </property>
+   <widget class="QLabel" name="lb_panel_title">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>0</y>
+      <width>761</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Define study region</string>
+    </property>
+   </widget>
+   <widget class="QTextEdit" name="txt_panel_description">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>30</y>
+      <width>761</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="html">
+     <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Tahoma'; font-size:8pt;&quot;&gt;Study region automatically aggregated from input building footprint&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QWidget" name="widgetZones" native="true">
+   <property name="geometry">
+    <rect>
+     <x>420</x>
+     <y>90</y>
+     <width>411</width>
+     <height>241</height>
+    </rect>
+   </property>
+   <widget class="QRadioButton" name="radio_zones_op3">
+    <property name="geometry">
+     <rect>
+      <x>14</x>
+      <y>94</y>
+      <width>391</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Land use zones with building count</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="radio_zones_op2">
+    <property name="geometry">
+     <rect>
+      <x>14</x>
+      <y>74</y>
+      <width>391</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Land use zones</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_zones_proj">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>210</y>
+      <width>151</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Select/verify projection:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_zones_select_file">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>121</y>
+      <width>71</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Select file:</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="radio_zones_op1">
+    <property name="geometry">
+     <rect>
+      <x>14</x>
+      <y>54</y>
+      <width>391</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>No Data</string>
+    </property>
+    <property name="checked">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="cb_zones_class_field">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>280</x>
+      <y>150</y>
+      <width>121</width>
+      <height>22</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_zones_class_field">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>151</y>
+      <width>281</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Select field containing land use/class attributes:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_zones_title">
+    <property name="geometry">
+     <rect>
+      <x>4</x>
+      <y>4</y>
+      <width>371</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Zonal data</string>
+    </property>
+   </widget>
+   <widget class="QToolButton" name="btn_zones_select_file">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>360</x>
+      <y>120</y>
+      <width>41</width>
+      <height>19</height>
+     </rect>
+    </property>
+    <property name="cursor">
+     <cursorShape>ArrowCursor</cursorShape>
+    </property>
+    <property name="text">
+     <string>...</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="cb_zones_proj">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>280</x>
+      <y>210</y>
+      <width>121</width>
+      <height>22</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="txt_zones_select_file">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>80</x>
+      <y>121</y>
+      <width>271</width>
+      <height>20</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_zones_desc">
+    <property name="geometry">
+     <rect>
+      <x>5</x>
+      <y>35</y>
+      <width>251</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>What type of data do you have for zones?</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="img_lb_zones_desc_help">
+    <property name="geometry">
+     <rect>
+      <x>246</x>
+      <y>32</y>
+      <width>16</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="resources/SIDDResource.qrc">:/imgs/icons/help.png</pixmap>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_zones_count_field">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>180</y>
+      <width>271</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Select field containing building count</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="cb_zones_count_field">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>280</x>
+      <y>180</y>
+      <width>121</width>
+      <height>22</height>
+     </rect>
+    </property>
+   </widget>
+  </widget>
+ </widget>
+ <tabstops>
+  <tabstop>radio_fp_op1</tabstop>
+  <tabstop>radio_fp_op2</tabstop>
+  <tabstop>radio_fp_op3</tabstop>
+  <tabstop>txt_fp_select_file</tabstop>
+  <tabstop>btn_fp_select_file</tabstop>
+  <tabstop>cb_fp_story_field</tabstop>
+  <tabstop>cb_fp_proj</tabstop>
+  <tabstop>radio_svy_op1</tabstop>
+  <tabstop>radio_svy_op2</tabstop>
+  <tabstop>radio_svy_op3</tabstop>
+  <tabstop>txt_svy_select_file</tabstop>
+  <tabstop>btn_svy_select_file</tabstop>
+  <tabstop>radio_aggr_op1</tabstop>
+  <tabstop>radio_aggr_op2</tabstop>
+  <tabstop>radio_zones_op1</tabstop>
+  <tabstop>radio_zones_op2</tabstop>
+  <tabstop>radio_zones_op3</tabstop>
+  <tabstop>txt_zones_select_file</tabstop>
+  <tabstop>btn_zones_select_file</tabstop>
+  <tabstop>cb_zones_class_field</tabstop>
+  <tabstop>cb_zones_proj</tabstop>
+  <tabstop>btn_verify</tabstop>
+  <tabstop>txt_panel_description</tabstop>
+  <tabstop>txt_verify_text</tabstop>
+ </tabstops>
+ <resources>
+  <include location="resources/SIDDResource.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>btn_fp_select_file</sender>
+   <signal>clicked()</signal>
+   <receiver>widgetDataInput</receiver>
+   <slot>openFootprintData()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>311</x>
+     <y>219</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>408</x>
+     <y>412</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btn_svy_select_file</sender>
+   <signal>clicked()</signal>
+   <receiver>widgetDataInput</receiver>
+   <slot>openSurveyData()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>326</x>
+     <y>462</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>408</x>
+     <y>617</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btn_zones_select_file</sender>
+   <signal>clicked()</signal>
+   <receiver>widgetDataInput</receiver>
+   <slot>openZoneData()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>726</x>
+     <y>225</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>836</x>
+     <y>148</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btn_verify</sender>
+   <signal>clicked()</signal>
+   <receiver>widgetDataInput</receiver>
+   <slot>verifyInput()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>770</x>
+     <y>613</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>411</x>
+     <y>534</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radio_fp_op1</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>widgetDataInput</receiver>
+   <slot>setFootprintDataType()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>57</x>
+     <y>158</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>413</x>
+     <y>205</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radio_fp_op2</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>widgetDataInput</receiver>
+   <slot>setFootprintDataType()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>68</x>
+     <y>176</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>412</x>
+     <y>201</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radio_fp_op3</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>widgetDataInput</receiver>
+   <slot>setFootprintDataType()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>33</x>
+     <y>197</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>412</x>
+     <y>193</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radio_svy_op1</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>widgetDataInput</receiver>
+   <slot>setSurveyDataType()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>45</x>
+     <y>388</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>410</x>
+     <y>409</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radio_svy_op2</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>widgetDataInput</receiver>
+   <slot>setSurveyDataType()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>78</x>
+     <y>408</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>410</x>
+     <y>439</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radio_svy_op3</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>widgetDataInput</receiver>
+   <slot>setSurveyDataType()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>202</x>
+     <y>427</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>410</x>
+     <y>470</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radio_zones_op1</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>widgetDataInput</receiver>
+   <slot>setZoneDataType()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>476</x>
+     <y>153</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>821</x>
+     <y>54</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radio_zones_op2</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>widgetDataInput</receiver>
+   <slot>setZoneDataType()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>455</x>
+     <y>171</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>835</x>
+     <y>107</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radio_zones_op3</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>widgetDataInput</receiver>
+   <slot>setZoneDataType()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>541</x>
+     <y>190</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>837</x>
+     <y>166</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radio_aggr_op1</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>widgetDataInput</receiver>
+   <slot>setAggregateType()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>110</x>
+     <y>570</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>414</x>
+     <y>522</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radio_aggr_op2</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>widgetDataInput</receiver>
+   <slot>setAggregateType()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>155</x>
+     <y>587</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>412</x>
+     <y>505</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btn_aggr_grid_select_file</sender>
+   <signal>clicked()</signal>
+   <receiver>widgetDataInput</receiver>
+   <slot>openAggGridData()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>314</x>
+     <y>616</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>361</x>
+     <y>645</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radio_aggr_op1</sender>
+   <signal>clicked()</signal>
+   <receiver>widgetDataInput</receiver>
+   <slot>setAggregateType()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>83</x>
+     <y>573</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>66</x>
+     <y>648</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radio_aggr_op2</sender>
+   <signal>clicked()</signal>
+   <receiver>widgetDataInput</receiver>
+   <slot>setAggregateType()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>92</x>
+     <y>594</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>94</x>
+     <y>649</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>cb_zones_class_field</sender>
+   <signal>currentIndexChanged(QString)</signal>
+   <receiver>widgetDataInput</receiver>
+   <slot>setZoneField()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>781</x>
+     <y>256</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>837</x>
+     <y>266</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>cb_zones_count_field</sender>
+   <signal>currentIndexChanged(QString)</signal>
+   <receiver>widgetDataInput</receiver>
+   <slot>setZoneCountField()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>791</x>
+     <y>286</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>830</x>
+     <y>301</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>openFootprintData()</slot>
+  <slot>openSurveyData()</slot>
+  <slot>openZoneData()</slot>
+  <slot>verifyInput()</slot>
+  <slot>setFootprintDataType()</slot>
+  <slot>setSurveyDataType()</slot>
+  <slot>setAggregateType()</slot>
+  <slot>setZoneDataType()</slot>
+  <slot>openAggGridData()</slot>
+  <slot>setZoneField()</slot>
+  <slot>setZoneCountField()</slot>
+ </slots>
+</ui>
