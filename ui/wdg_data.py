@@ -421,7 +421,76 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
                 
     @logUICall
     def verifyInput(self, checked=False):
-        """ determine if current input data set is enough to build exposure """        
+        """ determine if current input data set is enough to build exposure """
+        # make sure all required input has been filled in
+        # footprint 
+        if (self.ui.radio_fp_op2.isChecked() or 
+            self.ui.radio_fp_op3.isChecked()):
+            # file set
+            path = self.ui.txt_fp_select_file.text() 
+            if path == '':
+                QMessageBox.warning(self,
+                                    get_ui_string('app.warning.title'),
+                                    get_ui_string('widget.input.fp.file.missing'))
+                return
+            # file must exist
+            if not os.path.exists(path):
+                QMessageBox.warning(self,
+                                    get_ui_string('app.warning.title'),
+                                    get_ui_string('app.error.file.does.not.exist' % path))                
+                return            
+        if self.ui.radio_fp_op3.isChecked():
+            # story field set 
+            if self.ui.cb_fp_story_field.currentText() == ' ':
+                QMessageBox.warning(self,
+                                    get_ui_string('app.warning.title'),
+                                    get_ui_string('widget.input.fp.storyfield.missing'))
+                return
+        # survey 
+        if (self.ui.radio_svy_op2.isChecked() or
+            self.ui.radio_svy_op3.isChecked()):
+            # file set
+            path = self.ui.txt_svy_select_file.text() 
+            if path == '':            
+                QMessageBox.warning(self,
+                                    get_ui_string('app.warning.title'),
+                                    get_ui_string('widget.input.survey.file.missing'))
+                return
+            # file must exist
+            if not os.path.exists(path):
+                QMessageBox.warning(self,
+                                    get_ui_string('app.warning.title'),
+                                    get_ui_string('app.error.file.does.not.exist' % path))                
+                return
+        # zone 
+        if (self.ui.radio_zones_op2.isChecked() or
+            self.ui.radio_zones_op3.isChecked()):
+            # file set
+            path = self.ui.txt_zones_select_file.text() 
+            if path == '':              
+                QMessageBox.warning(self,
+                                    get_ui_string('app.warning.title'),
+                                    get_ui_string('widget.input.zone.file.missing'))
+                return
+            # file must exist
+            if not os.path.exists(path):
+                QMessageBox.warning(self,
+                                    get_ui_string('app.warning.title'),
+                                    get_ui_string('app.error.file.does.not.exist' % path))
+                return               
+            # zone field must be set
+            if self.ui.cb_zones_class_field.currentText() == ' ':
+                QMessageBox.warning(self,
+                                    get_ui_string('app.warning.title'),
+                                    get_ui_string('widget.input.zone.zonefield.missing'))
+                return                        
+        if (self.ui.radio_zones_op3.isChecked()):
+            # count field must be set
+            if self.ui.cb_zones_count_field.currentText() == ' ':
+                QMessageBox.warning(self,
+                                    get_ui_string('app.warning.title'),
+                                    get_ui_string('widget.input.zone.countfield.missing'))            
+                
         # delegate to main controller's verifyInput method for following reason
         # 1. verifyInput action can be invoked from maybe UI points
         # 2. verifyInput result updates multiple tabs        
@@ -556,9 +625,9 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
         ui.lb_zones_proj.setText(get_ui_string("widget.input.zone.projection"))
         ui.lb_zones_class_field.setText(get_ui_string("widget.input.zone.zonefield"))
         ui.lb_zones_count_field.setText(get_ui_string("widget.input.zone.countfield"))
-        ui.radio_zones_op1.setText(get_ui_string("widget.input.op1"))
-        ui.radio_zones_op2.setText(get_ui_string("widget.input.op2"))
-        ui.radio_zones_op3.setText(get_ui_string("widget.input.op3"))
+        ui.radio_zones_op1.setText(get_ui_string("widget.input.zone.op1"))
+        ui.radio_zones_op2.setText(get_ui_string("widget.input.zone.op2"))
+        ui.radio_zones_op3.setText(get_ui_string("widget.input.zone.op3"))
 
         # data aggregation related
         ui.lb_aggr_title.setText(get_ui_string("widget.input.agg.title"))

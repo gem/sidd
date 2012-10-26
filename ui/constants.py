@@ -38,6 +38,7 @@ SIDD_UI_STRINGS = {
     "app.error.project.missing":'Must open project or create new project',
     "app.error.model":'Error Processing Request',
     'app.error.ui':'Error Processing Request',
+    'app.error.file.does.not.exist':'File %s cannot be found',
     'app.warning.title':'Warning',
     # project errors
     ######################
@@ -105,6 +106,7 @@ SIDD_UI_STRINGS = {
     "widget.input.survey.option1":'No Data',
     "widget.input.survey.option2":'Complete building stock/survey area',
     "widget.input.survey.option3":'Sampled buildings from survey area',
+    "widget.input.survey.file.missing":'Survey File not specified',
     # footprint
     "widget.input.fp.title":'Building footprint data',
     "widget.input.fp.description":'What type of data do you have for building footprints?',
@@ -114,6 +116,8 @@ SIDD_UI_STRINGS = {
     "widget.input.fp.op1":'No Data',
     "widget.input.fp.op2":'Building footprints with number of stories',
     "widget.input.fp.op3":'Building footprints without number of stories',
+    "widget.input.fp.file.missing":'Footprint File not specified',
+    "widget.input.fp.storyfield.missing":'Number of stories field not specified',
     # zones
     "widget.input.zone.title":'Homogenous zones data',
     "widget.input.zone.description":'What type of data do you have for zones?',
@@ -121,9 +125,12 @@ SIDD_UI_STRINGS = {
     "widget.input.zone.projection":'Verify projection:',
     "widget.input.zone.zonefield":'Select field containing land use/class attribute:',
     "widget.input.zone.countfield":'Select field containing building count',
-    "widget.input.op1":'No Data',
-    "widget.input.op2":'Land use zones',
-    "widget.input.op3":'Land use zones with building count',
+    "widget.input.zone.op1":'No Data',
+    "widget.input.zone.op2":'Land use zones',
+    "widget.input.zone.op3":'Land use zones with building count',
+    "widget.input.zone.file.missing":'Homogenous zone input file not specified',
+    "widget.input.zone.zonefield.missing":'Land use/class field not specified',
+    "widget.input.zone.countfield.missing":'Building count field not specified',
     # aggregation
     "widget.input.agg.title":'Aggregation',
     "widget.input.agg.file.open":'Open GED compatible Grid',
@@ -143,7 +150,7 @@ SIDD_UI_STRINGS = {
     "widget.input.verify.sucess":'Datasets complete\nProceed to create exposure',
     "widget.input.verify.datarequired":'Following dataset required for building exposure',
     "widget.input.verify.noaction":'No action is defined for type of data provided',
-    "widget.input.verify.unknownerror":'Unknown error while verifying input data',    
+    "widget.input.verify.unknownerror":'Unknown error while verifying input data',
     # main application window / ms tab
     ######################
     "widget.ms.title":'Manage Mapping Schemes',
