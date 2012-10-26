@@ -14,7 +14,7 @@
 # version 3 along with SIDD.  If not, see
 # <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 #
-# Version: $Id: data.py 18 2012-10-24 20:21:41Z zh $
+# Version: $Id: data.py 21 2012-10-26 01:48:25Z zh $
 
 """
 SIDD operators data types
@@ -38,6 +38,7 @@ OperatorDataTypes = Enum(
     "ZoneStatistic",
     "MappingScheme",
     "Grid",
+    "Layer",
     "Exposure",
     
     # formula

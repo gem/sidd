@@ -14,7 +14,7 @@
 # version 3 along with SIDD.  If not, see
 # <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 #
-# Version: $Id: wdg_ms.py 20 2012-10-25 16:17:10Z zh $
+# Version: $Id: wdg_ms.py 21 2012-10-26 01:48:25Z zh $
 
 """
 Widget (Panel) for creating mapping scheme
@@ -84,8 +84,10 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         self.setMSLibraryEnabled(False)
         
         self.dlgEditMS = DialogEditMS(self.app)
+        self.dlgEditMS.setModal(True)
         self.dlgSaveMS = DialogSaveMS(self.app)        
-
+        self.dlgSaveMS.setModal(True)
+        
     # public methods
     ###############################
     
@@ -111,14 +113,12 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
     @logUICall
     def buildMS(self):
         """ build mapping scheme from survey data """
-        self.clearMappingScheme()
         self.app.buildMappingScheme()
 
     @uiCallChecker
     @logUICall
     def createMS(self):
         """ create new mapping scheme """
-        self.clearMappingScheme()
         self.app.createEmptyMS()
         
     @uiCallChecker
@@ -126,8 +126,8 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
     def saveMS(self):
         """ save existing mapping scheme """
         if self.ms is not None:
+            # show save dialogbox for mapping scheme
             self.dlgSaveMS.setMS(self.ms)
-            self.dlgSaveMS.setModal(True)
             self.dlgSaveMS.exec_()
 
     @uiCallChecker
@@ -138,14 +138,20 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         if type(node) == MappingSchemeZone:
             node = node.stats.get_tree()
         
+        # show save dialogbox for selected node
         self.dlgEditMS.setNode(node, addNew=True)
-        self.dlgEditMS.setModal(True)
         self.dlgEditMS.exec_()
         ans = self.dlgEditMS.exec_()
-        if ans == QDialog.Accepted:            
+
+        # accepted means apply change        
+        if ans == QDialog.Accepted:
+            # NOTE: dlgEditMS should already have performed all the checks on 
+            #       values/weights pair, we can safely assume that data is clean 
+            #       to be used    
+                        
+            # TODO: refactor call into main controller
             node.update_children(self.dlgEditMS.values, self.dlgEditMS.weights)
             self.app.visualizeMappingScheme(self.ms)
-        
 
     @uiCallChecker
     @logUICall
@@ -165,42 +171,64 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         """ edit a branch from mapping scheme tree """
         node = self.getSelectedNode(self.ui.tree_ms)
         if type(node) != StatisticNode:
+            # cannot continue if if zone or tree model root node 
+            # (not statistic tree root node)
             QMessageBox.warning(self, 
                                 get_ui_string("app.warning.title"),
                                 get_ui_string("widget.ms.warning.node.required"))
             return        
         # not zone / not root, good to continue
         
+        # show save dialogbox for selected node
         self.dlgEditMS.setNode(node)
-        self.dlgEditMS.setModal(True)
         ans = self.dlgEditMS.exec_()
-        if ans == QDialog.Accepted:            
+
+        # accepted means apply change        
+        if ans == QDialog.Accepted:
+            # NOTE: dlgEditMS should already have performed all the checks on 
+            #       values/weights pair, we can safely assume that data is clean 
+            #       to be used    
+
+            # TODO: refactor call into main controller            
             node.parent.update_children(self.dlgEditMS.values, self.dlgEditMS.weights)
             self.app.visualizeMappingScheme(self.ms)
 
     @uiCallChecker
     @logUICall
     def appendBranch(self):
-        """ append branch to mapping scheme tree """
+        """ 
+        event handler for btn_add_branch 
+        - append branch to mapping scheme tree 
+        """
         # get selected node from working mapping scheme tree
         node = self.getSelectedNode(self.ui.tree_ms)
-        branch = self.getSelectedNode(self.ui.tree_repo_ms)
+        branch = self.getSelectedNode(self.ui.tree_ms_library)        
         self.app.appendMSBranch(node, branch)
         
     @uiCallChecker
     @logUICall
     def setModifiers(self):
-        """  """
-        pass
+        """
+        event handler for btn_secondary_mod 
+        - switch view to secondary modifier tab
+        """        
+        self.app.showTab(2)
 
     @uiCallChecker
     @logUICall
     def applyMS(self):
-        """  apply mapping scheme and generate exposure """
+        """  
+        event handler for btn_build_exposure 
+        - apply mapping scheme and generate exposure 
+        """        
         self.app.buildExposure()
     
     @logUICall
     def toggleMSLibrary(self, value):
+        """ 
+        event handler for ck_enable_ms_library
+        - toggle access to mapping scheme library 
+        """        
         self.setMSLibraryEnabled(value)
 
     @uiCallChecker
@@ -214,8 +242,6 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         region = self.ui.list_ms_library_regions.currentItem ().text()
         
         # adjust UI to display results
-        #self.ui.list_ms_library_types.clear()
-        #self.ui.list_ms_library_msnames.clear()
         self.resetMSLibrary()
         for mstype in self.msdb_dao.get_types_in_region(region):
             self.ui.list_ms_library_types.addItem(QString(mstype))
@@ -226,7 +252,6 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         """
         update available mapping schemes list according to selected type
         """
-
         # get selected region/type
         region = self.ui.list_ms_library_regions.currentItem ().text()
         mstype = self.ui.list_ms_library_types.currentItem ().text()
@@ -272,7 +297,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         ms_name = self.ui.list_ms_library_msnames.currentItem().text()        
         
         if (ms_type != get_ui_string('app.mslibrary.user.multilevel') and
-            ms_type != get_ui_string('app.mslibrary.user.singlelevel') ):
+            ms_type != get_ui_string('app.mslibrary.user.singlelevel')):
             QMessageBox.critical(self, 
                                  get_ui_string('app.warning.title'), 
                                  get_ui_string('widget.ms.library.delete.denied'))
@@ -284,21 +309,25 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
     # internal helper methods
     ###############################
     def setMSLibraryEnabled(self, enable):
+        """ toggle access to mapping scheme library """
         self.ui.box_library.setEnabled(enable)
         self.ui.btn_add_branch.setEnabled(enable)
         if not enable:
-            self.resetMSLibrary()           
+            self.resetMSLibrary()
     
     def getSelectedNode(self, tree):
+        """ retrieve currently selected node from given tree """
         selectedIndexes = tree.selectedIndexes()
         if (len(selectedIndexes) <= 0):
             raise SIDDUIException(get_ui_string("widget.ms.warning.node.required"))
+            return None
         if not selectedIndexes[0].isValid():
             raise SIDDUIException(get_ui_string("widget.ms.warning.node.invalid"))
+            return None
         return selectedIndexes[0].internalPointer()
 
     def resetMSLibrary(self, clearTypes=True, clearNames=True):
-        """ reset library UI """
+        """ reset mapping scheme library UI elements """
         if clearTypes:
             self.ui.list_ms_library_types.clear()
         if clearNames:

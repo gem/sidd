@@ -6,7 +6,7 @@
 # @link       http://www.seismicat.com
 # @since      SeismiCat v1.0
 # @license    
-# @version    $Id: operator_unittest.py 18 2012-10-24 20:21:41Z zh $
+# @version    $Id: operator_unittest.py 21 2012-10-26 01:48:25Z zh $
 #
 
 import os
@@ -17,7 +17,7 @@ import logging
 # import sidd packages for testing
 from sidd.ms import *
 from sidd.operator import *
-from utils.shapefile import remove_shapefile, layer_fields_stats
+from utils.shapefile import remove_shapefile, layer_fields_stats, load_shapefile
 
 class OperatorTestCase(unittest.TestCase):
     
@@ -432,14 +432,17 @@ class OperatorTestCase(unittest.TestCase):
     def test_ApplyMS(self):
         logging.debug('test_ApplyMS')
         
+        # load zone with count
+        zone_data = self.test_LoadZoneCount(True)
+        
         # load ms
         ms_opdata = self.test_LoadMS(True)
         
         # apply mapping scheme        
-        ms_applier = MSApplier(self.operator_options)
+        ms_applier = ZoneMSApplier(self.operator_options)
         
         ms_applier.inputs = [
-            OperatorData(OperatorDataTypes.Shapefile, self.zone_path),
+            zone_data[0],
             OperatorData(OperatorDataTypes.StringAttribute, self.zone_field),
             OperatorData(OperatorDataTypes.StringAttribute, self.bldgcount_field),
             ms_opdata[0],
@@ -452,23 +455,31 @@ class OperatorTestCase(unittest.TestCase):
         self.assertTrue(os.path.exists(ms_applier.outputs[1].value))
         
         # cleanup
-        self._clean_layer(ms_applier.outputs)
+        self._clean_layer(zone_data)
+        self._clean_layer(ms_applier.outputs)        
+        del ms_applier
         
         # testing apply MS on grid
         ############################
         
+        ms_applier = GridMSApplier(self.operator_options)
         ms_applier.inputs = [
-            OperatorData(OperatorDataTypes.Shapefile, self.grid2_path),
+            OperatorData(OperatorDataTypes.Grid, load_shapefile(self.grid2_path, 'test_input_grid')),            
             OperatorData(OperatorDataTypes.StringAttribute, self.zone_field),
             OperatorData(OperatorDataTypes.StringAttribute, self.bldgcount_field),
             ms_opdata[0],
         ]
+        ms_applier.outputs = [
+            OperatorData(OperatorDataTypes.Exposure),
+            OperatorData(OperatorDataTypes.Shapefile),
+        ]        
         ms_applier.do_operation()
         self.assertTrue(os.path.exists(ms_applier.outputs[1].value))
         
         # cleanup
         self._clean_layer(ms_applier.outputs)
         del ms_applier
+        
 
     def test_SurveyAggregate(self):
         logging.debug('test_SurveyAggregate')

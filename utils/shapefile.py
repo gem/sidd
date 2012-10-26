@@ -14,7 +14,7 @@
 # version 3 along with SIDD.  If not, see
 # <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 #
-# Version: $Id: shapefile.py 18 2012-10-24 20:21:41Z zh $
+# Version: $Id: shapefile.py 21 2012-10-26 01:48:25Z zh $
 
 """
 shapefile helper functions
@@ -41,11 +41,7 @@ def load_shapefile(input_file, layer_name):
     return _layer
 
 def shapefile_fields(input_file):
-    """
-    return list of field from shapefile
-    TODO: change function to read list of fields from loaded vector layer
-    """
-    #layer = QgsVectorLayer(input_file, 'layer', 'ogr')
+    """ return list of field names from given shapefile """
     layer = load_shapefile(input_file, get_random_name())
     names = []
     if layer:
@@ -151,7 +147,7 @@ def layer_fields_stats(layer, field):
 def layer_features(layer):
     """ generator for traversing all features within given vector layer """
     provider = layer.dataProvider()
-    provider.select(provider.attributeIndexes(), provider.extent())
+    provider.select(provider.attributeIndexes())
     f = QgsFeature()
     provider.rewind()
     for _idx in range(provider.featureCount()):

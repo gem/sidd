@@ -14,7 +14,7 @@
 # version 3 along with SIDD.  If not, see
 # <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 #
-# Version: $Id: dlg_mod_input.py 18 2012-10-24 20:21:41Z zh $
+# Version: $Id: dlg_mod_input.py 21 2012-10-26 01:48:25Z zh $
 
 """
 dialog for editing secondary modifiers
@@ -33,7 +33,8 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
     """
     dialog for editing mapping scheme brances
     """
-    
+    # constructor
+    ###############################    
     def __init__(self, mainWin):
         super(DialogModInput, self).__init__()
         self.ui = Ui_modifierInputDialog()
@@ -44,9 +45,117 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
         self.ui.table_mod_values.horizontalHeader().resizeSection(1, self.ui.table_mod_values.width() * 0.4)
         self.ui.btn_mod_build.setVisible(False)
 
+        self.ms = None
+    # ui event handler
+    ###############################    
+    def zoneSelected(self):
+        """
+        event handler for cb_ms_zone
+        - update level1 combobox according to selected zone using mapping scheme tree
+          and set target node as root node of selected zone
+          do nothing if 
+          1. not adding new modifiers or 
+          2. mapping scheme not set internally (@see setNode)          
+        """
+        if not self.addNew or self.ms is None:
+            return
+        stats = self.ms.get_assignment_by_name(self.ui.cb_ms_zone.currentText())
+        self.root_node = stats.get_tree()        
+        self.lv1_node = self.popComboxBox(self.ui.cb_level1, self.root_node, '')
+        
+    def level1Selected(self):
+        """
+        event handler for cb_level1
+        - update level2 combobox according to selected zone using mapping scheme tree
+          and set target node as current level1 node
+          do nothing if 
+          1. not adding new modifiers or 
+          2. mapping scheme not set internally (@see setNode)          
+        """
+        if not self.addNew or self.ms is None:
+            return
+        # TODO: getSelectedNode should be method in StatisticNode class
+        self.lv1_node = self.getSelectedNode(self.root_node, self.ui.cb_level1.currentText())
+        if self.lv1_node is not None:
+            self.node = self.lv1_node
+        self.lv2_node = self.popComboxBox(self.ui.cb_level2, self.lv1_node, '')
+    
+    def level2Selected(self):
+        """
+        event handler for cb_level2
+        - update level3 combobox according to selected zone using mapping scheme tree
+          and set target node as current level2 node
+          do nothing if 
+          1. not adding new modifiers or 
+          2. mapping scheme not set internally (@see setNode)          
+        """
+        if not self.addNew or self.ms is None:
+            return
+        # TODO: getSelectedNode should be method in StatisticNode class
+        self.lv2_node = self.getSelectedNode(self.lv1_node, self.ui.cb_level2.currentText())
+        if self.lv2_node is not None:
+            self.node = self.lv2_node
+        self.lv3_node = self.popComboxBox(self.ui.cb_level3, self.lv2_node, '')
+    
+    def level3Selected(self):
+        """
+        event handler for cb_level2
+        - set target node as current level2 node
+          do nothing if 
+          1. not adding new modifiers or 
+          2. mapping scheme not set internally (@see setNode)          
+        """
+        if not self.addNew or self.ms is None:
+            return
+        # TODO: getSelectedNode should be method in StatisticNode class
+        self.lv3_node = self.getSelectedNode(self.lv2_node, self.ui.cb_level3.currentText())
+        if self.lv3_node is not None:
+            self.node = self.lv3_node
+    
+    def setModifier(self):
+        """ 
+        event handler for btn_apply
+        - return new set of values/weights to be applied  
+        """
+        self.values = self.modModel.values
+        self.weights = self.modModel.weights
+        # TODO: performs checks before returning
+        # 1. no empty values
+        # 2. weights add up to 100        
+        self.accept()    
+    
+    def addValue(self):
+        """
+        event handler for btn_add
+        - add another pair of value/weights to table_mod_values
+        """
+        self.modModel.addValues()
+    
+    def deleteValue(self):
+        """
+        event handler for btn_delete
+        - delete currently selected row of value/weights from table_mod_values          
+        """
+        selected = self.getSelectedCell()
+        if selected is not None:
+            self.modModel.deleteValue(selected)
+    
+    def buildFromSurvey(self):
+        """ event handler for btn_mod_build """
+        # TODO: delete btn_mod_build and this method 
+        pass
+    
+    
+    # public method
+    ###############################
+    
     @logUICall
     def setNode(self, ms, mod, addNew=False):
-        """ from given node, all sibling are used in dialog """
+        """ 
+        shows values/weights in table_mod_values for given node
+        if addNew values/weights are two empty lists 
+        otherwise, values/weights are from take from given mod  
+        """ 
         self.ms = ms
         self.mod = mod
         self.addNew = addNew
@@ -96,53 +205,14 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
             
         self.modModel = MSLevelTableModel(self.values, self.weights)
         self.ui.table_mod_values.setModel(self.modModel)
-            
-    def zoneSelected(self):
-        if not self.addNew :
-            return
-        stats = self.ms.get_assignment_by_name(self.ui.cb_ms_zone.currentText())
-        self.root_node = stats.get_tree()        
-        self.lv1_node = self.popComboxBox(self.ui.cb_level1, self.root_node, '')
-        
-    def level1Selected(self):
-        if not self.addNew :
-            return
-        self.lv1_node = self.getSelectedNode(self.root_node, self.ui.cb_level1.currentText())
-        if self.lv1_node is not None:
-            self.node = self.lv1_node
-        self.lv2_node = self.popComboxBox(self.ui.cb_level2, self.lv1_node, '')
-    
-    def level2Selected(self):
-        if not self.addNew :
-            return
-        self.lv2_node = self.getSelectedNode(self.lv1_node, self.ui.cb_level2.currentText())
-        if self.lv2_node is not None:
-            self.node = self.lv2_node
-        self.lv3_node = self.popComboxBox(self.ui.cb_level3, self.lv2_node, '')
-    
-    def level3Selected(self):
-        if not self.addNew :
-            return
-        self.lv3_node = self.getSelectedNode(self.lv2_node, self.ui.cb_level3.currentText())
-        if self.lv3_node is not None:
-            self.node = self.lv3_node                        
-    
-    def setModifier(self):
-        self.values = self.modModel.values
-        self.weights = self.modModel.weights
-        self.accept()
-    
-    
-    def addValue(self):
-        self.modModel.addValues()
-    
-    def deleteValue(self):
-        self.modModel.deleteValue(self.getSelectedCell())
-    
-    def buildFromSurvey(self):
-        pass
-    
-    def popComboxBox(self, cb, node, selected_val):        
+
+    # internal helper methods
+    #############################
+    def popComboxBox(self, cb, node, selected_val):
+        """
+        populate given combobox with node's children's value
+        and show selected_val as selected   
+        """
         if node is None:
             return None
         cb.clear()
@@ -154,12 +224,13 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
             if selected_val == child_val:
                 child_node = child
                 cb.setCurrentIndex(cb.findText(selected_val))
-        return child_node                
-
-    # internal helper methods
-    #############################
-
-    def getSelectedNode(self, node, selected_val):        
+        return child_node        
+    
+    def getSelectedNode(self, node, selected_val):
+        """
+        retrieve node's child with same value as selected_val
+        """
+        # TODO: refactor into StatisticNode
         if node is None:
             return None
         child_node = None
@@ -170,11 +241,14 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
         return child_node
 
     def getSelectedCell(self):
-        selectedIndexes = self.table_mod_values.selectedIndexes()
+        """ return selected cell in table_mod_values """        
+        selectedIndexes = self.ui.table_mod_values.selectedIndexes()
         if (len(selectedIndexes) <= 0):
             QMessageBox.warning(self, 'Node Not Selected', 'Please select node first.')
+            return None
         if not selectedIndexes[0].isValid():
             QMessageBox.warning(self, 'Invalid Node', 'Select node does not support this function.')
+            return None
         return selectedIndexes[0]
         
     def retranslateUi(self, ui):
@@ -186,5 +260,5 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
         ui.lb_level2.setText(get_ui_string("dlg.mod.level2"))
         ui.lb_level3.setText(get_ui_string("dlg.mod.level3"))
         ui.btn_mod_build.setText(get_ui_string("dlg.mod.build"))
-        ui.btn_ok.setText(get_ui_string("app.dialog.button.ok"))
+        ui.btn_apply.setText(get_ui_string("app.dialog.button.apply"))
         ui.btn_cancel.setText(get_ui_string("app.dialog.button.close"))

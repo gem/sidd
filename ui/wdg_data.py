@@ -14,7 +14,7 @@
 # version 3 along with SIDD.  If not, see
 # <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 #
-# Version: $Id: wdg_data.py 18 2012-10-24 20:21:41Z zh $
+# Version: $Id: wdg_data.py 21 2012-10-26 01:48:25Z zh $
 
 """
 Widget (Panel) for specifying data inputs
@@ -88,7 +88,7 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
         self.ui.radio_zones_op1.setChecked(True)
         self.ui.radio_aggr_op1.setChecked(True)
         
-        
+        self.ui.radio_fp_op2.setEnabled(False)
 
     # public methods
     ###############################
@@ -167,7 +167,20 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
             self.ui.img_lb_verify_agg_grid.setPixmap(QPixmap(YES_KEY))
             self.ui.img_lb_verify_agg_zone.setPixmap(QPixmap(NO_KEY))
         
-        self.ui.txt_verify_text.setText(project.verification_message)
+        if project.status == ProjectStatus.ReadyForExposure:
+            self.ui.txt_verify_text.setText(get_ui_string('widget.input.verify.sucess'))
+        elif project.status == ProjectStatus.ReadyForMS:
+            self.ui.txt_verify_text.setText(get_ui_string('widget.input.verify.datarequired'))
+            # append error messages
+            for err in project.errors:                
+                errMsg = get_ui_string('project.error.%s' % str(err))
+                if errMsg == '':
+                    errMsg = get_ui_string('widget.input.verify.unknownerror')                 
+                self.ui.txt_verify_text.append('-%s' % errMsg)
+                                                                
+        else: #project.status == ProjectStatus.NotVerified:
+            self.ui.txt_verify_text.setText(get_ui_string('widget.input.verify.noaction'))            
+        
        
     @logAPICall
     def closeProject(self):

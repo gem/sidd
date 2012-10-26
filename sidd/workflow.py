@@ -14,7 +14,7 @@
 # version 3 along with SIDD.  If not, see
 # <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 #
-# Version: $Id: workflow.py 18 2012-10-24 20:21:41Z zh $
+# Version: $Id: workflow.py 21 2012-10-26 01:48:25Z zh $
 
 """
 SIDD workflow manager
@@ -41,9 +41,17 @@ class Workflow(object):
         """ constructor """
         self.reset()
         self.ready=False
+        self.errors = []
 
     # public method
     ##################################
+    @logAPICall
+    def add_error(self, err_code):         
+        self.errors.append(err_code)
+    
+    @logAPICall
+    def has_error(self):
+        return len(self.errors) > 0
     
     @logAPICall
     def from_xml_string(self, xmlstr):
@@ -171,9 +179,12 @@ class WorkflowBuilder(object):
                     workflow.operator_data['survey'],
                     workflow.operator_data['zone'],
                     workflow.operator_data['zone_field'],]
+        
         workflow.operator_data['ms'] = OperatorData(OperatorDataTypes.MappingScheme)
         ms_creator.outputs = [workflow.operator_data['ms'],]
         workflow.operators.append(ms_creator)
+        workflow.ready=True
+        
         return workflow
         
     @logAPICall
@@ -220,23 +231,30 @@ class WorkflowBuilder(object):
             still_needs_ms = False
 
         logAPICall.log('checking if dataset is complete', logAPICall.DEBUG)
-        
-        if still_needs_zone:            
-            raise WorkflowException(WorkflowErrors.NeedsZone)
+
+        if still_needs_zone:
+            workflow.add_error(WorkflowErrors.NeedsZone)
         if still_needs_count:
-            raise WorkflowException(WorkflowErrors.NeedsCount)
+            workflow.add_error(WorkflowErrors.NeedsCount)            
         if still_needs_ms:
-            raise WorkflowException(WorkflowErrors.NeedsMS)
+            workflow.add_error(WorkflowErrors.NeedsMS)
+        
+        # if data set is not complete
+        # return a workflow that is not ready
+        if workflow.has_error():
+            return workflow
 
         logAPICall.log('add exposure building operation', logAPICall.DEBUG)
-        # exposure data is stored here
-        exposure_file_data = OperatorData(OperatorDataTypes.Shapefile)
-        workflow.operator_data['exposure_file'] = exposure_file_data
-
-        # select appropriate operator(s) to apply mapping scheme
-        self._build_processing_chain(project, workflow)
         
-        workflow.ready=True
+        # select appropriate operator(s) to apply mapping scheme
+        try:
+            self._build_processing_chain(project, workflow)            
+            workflow.ready=True
+        except WorkflowException as err:
+            # error building processing chain
+            # workflow is not ready 
+            workflow.add_error(err.error)
+        
         return workflow
 
     def build_export_workflow(self, project):
@@ -252,11 +270,13 @@ class WorkflowBuilder(object):
         elif export_type == ExportTypes.NRML:
             export_operator = ExposureNRMLWriter(self._operator_options)
         else:
-            raise WorkflowException(WorkflowException.Errors.NoActionDefined)
+            return
         export_operator.inputs= [workflow.operator_data['exposure_file'],
                                  workflow.operator_data['export_file'],]        
         workflow.operators.append(export_operator)
-        return workflow        
+        workflow.ready=True
+        
+        return workflow       
 
 
     # workflow helper methods - build data loading operator
@@ -314,12 +334,6 @@ class WorkflowBuilder(object):
         workflow.operators.append(zone_loader)
     
     def _load_survey(self, project, workflow, isComplete):
-        #if not isComplete:
-        #    # in case of sampled survey, it can only be used to create mapping scheme
-        #    # so not directly usable during exposure building stage
-        #    # therefore, no need to load at all
-        #    return
-
         # inputs / outputs
         workflow.operator_data['survey_input_file'] = OperatorData(OperatorDataTypes.File, project.survey_file)
         workflow.operator_data['survey'] = OperatorData(OperatorDataTypes.Survey)
@@ -361,6 +375,7 @@ class WorkflowBuilder(object):
             
             # done
             return
+        
         # no match for input and output type
         # cannot do anything with given data
         raise WorkflowException(WorkflowErrors.NoActionDefined)
@@ -403,9 +418,9 @@ class WorkflowBuilder(object):
         workflow.operator_data['exposure'] = OperatorData(OperatorDataTypes.Exposure)
         workflow.operator_data['exposure_file'] = OperatorData(OperatorDataTypes.Shapefile)
         
-        ms_applier = MSApplier(self._operator_options)
+        ms_applier = GridMSApplier(self._operator_options)
         ms_applier.inputs = [
-            workflow.operator_data['grid_file'],
+            workflow.operator_data['grid'],
             workflow.operator_data['zone_field'],
             OperatorData(OperatorDataTypes.StringAttribute, CNT_FIELD_NAME),
             workflow.operator_data['ms'],
@@ -426,9 +441,9 @@ class WorkflowBuilder(object):
         workflow.operator_data['exposure'] = OperatorData(OperatorDataTypes.Exposure)
         workflow.operator_data['exposure_file'] = OperatorData(OperatorDataTypes.Shapefile)
         
-        ms_applier = MSApplier(self._operator_options)
+        ms_applier = ZoneMSApplier(self._operator_options)
         ms_applier.inputs = [
-            workflow.operator_data['zone_file'],
+            workflow.operator_data['zone'],
             workflow.operator_data['zone_field'],
             workflow.operator_data['zone_count_field'],
             workflow.operator_data['ms'],]
@@ -475,15 +490,15 @@ class WorkflowBuilder(object):
         workflow.operator_data['exposure'] = OperatorData(OperatorDataTypes.Exposure)
         workflow.operator_data['exposure_file'] = OperatorData(OperatorDataTypes.Shapefile)
 
-        ms_applier = MSApplier(self._operator_options)
-        ms_applier.inputs = [workflow.operator_data['merged_grid_file'],
+        ms_applier = GridMSApplier(self._operator_options)
+        ms_applier.inputs = [workflow.operator_data['merged_grid'],
                              workflow.operator_data['zone_field'],
                              workflow.operator_data['zone_count_field'],
                              workflow.operator_data['ms'],]
         ms_applier.outputs = [workflow.operator_data['exposure'],
                               workflow.operator_data['exposure_file'],]
 
-        workflow.operators.append(ms_applier)        
+        workflow.operators.append(ms_applier)
 
     def _completesurvey_to_grid_workflow(self, project, workflow):
         """ create exposure aggregated into ged grid with zone/count """
@@ -496,4 +511,5 @@ class WorkflowBuilder(object):
         svy_agg.outputs = [workflow.operator_data['exposure'],
                            workflow.operator_data['exposure_file'],]
         workflow.operators.append(svy_agg)
+        
     

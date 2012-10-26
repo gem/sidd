@@ -14,7 +14,7 @@
 # version 3 along with SIDD.  If not, see
 # <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 #
-# Version: $Id: dlg_ms_branch.py 18 2012-10-24 20:21:41Z zh $
+# Version: $Id: dlg_ms_branch.py 21 2012-10-26 01:48:25Z zh $
 
 """
 dialog for editing mapping scheme brances
@@ -34,6 +34,8 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
     """
     dialog for editing mapping scheme brances
     """
+    # constructor
+    ###############################
     
     def __init__(self, app):
         super(DialogEditMS, self).__init__()
@@ -41,16 +43,77 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
         self.ui.setupUi(self)
         self.retranslateUi(self.ui)
         
-        self.app =  app
-        self.levelUI = self.ui.table_ms_level
-        self.levelUI.setSelectionMode(QAbstractItemView.SingleSelection)
-        
+        self.app =  app        
+        self.ui.table_ms_level.setSelectionMode(QAbstractItemView.SingleSelection)
+
+        # save mapping scheme dialog box        
         self.dlgSave = DialogSaveMS(self.app)
+        self.dlgSave.setModal(True)
+
+    # ui event handler
+    ###############################
+
+    @logUICall
+    def updateWeights(self):
+        """ 
+        event handler for btn_apply
+        - return new set of values/weights to be applied  
+        """
+        self.values = self.levelModel.values
+        self.weights = self.levelModel.weights
+        # TODO: performs checks before returning
+        # 1. no empty values
+        # 2. weights add up to 100
+        self.accept()
+    
+    @logUICall
+    def addValue(self):
+        """ 
+        event hanlder for btn_add
+        - add another pair of value/weights  
+        """
+        self.levelModel.addValues()
+    
+    @logUICall  
+    def deleteValue(self):
+        """ 
+        event hanlder for btn_delete
+        - delete currently selected row of value/weights from table table_ms_level  
+        """        
+        selected = self.getSelectedCell()
+        if selected is not None:
+            self.levelModel.deleteValue(selected)
+
+    @logUICall
+    def saveMSBranch(self):
+        """ 
+        event hanlder for btn_save
+        - open "Save mapping scheme" dialogbox to save current set of values/weights
+          as a single level mapping scheme
+        """
+        ms = MappingScheme(self.taxonomy)
+        stats = Statistics(self.taxonomy)
+        root = stats.get_tree()
+        for v, w in map(None, self.levelModel.values, self.levelModel.weights):
+            node = StatisticNode(root, '', v)
+            node.weight = w
+            root.children.append(node)
+        stats.finalized = True
+        ms.assign(MappingSchemeZone('ALL'), stats)
         
+        self.dlgSave.setMS(ms, True)
+        self.dlgSave.exec_()
+
+    # public methods    
+    #############################
+            
     @logUICall
     def setNode(self, node, addNew=False):
-        """ from given node, all sibling are used in dialog """
-        
+        """ 
+        shows values/weights in table_ms_level for given node
+        if addNew values/weights correspond to node's children (if any)
+        otherwise, values/weights are from node's sibling (if any) 
+        """        
         # create copy of values to be shown and modified
         values = []
         weights = []
@@ -59,55 +122,23 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
             ref_node = node.parent
         for _sibling in ref_node.children:
             values.append(_sibling.value)
-            weights.append(_sibling.weight)
-            print 'weight',_sibling.weight, 'value', _sibling.value
+            weights.append(_sibling.weight)            
             
         self.levelModel = MSLevelTableModel(values, weights)
-        self.levelUI.setModel(self.levelModel)
+        self.ui.table_ms_level.setModel(self.levelModel)
         self.taxonomy = get_taxonomy('gem')
-
-    @logUICall
-    def updateWeights(self):
-        """ update sibling with new set of weights. this action is irreversible """
-        self.values = self.levelModel.values
-        self.weights = self.levelModel.weights
-        self.accept()
-    
-    @logUICall
-    def addValue(self):
-        """ add a sibling. this action is irreversible """
-        self.levelModel.addValues()
-    
-    @logUICall  
-    def deleteValue(self):
-        """ delete a sibling. this action is irreversible """
-        self.levelModel.deleteValue(self.getSelectedCell())
-
-    def saveMSBranch(self):
-        
-        ms = MappingScheme(self.taxonomy)
-        stats = Statistics(self.taxonomy)
-        root = stats.get_tree()
-        for v, w in map(None, self.levelModel.values, self.levelModel.weights):
-            node = StatisticNode(root, '', v)
-            node.weight = w            
-            root.children.append(node)
-        stats.finalized = True
-        ms.assign(MappingSchemeZone('ALL'), stats)
-        
-        self.dlgSave.setMS(ms, True)
-        self.dlgSave.setModal(True)
-        self.dlgSave.exec_()
 
     # internal helper methods
     ###############################
-
     def getSelectedCell(self):
-        selectedIndexes = self.levelUI.selectedIndexes()
+        """ return selected cell in table_ms_level """
+        selectedIndexes = self.ui.table_ms_level.selectedIndexes()
         if (len(selectedIndexes) <= 0):
             QMessageBox.warning(self, 'Node Not Selected', 'Please select node first.')
+            return None       
         if not selectedIndexes[0].isValid():
             QMessageBox.warning(self, 'Invalid Node', 'Select node does not support this function.')
+            return None
         return selectedIndexes[0]
     
     def retranslateUi(self, ui):

@@ -14,7 +14,7 @@
 # version 3 along with SIDD.  If not, see
 # <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 #
-# Version: $Id: constants.py 18 2012-10-24 20:21:41Z zh $
+# Version: $Id: constants.py 21 2012-10-26 01:48:25Z zh $
 
 """
 SIDD constants and enumerations
@@ -61,16 +61,8 @@ OutputTypes = Enum("Zone", "Grid")
 ExportTypes = Enum("Shapefile", "KML", "NRML")
 SyncModes = Enum("Read", "Write")
 
-WorkflowErrors = Enum("NeedsCount", "NeedsZone", "NeedsMS", "NoActionDefined")
+# project related
+ProjectStatus = Enum('NotVerified', 'ReadyForExposure', 'ReadyForMS')
 
-# static messages
-#####################
-SIDD_STRINGS = {    
-    # project input data verification messages
-    'project.verify.sucess':"Datasets complete\nApply Mapping scheme to create exposure",
-    'project.verify.count.needed':"Building count must be set either through footprint or Zone with count",
-    'project.verify.zone.needed':"Homogenous zone is required",
-    'project.verify.ms.needed':"Continue to build mapping scheme",
-    'project.verify.unknown.error':"Unknown error while verifying input data",
-    'project.verify.no.action':"No action is defined for type of data provided",
-}
+# workflow related
+WorkflowErrors = Enum("NeedsCount", "NeedsZone", "NeedsMS", "NeedSurvey", "NoActionDefined")

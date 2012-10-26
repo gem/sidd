@@ -43,7 +43,7 @@
     </rect>
    </property>
   </widget>
-  <widget class="QPushButton" name="btn_add_branch">
+  <widget class="QPushButton" name="btn_add">
    <property name="geometry">
     <rect>
      <x>210</x>
@@ -60,7 +60,7 @@
      <normaloff>:/imgs/icons/add.png</normaloff>:/imgs/icons/add.png</iconset>
    </property>
   </widget>
-  <widget class="QPushButton" name="btn_del_branch">
+  <widget class="QPushButton" name="btn_delete">
    <property name="geometry">
     <rect>
      <x>240</x>
@@ -109,7 +109,7 @@
     <bool>false</bool>
    </property>
   </widget>
-  <widget class="QPushButton" name="btn_add_branch_2">
+  <widget class="QPushButton" name="btn_save">
    <property name="geometry">
     <rect>
      <x>280</x>
@@ -164,7 +164,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>btn_add_branch</sender>
+   <sender>btn_add</sender>
    <signal>clicked()</signal>
    <receiver>editMSDialog</receiver>
    <slot>addValue()</slot>
@@ -180,7 +180,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>btn_del_branch</sender>
+   <sender>btn_delete</sender>
    <signal>clicked()</signal>
    <receiver>editMSDialog</receiver>
    <slot>deleteValue()</slot>
@@ -196,7 +196,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>btn_add_branch_2</sender>
+   <sender>btn_save</sender>
    <signal>clicked()</signal>
    <receiver>editMSDialog</receiver>
    <slot>saveMSBranch()</slot>

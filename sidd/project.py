@@ -14,7 +14,7 @@
 # version 3 along with SIDD.  If not, see
 # <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 #
-# Version: $Id: project.py 18 2012-10-24 20:21:41Z zh $
+# Version: $Id: project.py 21 2012-10-26 01:48:25Z zh $
 
 """
 main SIDD application controller
@@ -59,8 +59,6 @@ class Project (object):
             'taxonomy':'gem',
             'skips':[3,4,5,6,7],
         }
-        # empty workflow
-        self.workflow = Workflow()
         self.reset()
     
     def __del__(self):
@@ -131,6 +129,14 @@ class Project (object):
         
         self.ms = None
         self.output_type = OutputTypes.Grid
+
+        # empty workflow
+        self.workflow = Workflow()
+        
+        # clear status
+        self.status = ProjectStatus.NotVerified
+        self.errors = []
+        
         if sync:
             self.sync(SyncModes.Write)
 
@@ -147,25 +153,13 @@ class Project (object):
         # build workflow based on current data
         logAPICall.log("create workflow ...", logAPICall.DEBUG_L2)
         builder = WorkflowBuilder(self.operator_options)
-        try:
-            self.workflow = builder.build_workflow(self)
-            self.verification_message = SIDD_STRINGS['project.verify.sucess']            
-            return True
-        except WorkflowException as wbw:            
-            if wbw.error == WorkflowErrors.NeedsCount:
-                self.verification_message = SIDD_STRINGS['project.verify.count.needed']
-            elif wbw.error == WorkflowErrors.NeedsZones:
-                self.verification_message = SIDD_STRINGS['project.verify.zone.needed']
-            elif wbw.error == WorkflowErrors.NeedsMS:
-                self.verification_message = SIDD_STRINGS['project.verify.ms.needed']
-            elif wbw.error == WorkflowErrors.NoActionDefined:
-                self.verification_message = SIDD_STRINGS['project.verify.no.action']
-            return False
-        except Exception as err:
-            logAPICall.log(err, logAPICall.ERROR)
-            self.verification_message = SIDD_STRINGS['project.verify.unknown.error']
-            return False
-        # survey loading
+        self.workflow = builder.build_workflow(self)    
+        
+        if self.workflow.ready:
+            self.status = ProjectStatus.ReadyForExposure
+        else:
+            self.status = ProjectStatus.ReadyForMS
+        self.errors = self.workflow.errors
 
     @logAPICall
     def build_exposure(self):
@@ -178,8 +172,8 @@ class Project (object):
     @logAPICall
     def build_exposure_steps(self):
         """ building exposure database from workflow """
-        if not self.verify_data():
-            self.verification_message = SIDD_STRINGS['project.verify.no.action']
+        self.verify_data()
+        if not self.workflow.ready:
             raise SIDDException('current dataset not enough to create exposure')
         
         if getattr(self, 'exposure', None) is not None:
@@ -349,8 +343,12 @@ class Project (object):
             self._save_project_data('data.output', self.output_type)
             
             # store mapping scheme
-            if self.ms is not None:
-                self._save_project_data('data.ms', self.ms.to_xml())                
+            if self.ms is None:
+                self._save_project_data('data.ms', None)
+            else:
+                self._save_project_data('data.ms', self.ms.to_xml())
+            
+            # flush to disk
             self.db.sync()
 
     # bsddb help functions

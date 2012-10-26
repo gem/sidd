@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qt\dlg_mod_input.ui'
 #
-# Created: Tue Oct 23 13:22:19 2012
+# Created: Thu Oct 25 16:10:45 2012
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -73,9 +73,9 @@ class Ui_modifierInputDialog(object):
         self.btn_mod_build = QtGui.QPushButton(modifierInputDialog)
         self.btn_mod_build.setGeometry(QtCore.QRect(180, 320, 75, 23))
         self.btn_mod_build.setObjectName(_fromUtf8("btn_mod_build"))
-        self.btn_ok = QtGui.QPushButton(modifierInputDialog)
-        self.btn_ok.setGeometry(QtCore.QRect(260, 320, 75, 23))
-        self.btn_ok.setObjectName(_fromUtf8("btn_ok"))
+        self.btn_apply = QtGui.QPushButton(modifierInputDialog)
+        self.btn_apply.setGeometry(QtCore.QRect(260, 320, 75, 23))
+        self.btn_apply.setObjectName(_fromUtf8("btn_apply"))
         self.btn_cancel = QtGui.QPushButton(modifierInputDialog)
         self.btn_cancel.setGeometry(QtCore.QRect(340, 320, 75, 23))
         self.btn_cancel.setObjectName(_fromUtf8("btn_cancel"))
@@ -87,31 +87,31 @@ class Ui_modifierInputDialog(object):
         font.setBold(True)
         self.lb_title.setFont(font)
         self.lb_title.setObjectName(_fromUtf8("lb_title"))
-        self.btn_add_branch = QtGui.QPushButton(modifierInputDialog)
-        self.btn_add_branch.setGeometry(QtCore.QRect(360, 40, 31, 23))
-        self.btn_add_branch.setText(_fromUtf8(""))
+        self.btn_add = QtGui.QPushButton(modifierInputDialog)
+        self.btn_add.setGeometry(QtCore.QRect(360, 40, 31, 23))
+        self.btn_add.setText(_fromUtf8(""))
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/imgs/icons/add.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.btn_add_branch.setIcon(icon)
-        self.btn_add_branch.setObjectName(_fromUtf8("btn_add_branch"))
-        self.btn_del_branch = QtGui.QPushButton(modifierInputDialog)
-        self.btn_del_branch.setGeometry(QtCore.QRect(390, 40, 31, 23))
-        self.btn_del_branch.setText(_fromUtf8(""))
+        self.btn_add.setIcon(icon)
+        self.btn_add.setObjectName(_fromUtf8("btn_add"))
+        self.btn_delete = QtGui.QPushButton(modifierInputDialog)
+        self.btn_delete.setGeometry(QtCore.QRect(390, 40, 31, 23))
+        self.btn_delete.setText(_fromUtf8(""))
         icon1 = QtGui.QIcon()
         icon1.addPixmap(QtGui.QPixmap(_fromUtf8(":/imgs/icons/minus.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.btn_del_branch.setIcon(icon1)
-        self.btn_del_branch.setObjectName(_fromUtf8("btn_del_branch"))
+        self.btn_delete.setIcon(icon1)
+        self.btn_delete.setObjectName(_fromUtf8("btn_delete"))
 
         self.retranslateUi(modifierInputDialog)
         QtCore.QObject.connect(self.cb_level1, QtCore.SIGNAL(_fromUtf8("currentIndexChanged(int)")), modifierInputDialog.level1Selected)
         QtCore.QObject.connect(self.cb_level2, QtCore.SIGNAL(_fromUtf8("currentIndexChanged(int)")), modifierInputDialog.level2Selected)
         QtCore.QObject.connect(self.cb_level3, QtCore.SIGNAL(_fromUtf8("currentIndexChanged(int)")), modifierInputDialog.level3Selected)
         QtCore.QObject.connect(self.btn_mod_build, QtCore.SIGNAL(_fromUtf8("clicked()")), modifierInputDialog.buildFromSurvey)
-        QtCore.QObject.connect(self.btn_ok, QtCore.SIGNAL(_fromUtf8("clicked()")), modifierInputDialog.setModifier)
+        QtCore.QObject.connect(self.btn_apply, QtCore.SIGNAL(_fromUtf8("clicked()")), modifierInputDialog.setModifier)
         QtCore.QObject.connect(self.btn_cancel, QtCore.SIGNAL(_fromUtf8("clicked()")), modifierInputDialog.reject)
         QtCore.QObject.connect(self.cb_ms_zone, QtCore.SIGNAL(_fromUtf8("currentIndexChanged(int)")), modifierInputDialog.zoneSelected)
-        QtCore.QObject.connect(self.btn_add_branch, QtCore.SIGNAL(_fromUtf8("clicked()")), modifierInputDialog.addValue)
-        QtCore.QObject.connect(self.btn_del_branch, QtCore.SIGNAL(_fromUtf8("clicked()")), modifierInputDialog.deleteValue)
+        QtCore.QObject.connect(self.btn_add, QtCore.SIGNAL(_fromUtf8("clicked()")), modifierInputDialog.addValue)
+        QtCore.QObject.connect(self.btn_delete, QtCore.SIGNAL(_fromUtf8("clicked()")), modifierInputDialog.deleteValue)
         QtCore.QMetaObject.connectSlotsByName(modifierInputDialog)
 
     def retranslateUi(self, modifierInputDialog):
@@ -122,7 +122,7 @@ class Ui_modifierInputDialog(object):
         self.lb_level3.setText(QtGui.QApplication.translate("modifierInputDialog", "3rd level", None, QtGui.QApplication.UnicodeUTF8))
         self.lb_level2.setText(QtGui.QApplication.translate("modifierInputDialog", "2nd level", None, QtGui.QApplication.UnicodeUTF8))
         self.btn_mod_build.setText(QtGui.QApplication.translate("modifierInputDialog", "from Survey", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_ok.setText(QtGui.QApplication.translate("modifierInputDialog", "OK", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_apply.setText(QtGui.QApplication.translate("modifierInputDialog", "OK", None, QtGui.QApplication.UnicodeUTF8))
         self.btn_cancel.setText(QtGui.QApplication.translate("modifierInputDialog", "Cancel", None, QtGui.QApplication.UnicodeUTF8))
         self.lb_title.setText(QtGui.QApplication.translate("modifierInputDialog", "Edit Mapping Scheme Branch", None, QtGui.QApplication.UnicodeUTF8))
 

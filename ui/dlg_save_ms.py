@@ -14,7 +14,7 @@
 # version 3 along with SIDD.  If not, see
 # <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 #
-# Version: $Id: dlg_save_ms.py 19 2012-10-25 01:06:59Z zh $
+# Version: $Id: dlg_save_ms.py 21 2012-10-26 01:48:25Z zh $
 
 """
 dialog for editing mapping scheme brances
@@ -31,8 +31,11 @@ from ui.helper.ms_tree import MSTreeModel
 
 class DialogSaveMS(Ui_saveMSDialog, QDialog):
     """
-    dialog for editing mapping scheme brances
+    dialog for saving mapping scheme (single/multilevel) into
+    mapping scheme library database
     """    
+    # constructor
+    ###############################    
     def __init__(self, app):
         super(DialogSaveMS, self).__init__()
         self.ui = Ui_saveMSDialog()
@@ -42,9 +45,14 @@ class DialogSaveMS(Ui_saveMSDialog, QDialog):
         self.app =  app
         for region in self.app.msdb_dao.get_regions():
             self.ui.cb_ms_region.addItem(QString(region))
-    
+
+    # ui event handlers
+    ###############################
+        
     @logUICall
-    def saveMS(self):        
+    def saveMS(self):
+        """ save current mapping schem into mapping scheme library database """
+        # TODO: error handling
         self.app.msdb_dao.save_ms(
             str(self.ui.cb_ms_region.currentText()),
             str(self.ui.txt_ms_name.text()),
@@ -53,11 +61,19 @@ class DialogSaveMS(Ui_saveMSDialog, QDialog):
             str(self.ui.txt_ms_source.text()),
             str(self.ui.txt_ms_quality.text()),
             str(self.ui.txt_ms_notes.toPlainText()),
-            self.ms_to_save.to_xml())        
+            self.ms_to_save.to_xml())
         self.accept()
+
+    # public method
+    ###############################
     
     @logUICall
     def setMS(self, ms, isBranch=False):
+        """
+        set mapping scheme to be saved
+        set mapping scheme type as 'single-level' if isBranch=True
+        set to 'multi-level' otherwise 
+        """
         self.ms_to_save = ms
         self.ui.tree_ms_view.setModel(MSTreeModel(ms))
         self.ui.tree_ms_view.setSelectionMode(QAbstractItemView.NoSelection)

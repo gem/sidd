@@ -14,7 +14,7 @@
 # version 3 along with SIDD.  If not, see
 # <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 #
-# Version: $Id: dlg_result.py 18 2012-10-24 20:21:41Z zh $
+# Version: $Id: dlg_result.py 21 2012-10-26 01:48:25Z zh $
 
 """
 dialog for editing mapping scheme brances
@@ -33,26 +33,36 @@ from ui.qt.dlg_res_detail_ui import Ui_tablePreviewDialog
 
 class DialogResult(Ui_tablePreviewDialog, QDialog):
     """
-    dialog for visualize results
-    """    
+    dialog for visualize result details
+    """
+    # constructor
+    ###############################     
     def __init__(self):
         super(DialogResult, self).__init__()
         self.ui = Ui_tablePreviewDialog()
         self.ui.setupUi(self)
         self.ui.table_result.setSelectionMode(QAbstractItemView.SingleSelection)
+
+    # public method
+    ###############################     
     
     @logUICall
-    def showDetail(self, fields, selected):
+    def showDetail(self, header, selected):
+        """
+        display selected rows with header
+        """
         fnames =[]
         cnt_idx = -1
-        for i, f in fields.iteritems():
+        for i, f in header.iteritems():
             fnames.append(f.name())
             if f.name() == CNT_FIELD_NAME:
                 cnt_idx = i
-        cnt_sum = 0        
+        # TODO: error handling if cnt_idx == -1
+        cnt_sum = 0
         for s in selected:
             cnt_sum  += s[cnt_idx].toInt()[0]
-        #return
+        
+        # sync UI 
         self.resultDetailModel = ResultDetailTableModel(fnames, selected)        
         self.ui.table_result.setModel(self.resultDetailModel)
         self.ui.txt_bldgcount.setText('%d'% cnt_sum) 
@@ -62,19 +72,21 @@ class DialogResult(Ui_tablePreviewDialog, QDialog):
 
 class ResultDetailTableModel(QAbstractTableModel):
     """
-    table model supporting visualization of node in mapping scheme tree
+    table model supporting visualization of result detail
     """
-    
+    # constructor
+    ###############################         
     def __init__(self, fields, selected):
         """ constructor """
         QAbstractTableModel.__init__(self)
-
         # table header 
-        self.headers = fields #['Taxonomy', 'Count']
-        
+        self.headers = fields        
         # create copy of values to be shown and modified
         self.selected = selected
-    
+
+    # override public method
+    ###############################     
+        
     @logAPICall
     def columnCount(self, parent):
         """ only two columns exist. always return 2 """
@@ -112,5 +124,6 @@ class ResultDetailTableModel(QAbstractTableModel):
     def flags(self, index):
         """ cell condition flag """
         # NOTE: 
-        #   ItemIsEditable also required data() and setData() function
+        #   ItemIsEditable flag requires data() and setData() function
         return Qt.ItemIsEnabled | Qt.ItemIsSelectable
+    

@@ -14,7 +14,7 @@
 # version 3 along with SIDD.  If not, see
 # <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 #
-# Version: $Id: wdg_mod.py 18 2012-10-24 20:21:41Z zh $
+# Version: $Id: wdg_mod.py 21 2012-10-26 01:48:25Z zh $
 
 """
 Widget (Panel) for managing secondary modifier 
@@ -34,7 +34,8 @@ class WidgetSecondaryModifier(Ui_widgetSecondaryModifier, QWidget):
     """
     Widget (Panel) for managing secondary modifier 
     """
-    
+    # constructor / destructor
+    ###############################        
     def __init__(self, app):
         """ constructor """
         super(WidgetSecondaryModifier, self).__init__()
@@ -45,56 +46,72 @@ class WidgetSecondaryModifier(Ui_widgetSecondaryModifier, QWidget):
         self.dlgEditMod = DialogModInput(app)
         self.dlgEditMod.setModal(True)
         self.app = app
-    
+
+    # ui event handler
+    ###############################
+        
     @logUICall
     def addModifier(self):
-        """ add a modifier to the tree (and the table view) """
-        self.dlgEditMod.setNode(self.ms, None, addNew=True)
+        """ add a modifier to mapping scheme. update table view """
+        
+        # show edit dialogbox for new modifier
+        self.dlgEditMod.setNode(self.ms, None, addNew=True)        
         ans = self.dlgEditMod.exec_()
+        
+        # accepted means apply change
         if ans == QDialog.Accepted:
-            print self.dlgEditMod.node
-            print self.dlgEditMod.values
-            print self.dlgEditMod.weights
+            # NOTE: dlgEditMod already should have performed all the checks on 
+            #       values/weights pair, we can safely assume that data is clean 
+            #       to be used            
             self.dlgEditMod.node.update_modifier(self.dlgEditMod.values,
                                                  self.dlgEditMod.weights)
             self.app.visualizeMappingScheme(self.ms)
                     
     @logUICall
     def deleteModifier(self):
-        """ delete selected modifier from the tree (and the table view) """
+        """ delete selected modifier from mapping scheme. update table view """
         mod = self.getSelectedModifier()
+        # make sure there is mod selected
         if mod is None:
             QMessageBox.warning(self, 
                                 get_ui_string("app.warning.title"),
                                 get_ui_string("widget.ms.warning.node.required"))
             return
-                        
+        # confirm delete 
         answer = QMessageBox.warning(self,
                                      get_ui_string("app.popup.delete.confirm"),
                                      get_ui_string("widget.mod.warning.delete"),
                                      QMessageBox.Yes | QMessageBox.No)
         if answer == QMessageBox.Yes:
+            # find node for selected modfiier
             [zone_name, level1, level2, level3, startIdx, endIdx, modidx, modifier] = mod
             stats = self.ms.get_assignment_by_name(zone_name)
             node = stats.find_node([level1, level2, level3])
-            print 'node found', node
             if node is not None:
-                node.removeModifier(modidx)
+                # remove modfiier
+                node.removeModifier(modidx)            
             self.app.visualizeMappingScheme(self.ms)
         
     @logUICall
     def editModifier(self):
         """ edit selected modifier """
         mod = self.getSelectedModifier()
+        # make sure there is mod selected
         if mod is None:
             QMessageBox.warning(self, 
                                 get_ui_string("app.warning.title"),
                                 get_ui_string("widget.ms.warning.node.required"))
             return
         
+        # show edit dialogbox for selected modifier
         self.dlgEditMod.setNode(self.ms, mod)
         ans = self.dlgEditMod.exec_()
+        
+        # accepted means apply change
         if ans == QDialog.Accepted:
+            # NOTE: dlgEditMod already should have performed all the checks on 
+            #       values/weights pair, we can safely assume that data is clean 
+            #       to be used            
             self.dlgEditMod.node.update_modifier(self.dlgEditMod.values,
                                                  self.dlgEditMod.weights,
                                                  self.dlgEditMod.modidx)
@@ -105,6 +122,9 @@ class WidgetSecondaryModifier(Ui_widgetSecondaryModifier, QWidget):
         """ apply mapping scheme and modifiers """
         self.app.buildExposure()
 
+    # public methods
+    ###############################
+
     @logUICall
     def showMappingScheme(self, ms):
         self.ms = ms
@@ -112,6 +132,18 @@ class WidgetSecondaryModifier(Ui_widgetSecondaryModifier, QWidget):
         tableUI.setModel(MSTableModel(ms))        
         tableUI.resizeRowsToContents()
         tableUI.setSelectionMode(QAbstractItemView.SingleSelection)        
+        self.ui.btn_add_mod.setEnabled(True)
+        self.ui.btn_del_mod.setEnabled(True)
+        self.ui.btn_edit_mod.setEnabled(True)
+        self.ui.btn_build_exposure.setEnabled(True)
+    
+    def closeMappingScheme(self):
+        """ clear current view """
+        self.ui.table_mod.setModel(None)
+        self.ui.btn_add_mod.setEnabled(False)
+        self.ui.btn_del_mod.setEnabled(False)
+        self.ui.btn_edit_mod.setEnabled(False)
+        self.ui.btn_build_exposure.setEnabled(False)
 
     # internal helper methods
     ###############################

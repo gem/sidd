@@ -14,7 +14,7 @@
 # version 3 along with SIDD.  If not, see
 # <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 #
-# Version: $Id: wdg_result.py 18 2012-10-24 20:21:41Z zh $
+# Version: $Id: wdg_result.py 21 2012-10-26 01:48:25Z zh $
 
 """
 Widget (Panel) for result review
@@ -72,7 +72,7 @@ class WidgetResult(Ui_widgetResult, QWidget):
         self.toolZoomIn = QgsMapToolZoom(self.canvas, False) # false = in
         self.toolZoomOut = QgsMapToolZoom(self.canvas, True) # true = out
         self.toolInfo = QgsMapToolEmitPoint(self.canvas)
-        QObject.connect(self.toolInfo, SIGNAL("canvasClicked(QgsPoint, Qt::MouseButton)"), self.canvasClicked)
+        QObject.connect(self.toolInfo, SIGNAL("canvasClicked(QgsPoint, Qt::MouseButton)"), self.showInfo)
         
         self.mainWin = mainWin
         
@@ -90,14 +90,23 @@ class WidgetResult(Ui_widgetResult, QWidget):
     @logUICall
     def showResult(self, project):
         """ do export data """
+        self.closeResult()
+
         layer = project.exposure        
         self.showResultLayer(layer)
+        # TODO: statistic checks to show actual warning
+        self.ui.txt_dq_test_desc = """
+Exposure generated using Monte-Carlo simulation  
+"""
+        # done set local reference
         self.project = project
+        self.layer = layer
 
         
     @logUICall
     def showResultFile(self, pathtofile):
         """ do export data """        
+        self.closeResult()
         layer = load_shapefile(pathtofile, 'result')
         self.showResultLayer(layer)
 
@@ -108,57 +117,46 @@ class WidgetResult(Ui_widgetResult, QWidget):
                 registry = QgsMapLayerRegistry.instance()
                 registry.removeMapLayer(self.layer.getLayerID(), False)
             except: pass
+            # NOTE: delete frees up lock to underlying shapefile
             del self.layer
         self.layer = None
         self.project = None
-        
-    @logUICall    
-    def showResultLayer(self, layer):
-        """ display result layer """
-        if layer is None:
-            return
-        self.closeResult()
-        
-        registry = QgsMapLayerRegistry.instance()
-        registry.addMapLayer(layer)
-        layerSet = []
-        for lyr in registry.mapLayers():
-            layerSet.append(QgsMapCanvasLayer(registry.mapLayer(lyr)))
-        self.canvas.setLayerSet(layerSet)
-        self.canvas.setExtent(layer.extent())
-        self.layer = layer
 
     # UI event handling calls
     ###############################
     
     @logUICall
     def mapPan(self):
-        """ pan map """
+        """ event handler for btn_pan - pan map """
         self.canvas.setMapTool(self.toolPan)
+        
 
     @logUICall
     def mapZoomIn(self):
-        """ zoom in on map """
+        """ event handler for btn_zoom_in - zoom in on map """
         self.canvas.setMapTool(self.toolZoomIn)
-        
+
     @logUICall
     def mapZoomOut(self):
-        """ zoom out on map """
+        """ event handler for btn_zoom_out - zoom out on map """
         self.canvas.setMapTool(self.toolZoomOut)
         
     @logUICall
     def mapZoomFull(self):
-        """ zoom to full map """
+        """ event handler for btn_zoom_full - zoom to full map """
         self.canvas.zoomToFullExtent()    
         
     @logUICall
     def mapIdentify(self):
-        """ identify item on map """
+        """ event handler for btn_info - identify item on map """
         self.canvas.setMapTool(self.toolInfo)
-        
+
     @logUICall
     def selectExportFile(self):
-        """ open save file dialog box to select file name for export """
+        """
+        event handler for btn_export_select_file 
+        - open save file dialog box to select file name for export 
+        """
         filename = QFileDialog.getSaveFileName(self,
                                                get_ui_string("widget.result.export.file.open"),
                                                get_app_dir(),
@@ -168,19 +166,32 @@ class WidgetResult(Ui_widgetResult, QWidget):
     
     @logUICall
     def exportFormatChanged(self, FormatText):
+        """
+        event handler for cb_export_format 
+        - update selected file after format change
+        """
         self.export_format = self.EXPORT_FORMATS[str(FormatText)]
+        # TODO: get base name and change exntension based on format 
+        #       instead of clearing out        
         self.ui.txt_export_select_file.setText("")
     
     @logUICall
     def exportData(self):
-        """ do export data """
+        """ 
+        event handler for btn_export
+        - do export data 
+        """
         export_file = str(self.ui.txt_export_select_file.text())
         self.project.set_export(self.export_format, export_file)
         self.project.export_data()
         
     @logUICall    
-    def canvasClicked(self, point, mouseButton):
-        """ point-polygon search on result layer with clicked location """
+    def showInfo(self, point, mouseButton):
+        """
+        evnet handler for toolInfo
+        @see QGIS tutorial for detail
+        point-polygon search on result layer with clicked location 
+        """
         if not self.layer:
             return
         provider = self.layer.dataProvider()
@@ -189,12 +200,14 @@ class WidgetResult(Ui_widgetResult, QWidget):
         colonIndexes = provider.attributeIndexes()
         fieldDict = provider.fields()
         
+        # search using point as center of rectangle polygon
         provider.select(colonIndexes,
                         QgsRectangle(point.x()-self.SEARCH_BUFFER,
                                      point.y()-self.SEARCH_BUFFER,
                                      point.x()+self.SEARCH_BUFFER,
                                      point.y()+self.SEARCH_BUFFER),
                         False)        
+        # get selected and display in result detail dialog box 
         selected = []        
         while provider.nextFeature(feature):
             attrs = feature.attributeMap()
@@ -204,8 +217,26 @@ class WidgetResult(Ui_widgetResult, QWidget):
             self.dlgResultDetail.showDetail(provider.fields(), selected)
             self.dlgResultDetail.exec_()
         else:
-            QMessageBox.information(None, "nothing", "nothing there")
-
+            QMessageBox.information(self, 
+                                    get_ui_string("app.warning.title"), 
+                                    get_ui_string("widget.result.info.notfound"))
+    
+    # internal helper methods
+    ###############################
+        
+    @logUICall    
+    def showResultLayer(self, layer):
+        """ display result layer """
+        if layer is None:
+            return
+        registry = QgsMapLayerRegistry.instance()
+        registry.addMapLayer(layer)
+        layerSet = []
+        for lyr in registry.mapLayers():
+            layerSet.append(QgsMapCanvasLayer(registry.mapLayer(lyr)))
+        self.canvas.setLayerSet(layerSet)
+        self.canvas.setExtent(layer.extent())
+        
     def retranslateUi(self, ui):
         """ set constant strings """
         ui.lb_panel_title.setText(get_ui_string("widget.result.title"))

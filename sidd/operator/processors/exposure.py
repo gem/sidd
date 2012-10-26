@@ -14,7 +14,7 @@
 # version 3 along with SIDD.  If not, see
 # <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 #
-# Version: $Id: exposure.py 18 2012-10-24 20:21:41Z zh $
+# Version: $Id: exposure.py 21 2012-10-26 01:48:25Z zh $
 
 """
 module contains class for applying mapping scheme
@@ -31,9 +31,9 @@ from sidd.constants import *
 from sidd.operator import *
 from sidd.ms import *
 
-class MSApplier(Operator):    
-    def __init__(self, options=None, name='Mapping Scheme Applier'):
-        super(MSApplier, self).__init__(options, name)
+class GridMSApplier(Operator):    
+    def __init__(self, options=None, name='Grid Mapping Scheme Applier'):
+        super(GridMSApplier, self).__init__(options, name)
         self._tmp_dir = options['tmp_dir']
         self._fields = {0: QgsField(GID_FIELD_NAME, QVariant.Int),
                         1: QgsField(LON_FIELD_NAME, QVariant.Double),
@@ -47,14 +47,14 @@ class MSApplier(Operator):
     
     @property
     def input_types(self):
-        return [OperatorDataTypes.Shapefile,
+        return [OperatorDataTypes.Grid,
                 OperatorDataTypes.StringAttribute,
                 OperatorDataTypes.StringAttribute,
                 OperatorDataTypes.MappingScheme]
         
     @property
     def input_names(self):
-        return ["Source Data Path",
+        return ["Grid Data Layer",
                 "Zone field",
                 "Building Count field"
                 "Mapping Scheme"]
@@ -81,18 +81,10 @@ class MSApplier(Operator):
         """ perform apply mapping scheme operation """
         
         # input/output data checking already done during property set
-        src_file = self.inputs[0].value
+        src_layer = self.inputs[0].value
         zone_field = self.inputs[1].value
         count_field = self.inputs[2].value
         ms = self.inputs[3].value
-        
-        # load zone
-        tmp_zone = 'zone_%s' % get_unique_filename()
-        try:
-            src_layer = load_shapefile_verify(src_file, tmp_zone,
-                                               [zone_field, count_field])
-        except AssertionError as err:
-            raise OperatorError(str(err), self.__class__)
         
         # loop through all zones and assign mapping scheme
         # outputs
@@ -107,17 +99,17 @@ class MSApplier(Operator):
         default_stats = ms.get_assignment(ms.get_zones()[0])
         try:
             writer = QgsVectorFileWriter(exposure_file, "utf-8", self._fields, provider.geometryType(), self._crs, "ESRI Shapefile")
-            f = QgsFeature()
+            out_feature = QgsFeature()
             
             gid = 0
             zone_idx = layer_field_index(src_layer, zone_field)
             count_idx = layer_field_index(src_layer, count_field)
             
-            for _f in layer_features(src_layer):
-                geom = _f.geometry()
-                centroid = geom.centroid().asPoint ()           
-                zone_str = str(_f.attributeMap()[zone_idx].toString())
-                count = _f.attributeMap()[count_idx].toDouble()[0]
+            for in_feature in layer_features(src_layer):
+                geom = in_feature.geometry()
+                centroid = geom.centroid().asPoint ()
+                zone_str = str(in_feature.attributeMap()[zone_idx].toString())
+                count = in_feature.attributeMap()[count_idx].toDouble()[0]
                 
                 count = int(count+0.5)
                 stats = ms.get_assignment_by_name(zone_str)
@@ -130,15 +122,15 @@ class MSApplier(Operator):
                 for _l, _c in stats.get_samples(count).iteritems():
                     # write out if there are structures assigned
                     if _c > 0:
-                        f.setGeometry(geom)
-                        f.addAttribute(0, QVariant(gid))
-                        f.addAttribute(1, QVariant(centroid.x()))
-                        f.addAttribute(2, QVariant(centroid.y()))
-                        f.addAttribute(3, QVariant(_l))
-                        f.addAttribute(4, QVariant(zone_str))
-                        f.addAttribute(5, QVariant(_c))
-                        writer.addFeature(f)
-            del writer, f
+                        out_feature.setGeometry(geom)
+                        out_feature.addAttribute(0, QVariant(gid))
+                        out_feature.addAttribute(1, QVariant(centroid.x()))
+                        out_feature.addAttribute(2, QVariant(centroid.y()))
+                        out_feature.addAttribute(3, QVariant(_l))
+                        out_feature.addAttribute(4, QVariant(zone_str))
+                        out_feature.addAttribute(5, QVariant(_c))
+                        writer.addFeature(out_feature)
+            del writer, out_feature
         except Exception as err:
             remove_shapefile(exposure_file)
             raise OperatorError("error creating exposure file: %s" % err, self.__class__)
@@ -165,8 +157,28 @@ class MSApplier(Operator):
         """ perform operator specific output validation """
         pass
 
+class ZoneMSApplier(GridMSApplier):
+    def __init__(self, options=None, name='Zone Mapping Scheme Applier'):
+        super(ZoneMSApplier, self).__init__(options, name)    
+        
+    # self documenting method override
+    ###########################
+    
+    @property
+    def input_types(self):
+        return [OperatorDataTypes.Zone,
+                OperatorDataTypes.StringAttribute,
+                OperatorDataTypes.StringAttribute,
+                OperatorDataTypes.MappingScheme]
+        
+    @property
+    def input_names(self):
+        return ["Zone data Layer",
+                "Zone field",
+                "Building Count field"
+                "Mapping Scheme"]
 
-class SurveyAggregator(MSApplier):
+class SurveyAggregator(GridMSApplier):
     def __init__(self, options=None, name='Complete Survey Aggregator'):
         super(SurveyAggregator, self).__init__(options, name)
     
@@ -251,3 +263,4 @@ class SurveyAggregator(MSApplier):
         # store data in output
         self.outputs[0].value = exposure_layer
         self.outputs[1].value = exposure_file
+

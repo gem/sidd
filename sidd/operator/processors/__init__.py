@@ -14,7 +14,7 @@
 # version 3 along with SIDD.  If not, see
 # <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 #
-# Version: $Id: __init__.py 17 2012-10-23 18:38:27Z zh $
+# Version: $Id: __init__.py 21 2012-10-26 01:48:25Z zh $
 
 """
 package contains SIDD operators
@@ -22,6 +22,6 @@ package contains SIDD operators
 from aggregate import FootprintAggregator
 from grid import GridWriter, GridFromRegionWriter
 from join import ZoneGridMerger, ZoneFootprintMerger
-from exposure import MSApplier, SurveyAggregator
+from exposure import GridMSApplier, ZoneMSApplier, SurveyAggregator
 from ms_create import EmptyMSCreator, EmptyZonesMSCreator, SurveyOnlyMSCreator, SurveyZonesMSCreator
 from pop_to_bldg import PopulationToBuildingMapper

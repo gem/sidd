@@ -14,7 +14,7 @@
 # version 3 along with SIDD.  If not, see
 # <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 #
-# Version: $Id: constants.py 19 2012-10-25 01:06:59Z zh $
+# Version: $Id: constants.py 21 2012-10-26 01:48:25Z zh $
 
 """
 UI constants
@@ -38,31 +38,37 @@ SIDD_UI_STRINGS = {
     "app.error.project.missing":'Must open project or create new project',
     "app.error.model":'Error Processing Request',
     'app.error.ui':'Error Processing Request',
-    
     'app.warning.title':'Warning',
-    
+    # project errors
+    ######################
+    "project.error.NeedsCount":'Building count must be set either through footprint or Zone with count',
+    "project.error.NeedsZone":'Homogenous zone is needed',
+    "project.error.NeedsMS":'Mapping Scheme is needed',
+    "project.error.NeedSurvey":'Survey data is required',
+    "project.error.NoActionDefined":'No action is defined for type of data provided',
+    "project.error.NotEnoughData":'No action is defined for type of data provided',
     # common messages
+    ######################
     "app.extension.shapefile":'Shapefile (*.shp)',
     "app.extension.csv":'CSV data(*.csv)',
     "app.extension.db":'DB file(*.db)',
     "app.extension.kml":'KML (*.kml)',
     "app.extension.xml":'XML(*.xml)',
     "app.extension.nrml":'NRML(*.xml)',
-    
+    # common UI messages
+    ######################    
     "app.file.select":'Select file:',
     "app.file.button":'...',
-    
     "app.dialog.button.ok":"OK",
     "app.dialog.button.cancel":"Cancel",
     "app.dialog.button.close":"Close",
     "app.dialog.button.apply":"Apply",
-    
     "app.popup.delete.confirm":"",
-    
+    # common UI messages
+    ######################        
     "app.mslibrary.default":"PAGER",
     "app.mslibrary.user.multilevel":"User-defined Multi-level",
     "app.mslibrary.user.singlelevel":"User-defined Single Level",
-
     # main application window
     ######################
     "app.window.title":'SIDD',
@@ -133,6 +139,11 @@ SIDD_UI_STRINGS = {
     "widget.input.verify.aggregation":'Output data aggregation',
     "widget.input.verify.agg.zone":'Zone',
     "widget.input.verify.agg.grid":'GED Grid',
+    # verification messages
+    "widget.input.verify.sucess":'Datasets complete\nProceed to create exposure',
+    "widget.input.verify.datarequired":'Following dataset required for building exposure',
+    "widget.input.verify.noaction":'No action is defined for type of data provided',
+    "widget.input.verify.unknownerror":'Unknown error while verifying input data',    
     # main application window / ms tab
     ######################
     "widget.ms.title":'Manage Mapping Schemes',
@@ -166,12 +177,13 @@ SIDD_UI_STRINGS = {
     # main application window / result tab
     ######################
     "widget.result.title":'Preview Exposure',
+    "widget.result.info.notfound":'Nothing not found at location',
     "widget.result.export.title":'Export Results',
     "widget.result.export.format":'Select Export Data Format',
     "widget.result.export.file.open":'Open Export File',
     "widget.result.export.button":'Export',
     "widget.result.dq.title":'Data Quality Tests',
-    "widget.result.dq.warning":'Warning',    
+    "widget.result.dq.warning":'Warning',
     # about dialog
     ######################
     'dlg.about.window.title': 'About SIDD',

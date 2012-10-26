@@ -6,7 +6,7 @@
 # @link       http://www.seismicat.com
 # @since      SeismiCat v1.0
 # @license    
-# @version    $Id: proj_unittest.py 18 2012-10-24 20:21:41Z zh $
+# @version    $Id: proj_unittest.py 21 2012-10-26 01:48:25Z zh $
 #
 
 import os
@@ -94,56 +94,65 @@ class ProjectTestCase(unittest.TestCase):
 
         # test cases raising exception
         ###################
+        # test case, empty project, should have errors NeedsZone, NeedsCount, NeedsMS
+        workflow = builder.build_workflow(proj)        
+        self.assertTrue(not workflow.ready)
+        self.assertEqual(len(workflow.errors), 3)
+        self.assertListEqual(workflow.errors, [WorkflowErrors.NeedsZone, 
+                                               WorkflowErrors.NeedsCount, 
+                                               WorkflowErrors.NeedsMS])
         
-        # test case, empty project, should raise exception need zone        
-        ex = get_run_exception(builder.build_workflow, (proj))
-        self.assertEqual(type(ex), WorkflowException)
-        self.assertEqual(ex.error, WorkflowErrors.NeedsZone)
-
         # test case, only zone, should raise exception need count
         proj.set_zones(ZonesTypes.Landuse, self.zone2_path, self.zone2_field)
-        ex = get_run_exception(builder.build_workflow, (proj))
-        self.assertEqual(type(ex), WorkflowException)        
-        self.assertEqual(ex.error, WorkflowErrors.NeedsCount)
-
+        workflow = builder.build_workflow(proj)        
+        self.assertTrue(not workflow.ready)
+        self.assertEqual(len(workflow.errors), 2)
+        self.assertListEqual(workflow.errors, [WorkflowErrors.NeedsCount, 
+                                               WorkflowErrors.NeedsMS])
+        
         # test case, zone / footprint, should raise exception need ms 
         proj.set_footprint(FootprintTypes.Footprint, self.fp_path)
-        ex = get_run_exception(builder.build_workflow, (proj))
-        self.assertEqual(type(ex), WorkflowException)        
-        self.assertEqual(ex.error, WorkflowErrors.NeedsMS)
+        workflow = builder.build_workflow(proj)        
+        self.assertTrue(not workflow.ready)
+        self.assertEqual(len(workflow.errors), 1)
+        self.assertListEqual(workflow.errors, [WorkflowErrors.NeedsMS])
 
         # complete footprint / zone / ms to zone, should raise exception no action
         proj.ms = ms 
         proj.set_output_type(OutputTypes.Zone)
-        ex = get_run_exception(builder.build_workflow, (proj))        
-        self.assertEqual(type(ex), WorkflowException)        
-        self.assertEqual(ex.error, WorkflowErrors.NoActionDefined)
-
+        workflow = builder.build_workflow(proj)
+        self.assertTrue(not workflow.ready)
+        self.assertEqual(len(workflow.errors), 1)
+        self.assertListEqual(workflow.errors, [WorkflowErrors.NoActionDefined])
         # test cases no exception
         ###################
 
         # complete footprint / zone / ms to grid, no exception 
         proj.set_output_type(OutputTypes.Grid)
-        ex = get_run_exception(builder.build_workflow, (proj))        
-        self.assertEqual(ex, None)        
+        workflow = builder.build_workflow(proj)
+        self.assertTrue(workflow.ready)
+        self.assertEqual(len(workflow.errors), 0)
 
         # test case, zonecount and ms to grid, no exception
         proj.set_footprint(FootprintTypes.None) # remove footprint
         proj.set_zones(ZonesTypes.LanduseCount, self.zone_path, self.zone_field, self.bldgcount_field)
         proj.ms = ms
         proj.set_output_type(OutputTypes.Grid)
-        ex = get_run_exception(builder.build_workflow, (proj))
-        self.assertEqual(ex, None)
+        workflow = builder.build_workflow(proj)
+        self.assertTrue(workflow.ready)
+        self.assertEqual(len(workflow.errors), 0)
         
         # test case, zonecount and ms to zone, no exception        
         proj.set_output_type(OutputTypes.Zone)
-        ex = get_run_exception(builder.build_workflow, (proj))
-        self.assertEqual(ex, None)
+        workflow = builder.build_workflow(proj)
+        self.assertTrue(workflow.ready)
+        self.assertEqual(len(workflow.errors), 0)
 
         # test case, complete survey, no exception
         proj.set_survey(SurveyTypes.CompleteSurvey, self.survey_path)
-        ex = get_run_exception(builder.build_workflow, (proj))
-        self.assertEqual(ex, None)
+        workflow = builder.build_workflow(proj)
+        self.assertTrue(workflow.ready)
+        self.assertEqual(len(workflow.errors), 0)
         
         # clean up
         del proj

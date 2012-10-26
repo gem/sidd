@@ -177,7 +177,7 @@
     <string>from Survey</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="btn_ok">
+  <widget class="QPushButton" name="btn_apply">
    <property name="geometry">
     <rect>
      <x>260</x>
@@ -223,7 +223,7 @@
     <string>Edit Mapping Scheme Branch</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="btn_add_branch">
+  <widget class="QPushButton" name="btn_add">
    <property name="geometry">
     <rect>
      <x>360</x>
@@ -240,7 +240,7 @@
      <normaloff>:/imgs/icons/add.png</normaloff>:/imgs/icons/add.png</iconset>
    </property>
   </widget>
-  <widget class="QPushButton" name="btn_del_branch">
+  <widget class="QPushButton" name="btn_delete">
    <property name="geometry">
     <rect>
      <x>390</x>
@@ -327,7 +327,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>btn_ok</sender>
+   <sender>btn_apply</sender>
    <signal>clicked()</signal>
    <receiver>modifierInputDialog</receiver>
    <slot>setModifier()</slot>
@@ -375,7 +375,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>btn_add_branch</sender>
+   <sender>btn_add</sender>
    <signal>clicked()</signal>
    <receiver>modifierInputDialog</receiver>
    <slot>addValue()</slot>
@@ -391,7 +391,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>btn_del_branch</sender>
+   <sender>btn_delete</sender>
    <signal>clicked()</signal>
    <receiver>modifierInputDialog</receiver>
    <slot>deleteValue()</slot>
