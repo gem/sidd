@@ -14,7 +14,7 @@
 # version 3 along with SIDD.  If not, see
 # <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 #
-# Version: $Id: constants.py 21 2012-10-26 01:48:25Z zh $
+# Version: $Id: constants.py 22 2012-10-26 23:29:52Z zh $
 
 """
 UI constants
