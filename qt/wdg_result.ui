@@ -16,10 +16,10 @@
   <widget class="QWidget" name="widget_export" native="true">
    <property name="geometry">
     <rect>
-     <x>640</x>
-     <y>40</y>
+     <x>650</x>
+     <y>30</y>
      <width>281</width>
-     <height>201</height>
+     <height>181</height>
     </rect>
    </property>
    <widget class="QToolButton" name="btn_export_select_file">
@@ -91,7 +91,7 @@
     <property name="geometry">
      <rect>
       <x>200</x>
-      <y>160</y>
+      <y>150</y>
       <width>75</width>
       <height>23</height>
      </rect>
@@ -104,7 +104,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>130</y>
+      <y>120</y>
       <width>261</width>
       <height>22</height>
      </rect>
@@ -114,7 +114,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>100</y>
+      <y>90</y>
       <width>181</width>
       <height>21</height>
      </rect>
@@ -133,8 +133,8 @@
   <widget class="QWidget" name="widget_dq_test" native="true">
    <property name="geometry">
     <rect>
-     <x>640</x>
-     <y>250</y>
+     <x>650</x>
+     <y>220</y>
      <width>281</width>
      <height>401</height>
     </rect>
@@ -292,102 +292,187 @@ p, li { white-space: pre-wrap; }
   <widget class="QWidget" name="widget_map" native="true">
    <property name="geometry">
     <rect>
-     <x>0</x>
+     <x>10</x>
      <y>40</y>
      <width>631</width>
      <height>611</height>
     </rect>
    </property>
-   <widget class="QPushButton" name="btn_zoom_in">
+   <widget class="QWidget" name="widget_map_menu_r" native="true">
     <property name="geometry">
      <rect>
-      <x>430</x>
-      <y>10</y>
-      <width>31</width>
-      <height>23</height>
+      <x>150</x>
+      <y>0</y>
+      <width>481</width>
+      <height>31</height>
      </rect>
     </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="icon">
-     <iconset resource="resources/SIDDResource.qrc">
-      <normaloff>:/imgs/icons/magnify_plus.png</normaloff>:/imgs/icons/magnify_plus.png</iconset>
-    </property>
+    <widget class="QLabel" name="lb_layer_selector">
+     <property name="geometry">
+      <rect>
+       <x>70</x>
+       <y>0</y>
+       <width>191</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Selected Layer</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="cb_layer_selector">
+     <property name="geometry">
+      <rect>
+       <x>270</x>
+       <y>0</y>
+       <width>141</width>
+       <height>22</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_theme">
+     <property name="geometry">
+      <rect>
+       <x>420</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Edit Layer Thematics</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/cog.png</normaloff>:/imgs/icons/cog.png</iconset>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_info">
+     <property name="geometry">
+      <rect>
+       <x>450</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Query Feature in Layer</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/information.png</normaloff>:/imgs/icons/information.png</iconset>
+     </property>
+    </widget>
    </widget>
-   <widget class="QPushButton" name="btn_zoom_out">
+   <widget class="QWidget" name="widget_map_menu_l" native="true">
     <property name="geometry">
      <rect>
-      <x>470</x>
-      <y>10</y>
-      <width>31</width>
-      <height>23</height>
+      <x>0</x>
+      <y>0</y>
+      <width>120</width>
+      <height>31</height>
      </rect>
     </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="icon">
-     <iconset resource="resources/SIDDResource.qrc">
-      <normaloff>:/imgs/icons/magnify_minus.png</normaloff>:/imgs/icons/magnify_minus.png</iconset>
-    </property>
+    <widget class="QPushButton" name="btn_zoom_in">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Zoom In</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/magnify_plus.png</normaloff>:/imgs/icons/magnify_plus.png</iconset>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_pan">
+     <property name="geometry">
+      <rect>
+       <x>90</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Pan</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/arrows_4_way.png</normaloff>:/imgs/icons/arrows_4_way.png</iconset>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_zoom_full">
+     <property name="geometry">
+      <rect>
+       <x>60</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Zoom to Full Extent</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/magnify.png</normaloff>:/imgs/icons/magnify.png</iconset>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_zoom_out">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Zoom Out</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/magnify_minus.png</normaloff>:/imgs/icons/magnify_minus.png</iconset>
+     </property>
+    </widget>
    </widget>
-   <widget class="QPushButton" name="btn_zoom_full">
-    <property name="geometry">
-     <rect>
-      <x>510</x>
-      <y>10</y>
-      <width>31</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="icon">
-     <iconset resource="resources/SIDDResource.qrc">
-      <normaloff>:/imgs/icons/magnify.png</normaloff>:/imgs/icons/magnify.png</iconset>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btn_info">
-    <property name="geometry">
-     <rect>
-      <x>590</x>
-      <y>10</y>
-      <width>31</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="icon">
-     <iconset resource="resources/SIDDResource.qrc">
-      <normaloff>:/imgs/icons/information.png</normaloff>:/imgs/icons/information.png</iconset>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btn_pan">
-    <property name="geometry">
-     <rect>
-      <x>550</x>
-      <y>10</y>
-      <width>31</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="icon">
-     <iconset resource="resources/SIDDResource.qrc">
-      <normaloff>:/imgs/icons/arrows_4_way.png</normaloff>:/imgs/icons/arrows_4_way.png</iconset>
-    </property>
-   </widget>
+   <zorder>widget_map_menu_r</zorder>
+   <zorder>widget_map_menu_l</zorder>
+   <zorder>widget_map_menu_l</zorder>
+   <zorder>widget_map_menu_l</zorder>
   </widget>
   <widget class="QLabel" name="lb_panel_title">
    <property name="geometry">
     <rect>
-     <x>0</x>
+     <x>10</x>
      <y>0</y>
      <width>591</width>
      <height>31</height>
@@ -408,136 +493,7 @@ p, li { white-space: pre-wrap; }
  <resources>
   <include location="resources/SIDDResource.qrc"/>
  </resources>
- <connections>
-  <connection>
-   <sender>btn_zoom_in</sender>
-   <signal>clicked()</signal>
-   <receiver>widgetResult</receiver>
-   <slot>mapZoomIn()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>440</x>
-     <y>61</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>638</x>
-     <y>-15</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btn_zoom_out</sender>
-   <signal>clicked()</signal>
-   <receiver>widgetResult</receiver>
-   <slot>mapZoomOut()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>487</x>
-     <y>58</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>527</x>
-     <y>-10</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btn_zoom_full</sender>
-   <signal>clicked()</signal>
-   <receiver>widgetResult</receiver>
-   <slot>mapZoomFull()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>523</x>
-     <y>61</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>597</x>
-     <y>-2</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btn_info</sender>
-   <signal>clicked()</signal>
-   <receiver>widgetResult</receiver>
-   <slot>mapIdentify()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>612</x>
-     <y>60</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>689</x>
-     <y>3</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btn_export_select_file</sender>
-   <signal>clicked()</signal>
-   <receiver>widgetResult</receiver>
-   <slot>selectExportFile()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>876</x>
-     <y>129</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>805</x>
-     <y>10</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btn_export</sender>
-   <signal>clicked()</signal>
-   <receiver>widgetResult</receiver>
-   <slot>exportData()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>877</x>
-     <y>244</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>902</x>
-     <y>8</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btn_pan</sender>
-   <signal>clicked()</signal>
-   <receiver>widgetResult</receiver>
-   <slot>mapPan()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>565</x>
-     <y>59</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>859</x>
-     <y>4</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>cb_export_format</sender>
-   <signal>currentIndexChanged(QString)</signal>
-   <receiver>widgetResult</receiver>
-   <slot>exportFormatChanged()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>801</x>
-     <y>183</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>928</x>
-     <y>226</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
  <slots>
   <slot>mapZoomIn()</slot>
   <slot>mapZoomOut()</slot>
@@ -547,5 +503,6 @@ p, li { white-space: pre-wrap; }
   <slot>selectExportFile()</slot>
   <slot>mapPan()</slot>
   <slot>exportFormatChanged()</slot>
+  <slot>editTheme()</slot>
  </slots>
 </ui>

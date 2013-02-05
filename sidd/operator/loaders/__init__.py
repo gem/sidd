@@ -23,4 +23,4 @@ package contains SIDD data loaders
 from footprint import FootprintLoader, FootprintHtLoader
 from zones import ZoneLoader, ZoneCountLoader
 from ms import MappingSchemeLoader
-from survey import SurveyLoader
+from survey import GEMDBSurveyLoader, CSVSurveyLoader

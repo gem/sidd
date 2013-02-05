@@ -24,8 +24,6 @@ import types
 
 from ConfigParser import ConfigParser
 
-from utils.system import get_app_dir
-
 class SIDDConfig(object):
     """
     manage SIDD configurations from two sources
@@ -34,11 +32,9 @@ class SIDDConfig(object):
     """
     # default application config file
     ###########################
-
-    DEFAULT_CONFIG_FILE = get_app_dir() + '/app.cfg'
-    
-    def __init__(self):
+    def __init__(self, config_file):
         self.config = ConfigParser()
+        self.config_file = config_file
         self.read_configs()
     
     def __del__(self):        
@@ -53,10 +49,11 @@ class SIDDConfig(object):
         1. default file
         2. user file
         """
-        self.config.read(self.DEFAULT_CONFIG_FILE)
+        #self.config.read(self.DEFAULT_CONFIG_FILE)
+        self.config.read(self.config_file)
 
     def save_configs(self):        
-        with open(self.DEFAULT_CONFIG_FILE, 'w') as config_file:
+        with open(self.config_file, 'w') as config_file:
             self.config.write(config_file)
 
     # config item accesor
@@ -68,21 +65,30 @@ class SIDDConfig(object):
         set to default if missing
         type can be used to adjust the type of value read
         """
-        if data_type == types.FloatType:
-            get_func = self.config.getfloat
-        elif data_type == types.IntType:
-            get_func = self.config.getint           
-        elif data_type == types.BooleanType:
-            get_func = self.config.getboolean
+        return_val = default
+        
+        # retrieve configuration value as an array 
+        if data_type == types.ListType:                         
+            return_val = eval(self.config.get(section, option), {},{})
         else:
-            get_func = self.config.get
-            
-        if self.config.has_option(section, option):
-            return get_func(section, option)
-        else:
-            return default
+            # retrieve configuration as single value
+            if data_type == types.FloatType:
+                get_func = self.config.getfloat
+            elif data_type == types.IntType:
+                get_func = self.config.getint           
+            elif data_type == types.BooleanType:
+                get_func = self.config.getboolean
+            else:            
+                get_func = self.config.get
+    
+            # retrieve value and cast into appropriate type
+            # return default, if cast fail or config not found                    
+            try:
+                if self.config.has_option(section, option):
+                    return_val = get_func(section, option)           
+            except:
+                pass
+        return return_val 
     
     def set(self, section, option, value):
         self.config.set(section, option, value)
- 
-sidd_config = SIDDConfig()

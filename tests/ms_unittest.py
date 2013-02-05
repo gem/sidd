@@ -10,21 +10,20 @@
 #
 
 import os
-import sys
 import unittest
-import logging
 
 # import sidd packages for testing
-from sidd.ms import *
+from sidd.ms import MappingScheme, MappingSchemeZone, \
+                    Statistics, StatisticNode, StatisticError
+from sidd.taxonomy import get_taxonomy
 from utils.system import get_app_dir 
 
 class MSTestCase(unittest.TestCase):
 
-    # run for everytesy
+    # run for every test
     ##################################
     
     def setUp(self):
-        from sidd.taxonomy import get_taxonomy
         self.taxonomy = get_taxonomy("gem")
         self.survey_file = get_app_dir() + "/tests/data/survey.csv"
         self.ms_file = get_app_dir() + '/tests/data/ms.xml'
@@ -36,7 +35,8 @@ class MSTestCase(unittest.TestCase):
     def test_BuildMS(self):
         import csv
         survey = csv.reader(open(self.survey_file , 'r'), delimiter=',', quotechar='"')
-        header = survey.next()
+        # skip header, there is probably a better way to do this
+        survey.next()
 
         stats = Statistics(self.taxonomy)
         stats.set_attribute_skip(3, True)
@@ -65,7 +65,8 @@ class MSTestCase(unittest.TestCase):
     def test_SaveMS(self):
         import csv
         survey = csv.reader(open(self.survey_file, 'r'), delimiter=',', quotechar='"')
-        header = survey.next()
+        # skip header, there is probably a better way to do this
+        survey.next()
 
         stats = Statistics(self.taxonomy)
         stats.set_attribute_skip(3, True)
@@ -85,22 +86,25 @@ class MSTestCase(unittest.TestCase):
         ms.save(self.tmp_ms_file)
         
         self.assertTrue(os.path.exists(self.tmp_ms_file))
-        os.remove(self.tmp_ms_file)
+        #os.remove(self.tmp_ms_file)
 
-    def test_LoadMS(self):
+    def test_LoadMS(self, skipTest=False, statsOnly=True):
         ms = MappingScheme(self.taxonomy)
         ms.read(self.ms_file)
+        
+        if skipTest:
+            if statsOnly:
+                return ms.get_assignment_by_name("ALL")
+            else:
+                return ms
         
         stats = ms.get_assignment_by_name("ALL")
         attributes = stats.get_attributes(stats.get_tree())
         expected = ['Material', 'Lateral Load-Resisting System', 'Roof']
         self.assertEqual(attributes, expected)
         
-    def test_MSAddBranch(self):
-        ms = MappingScheme(self.taxonomy)
-        ms.read(self.ms_file)
-        
-        stats = ms.get_assignment_by_name("ALL")
+    def test_StatsAddBranch(self):
+        stats = self.test_LoadMS(skipTest=True, statsOnly=True)
         
         # cannot add tree to self because of conflicting attributes
         with self.assertRaises(StatisticError):
@@ -113,4 +117,15 @@ class MSTestCase(unittest.TestCase):
         
         self.assertEquals(len(node.children), 2)
     
+    def test_StatsRandomWalk(self):
+        self.test_LoadMS(skipTest=True, statsOnly=True)
+        
+                
+    def test_StatsLeaves(self):
+        stats = self.test_LoadMS(skipTest=True, statsOnly=True)
+        leaves =  stats.get_leaves(True)
+        total = 0
+        for l in leaves:
+            total += l[1]
+        self.assertAlmostEqual(total, 1)
         

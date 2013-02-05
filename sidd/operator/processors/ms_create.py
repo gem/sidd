@@ -19,17 +19,18 @@
 """
 module contains class for creating mapping scheme from survey data
 """
-from PyQt4.QtCore import *
-from qgis.core import *
 from qgis.analysis import QgsOverlayAnalyzer
 
+from utils.shapefile import load_shapefile, layer_features, layer_field_index, remove_shapefile, \
+                            layer_fields_stats 
 from utils.system import get_unique_filename
-from utils.shapefile import *
 
 from sidd.constants import logAPICall
-from sidd.operator import *
+from sidd.ms import MappingScheme, MappingSchemeZone, Statistics
 from sidd.taxonomy import get_taxonomy
-from sidd.ms import *
+
+from sidd.operator import Operator, OperatorError
+from sidd.operator.data import OperatorDataTypes
 
 class EmptyMSCreator(Operator):
     def __init__(self, options=None, name='EmptyMSCreator'):

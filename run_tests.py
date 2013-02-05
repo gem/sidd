@@ -11,15 +11,13 @@
 
 import sys
 import os
-import warnings
 import unittest
 import getopt
 
 import logging
 logging.basicConfig(level=logging.ERROR)
 
-from qgis.core import *
-from qgis.gui import *
+from qgis.core import QgsApplication
 
 from tests import *
 
@@ -30,15 +28,24 @@ def suite():
     #suite.addTest(MSTestCase('test_BuildMS'))
     #suite.addTest(MSTestCase('test_SaveMS'))
     #suite.addTest(MSTestCase('test_LoadMS'))    
-    #suite.addTest(MSTestCase('test_MSAddBranch'))
+    #suite.addTest(MSTestCase('test_StatsAddBranch'))
+    #suite.addTest(MSTestCase('test_StatsRandomWalk'))
+    #suite.addTest(MSTestCase('test_StatsLeaves'))
     
     # operator tests
     #suite.addTest(OperatorTestCase('test_LoadZone'))
     #suite.addTest(OperatorTestCase('test_MakeGrid'))
-    suite.addTest(OperatorTestCase('test_CreateMSFromSurveyZone'))
-    suite.addTest(OperatorTestCase('test_CreateMSFromSurveyOnly'))
-    #suite.addTest(OperatorTestCase('test_ApplyMS'))
+    #suite.addTest(OperatorTestCase('test_CreateMSFromSurveyZone'))
+    #suite.addTest(OperatorTestCase('test_CreateMSFromSurveyOnly'))
+    #suite.addTest(OperatorTestCase('test_ApplyMS'))    
+    #suite.addTest(OperatorTestCase('test_LoadGEMDBSurvey'))
     
+    #suite.addTest(TaxonomyTestCase('test_Parse'))
+    
+    suite.addTest(MSDBTestCase('test_Read'))
+    suite.addTest(MSDBTestCase('test_SaveDelete'))
+    #suite.addTest(ProjectTestCase('test_WorkflowBuilder'))
+        
     return suite
 
 if __name__ == '__main__':
@@ -58,7 +65,6 @@ if __name__ == '__main__':
 
     run_test_case=False
     for o, a in opts:
-        print o, a
         if o == "-s":
             run_test_case=True
 

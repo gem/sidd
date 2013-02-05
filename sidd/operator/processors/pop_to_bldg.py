@@ -19,8 +19,7 @@
 """
 module constains class for converting population count to building count
 """
-from sidd.operator.exception import *
-from sidd.operator import *
+from sidd.operator import Operator
 
 class PopulationToBuildingMapper(Operator):    
     

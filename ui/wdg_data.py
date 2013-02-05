@@ -21,22 +21,18 @@ Widget (Panel) for specifying data inputs
 """
 
 import os
-import types
 
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
-
-from qgis.core import *
-from qgis.gui import *
+from PyQt4.QtGui import QWidget, QMessageBox, QFileDialog, QPixmap
+from PyQt4.QtCore import QSize, QPoint, pyqtSlot
 
 from utils.shapefile import shapefile_fields, shapefile_projection
+from utils.system import get_app_dir
 
-from sidd.constants import *
-from sidd.operator.data import *
-from sidd.operator.loaders import *
-from sidd.operator.processors import *
+from sidd.constants import logAPICall, \
+                           FootprintTypes, OutputTypes, SurveyTypes, ZonesTypes, \
+                           ProjectStatus
 
-from ui.constants import logUICall, get_ui_string
+from ui.constants import logUICall, get_ui_string, UI_PADDING
 from ui.qt.wdg_data_ui import Ui_widgetDataInput
 
 class WidgetDataInput(Ui_widgetDataInput, QWidget):
@@ -57,11 +53,13 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
             @functools.wraps(f)
             def wrapper(*args, **kw):
                 if self.project_is_required and self.project is None:
+                    logUICall.log(get_ui_string("app.error.project.missing"), logUICall.ERROR)
                     QMessageBox.critical(None,
                                          get_ui_string("app.error.title"),
                                          get_ui_string("app.error.project.missing"))
                     return
                 try:
+                    logUICall.log('function call %s from module %s' % (f.__name__, f.__module__), logUICall.DEBUG)
                     return f(*args, **kw)
                 except Exception as err:
                     logUICall.log(err, logUICall.ERROR)
@@ -71,7 +69,6 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
 
     # constructor / destructor
     ###############################
-    
     def __init__(self, app):
         """ constructor """
         super(WidgetDataInput, self).__init__()
@@ -83,118 +80,103 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
         self.project = None
         WidgetDataInput.uiCallChecker.project_is_required = False
 
+        # default input data setting
         self.ui.radio_fp_op1.setChecked(True)
+        self.ui.radio_fp_op2.setEnabled(False)
         self.ui.radio_svy_op1.setChecked(True)
         self.ui.radio_zones_op1.setChecked(True)
-        self.ui.radio_aggr_op1.setChecked(True)
-        
-        self.ui.radio_fp_op2.setEnabled(False)
+        self.ui.radio_aggr_op1.setChecked(True)       
 
-    # public methods
-    ###############################
-    
-    @logAPICall
-    def setProject(self, project):
-        self.project = None
+        # connect slots (ui event)
+        # footprint
+        self.ui.btn_fp_select_file.clicked.connect(self.openFootprintData)
+        self.ui.radio_fp_op1.toggled.connect(self.setFootprintDataType)
+        self.ui.radio_fp_op2.toggled.connect(self.setFootprintDataType)
+        self.ui.radio_fp_op3.toggled.connect(self.setFootprintDataType)
+        # survey
+        self.ui.btn_svy_select_file.clicked.connect(self.openSurveyData)
+        self.ui.radio_svy_op1.toggled.connect(self.setSurveyDataType)
+        self.ui.radio_svy_op2.toggled.connect(self.setSurveyDataType)
+        self.ui.radio_svy_op3.toggled.connect(self.setSurveyDataType)
+        # zones
+        self.ui.btn_zones_select_file.clicked.connect(self.openZoneData)
+        self.ui.radio_zones_op1.toggled.connect(self.setZoneDataType)
+        self.ui.radio_zones_op2.toggled.connect(self.setZoneDataType)
+        self.ui.radio_zones_op3.toggled.connect(self.setZoneDataType)    
+        self.ui.cb_zones_class_field.currentIndexChanged[str].connect(self.setZoneField)
+        self.ui.cb_zones_count_field.currentIndexChanged[str].connect(self.setZoneCountField)  
+        # aggregation
+        self.ui.radio_aggr_op1.toggled.connect(self.setAggregateType)
+        self.ui.radio_aggr_op2.toggled.connect(self.setAggregateType)
+        # verify
+        self.ui.btn_verify.clicked.connect(self.verifyInput)
         
-        if project.fp_type == FootprintTypes.None:
-            self.ui.radio_fp_op1.setChecked(True)
-        elif project.fp_type == FootprintTypes.FootprintHt:
-            self.ui.radio_fp_op2.setChecked(True)
-            self.setFootprintFile(project.fp_file)
-        else:
-            self.ui.radio_fp_op3.setChecked(True)
-            self.setFootprintFile(project.fp_file)
-        
-        if project.survey_type == SurveyTypes.None:
-            self.ui.radio_svy_op1.setChecked(True)
-        elif project.survey_type == SurveyTypes.CompleteSurvey:
-            self.ui.radio_svy_op2.setChecked(True)
-            self.setSurveyFile(project.survey_file)
-        else:
-            self.ui.radio_svy_op3.setChecked(True)
-            self.setSurveyFile(project.survey_file)
-        
-        if project.zone_type == ZonesTypes.None:
-            self.ui.radio_zones_op1.setChecked(True)
-        elif project.zone_type == ZonesTypes.Landuse:
-            self.ui.radio_zones_op2.setChecked(True)
-            self.setZonesFile(project.zone_file)
-            self.ui.cb_zones_class_field.setCurrentIndex(
-                self.ui.cb_zones_class_field.findText(project.zone_field))
-        else:
-            self.ui.radio_zones_op3.setChecked(True)
-            self.setZonesFile(project.zone_file)
-            self.ui.cb_zones_class_field.setCurrentIndex(
-                self.ui.cb_zones_class_field.findText(project.zone_field))
-            self.ui.cb_zones_count_field.setCurrentIndex(
-                self.ui.cb_zones_count_field.findText(project.zone_count_field))
-        
-        if project.output_type == OutputTypes.Zone:
-            self.ui.radio_aggr_op1.setChecked(True)
-        else:
-            self.ui.radio_aggr_op2.setChecked(True)
-
-        self.project = project
-        WidgetDataInput.uiCallChecker.project = project        
-        WidgetDataInput.uiCallChecker.project_is_required = True
-
-    @logAPICall
-    def showVerificationResults(self):
-        NO_KEY = ":/imgs/icons/no.png"
-        YES_KEY = ":/imgs/icons/yes.png"
-        
-        project = self.project # 
-        if project.fp_type == FootprintTypes.None:
-            self.ui.img_lb_verify_fp.setPixmap(QPixmap(NO_KEY))
-        else:
-            self.ui.img_lb_verify_fp.setPixmap(QPixmap(YES_KEY))
-
-        if project.survey_type == SurveyTypes.None:
-            self.ui.img_lb_verify_svy.setPixmap(QPixmap(NO_KEY))
-        else:
-            self.ui.img_lb_verify_svy.setPixmap(QPixmap(YES_KEY))
-        
-        if project.zone_type == ZonesTypes.None:
-            self.ui.img_lb_verify_zones.setPixmap(QPixmap(NO_KEY))
-        else:
-            self.ui.img_lb_verify_zones.setPixmap(QPixmap(YES_KEY))
-            
-        if project.output_type == OutputTypes.Zone:
-            self.ui.img_lb_verify_agg_zone.setPixmap(QPixmap(YES_KEY))
-            self.ui.img_lb_verify_agg_grid.setPixmap(QPixmap(NO_KEY))
-        else:
-            self.ui.img_lb_verify_agg_grid.setPixmap(QPixmap(YES_KEY))
-            self.ui.img_lb_verify_agg_zone.setPixmap(QPixmap(NO_KEY))
-        
-        if project.status == ProjectStatus.ReadyForExposure:
-            self.ui.txt_verify_text.setText(get_ui_string('widget.input.verify.sucess'))
-        elif project.status == ProjectStatus.ReadyForMS:
-            self.ui.txt_verify_text.setText(get_ui_string('widget.input.verify.datarequired'))
-            # append error messages
-            for err in project.errors:                
-                errMsg = get_ui_string('project.error.%s' % str(err))
-                if errMsg == '':
-                    errMsg = get_ui_string('widget.input.verify.unknownerror')                 
-                self.ui.txt_verify_text.append('-%s' % errMsg)
-                                                                
-        else: #project.status == ProjectStatus.NotVerified:
-            self.ui.txt_verify_text.setText(get_ui_string('widget.input.verify.noaction'))            
-        
-       
-    @logAPICall
-    def closeProject(self):
-        self.project = None        
-        WidgetDataInput.uiCallChecker.project_is_required = False
-        WidgetDataInput.uiCallChecker.project = None
-        
-        self.resetUI(resetFP=True, resetZone=True, resetSurvey=True, resetOutput=True)
-
     # UI event handling calls
     ###############################
+    def resizeEvent(self, event):
+        """ handle window resize """
+        width_panel = (self.width() - UI_PADDING) / 2
+        button_width = self.ui.btn_fp_select_file.width()         
+        combo_width, combo_ht = width_panel * 0.3, self.ui.cb_fp_proj.height()        
+        ht_input_panels = self.height() - self.ui.widgetFootprint.y() - UI_PADDING
+        
+        # footprint panel 
+        self.ui.widgetFootprint.resize(QSize(width_panel, ht_input_panels * 0.4))
+        self.ui.btn_fp_select_file.move(QPoint(width_panel-button_width-UI_PADDING, 
+                                               self.ui.btn_fp_select_file.y()))
+        self.ui.txt_fp_select_file.resize(QSize(self.ui.btn_fp_select_file.x()-self.ui.txt_fp_select_file.x()-UI_PADDING,
+                                                self.ui.txt_fp_select_file.height()))
+        self.ui.cb_fp_story_field.resize(QSize(combo_width, combo_ht))
+        self.ui.cb_fp_story_field.move(QPoint(width_panel-combo_width-UI_PADDING, 
+                                              self.ui.cb_fp_story_field.y()))         
+        self.ui.cb_fp_proj.resize(QSize(combo_width, combo_ht))
+        self.ui.cb_fp_proj.move(QPoint(width_panel-combo_width-UI_PADDING, 
+                                       self.ui.cb_fp_proj.y()))         
+        
+        # survey panel
+        self.ui.widgetSurvey.resize(QSize(width_panel, ht_input_panels * 0.3))
+        self.ui.btn_svy_select_file.move(QPoint(width_panel-button_width-UI_PADDING, 
+                                                self.ui.btn_svy_select_file.y()))
+        self.ui.txt_svy_select_file.resize(QSize(self.ui.btn_svy_select_file.x()-self.ui.txt_svy_select_file.x()-UI_PADDING,
+                                                 self.ui.txt_svy_select_file.height()))
+        
+        # aggregation panel
+        self.ui.widgetAggr.resize(QSize(width_panel, ht_input_panels * 0.3))
+        self.ui.btn_aggr_grid_select_file.move(QPoint(width_panel-button_width-UI_PADDING, 
+                                                      self.ui.btn_aggr_grid_select_file.y()))
+        self.ui.txt_aggr_grid_select_file.resize(QSize(self.ui.btn_aggr_grid_select_file.x()-self.ui.txt_aggr_grid_select_file.x()-UI_PADDING,
+                                                       self.ui.txt_aggr_grid_select_file.height()))
+        
+        # right panel 
+        self.ui.widgetZones.resize(QSize(width_panel, ht_input_panels * 0.5))
+        self.ui.widgetZones.move(QPoint(width_panel+UI_PADDING, self.ui.widgetZones.y()))
+        self.ui.btn_zones_select_file.move(QPoint(width_panel-button_width-UI_PADDING, 
+                                                  self.ui.btn_zones_select_file.y()))
+        self.ui.txt_zones_select_file.resize(QSize(self.ui.btn_zones_select_file.x()-self.ui.txt_zones_select_file.x()-UI_PADDING,
+                                                   self.ui.txt_zones_select_file.height()))
 
+        self.ui.cb_zones_class_field.resize(QSize(combo_width, combo_ht))
+        self.ui.cb_zones_class_field.move(QPoint(width_panel-combo_width-UI_PADDING,
+                                                 self.ui.cb_zones_class_field.y()))
+        self.ui.cb_zones_count_field.resize(QSize(combo_width, combo_ht))
+        self.ui.cb_zones_count_field.move(QPoint(width_panel-combo_width-UI_PADDING,
+                                                 self.ui.cb_zones_count_field.y()))
+                
+        self.ui.cb_zones_proj.resize(QSize(combo_width, combo_ht))
+        self.ui.cb_zones_proj.move(QPoint(width_panel-combo_width-UI_PADDING,
+                                          self.ui.cb_zones_proj.y()))
+        
+        self.ui.widgetResult.resize(QSize(width_panel, ht_input_panels * 0.5))
+        self.ui.widgetResult.move(QPoint(width_panel+UI_PADDING, self.ui.widgetResult.y()))        
+        self.ui.txt_verify_text.resize(QSize(width_panel-self.ui.txt_verify_text.x()-UI_PADDING,
+                                             self.ui.txt_verify_text.height()))
+        self.ui.btn_verify.move(QPoint(width_panel-self.ui.btn_verify.width()-UI_PADDING,
+                                       self.ui.btn_verify.y()))
+
+        logUICall.log('resize done for %s' % self.__module__, logUICall.INFO)
+            
     @uiCallChecker
-    @logUICall
+    @pyqtSlot()
     def openFootprintData(self):
         """ show open file dialog box for selecting footprint data file"""
         filename = QFileDialog.getOpenFileName(self,
@@ -202,43 +184,10 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
                                                get_app_dir(),
                                                get_ui_string("app.extension.shapefile"))
         if not filename.isNull() and os.path.exists(str(filename)):
-            self.setFootprintFile(str(filename))
-    
-    @uiCallChecker
-    @logUICall    
-    def openSurveyData(self):
-        """ show open file dialog box for selecting survey data file"""
-        filename = QFileDialog.getOpenFileName(self,
-                                               get_ui_string("widget.input.survey.file.open"),
-                                               get_app_dir(),
-                                               get_ui_string("app.extension.csv"))
-        if not filename.isNull() and os.path.exists(str(filename)):
-            self.setSurveyFile(str(filename))
-
-    @uiCallChecker
-    @logUICall    
-    def openZoneData(self):
-        """ show open file dialog box for selecting homogenous data file"""
-        filename = QFileDialog.getOpenFileName(self,
-                                               get_ui_string("widget.input.zone.file.open"),
-                                               get_app_dir(),
-                                               get_ui_string("app.extension.shapefile"))
-        if not filename.isNull() and os.path.exists(str(filename)):
-            self.setZonesFile(str(filename))
-
-    @uiCallChecker
-    @logUICall    
-    def openAggGridData(self):
-        """ show open file dialog box for selecting GED compatible grid file"""
-        filename = QFileDialog.getOpenFileName(self,
-                                               get_ui_string("widget.input.agg.file.open"),
-                                               get_app_dir(),
-                                               get_ui_string("app.extension.shapefile"))
-        if not filename.isNull() and os.path.exists(str(filename)):
-            self.setAggGridFile(str(filename))
+            self.setFootprintFile(str(filename))     
 
     @logUICall
-    @uiCallChecker
+    @pyqtSlot(bool)
     def setFootprintDataType(self, checked=False):
         """ control UI based on footprint data radio button selected """        
         sender = self.sender()
@@ -286,9 +235,20 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
                               logUICall.WARNING)
         #else:
         #   ignore
+    
+    @uiCallChecker
+    @pyqtSlot()
+    def openSurveyData(self):
+        """ show open file dialog box for selecting survey data file"""
+        filename = QFileDialog.getOpenFileName(self,
+                                               get_ui_string("widget.input.survey.file.open"),
+                                               get_app_dir(),
+                                               get_ui_string("app.extension.gemdb"))
+        if not filename.isNull() and os.path.exists(str(filename)):
+            self.setSurveyFile(str(filename))
 
     @uiCallChecker
-    @logUICall    
+    @pyqtSlot(bool)   
     def setSurveyDataType(self, checked=False):
         """ control UI based on survey data radio button selected """
         sender = self.sender()
@@ -301,7 +261,7 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
                 # update project if project exists
                 if self.project is not None:
                     self.project.survey_type = SurveyTypes.None
-                    self.project.survey_file = ''                
+                    self.project.survey_file = ''
             elif sender == self.ui.radio_svy_op2:
                 logUICall.log('\cwith complete survey data ...', logUICall.DEBUG_L2)
                 # update UI
@@ -325,9 +285,20 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
                               logUICall.WARNING)
         #else:
         #   ignore
-
+        
     @uiCallChecker
-    @logUICall
+    @pyqtSlot()
+    def openZoneData(self):
+        """ show open file dialog box for selecting homogenous data file"""
+        filename = QFileDialog.getOpenFileName(self,
+                                               get_ui_string("widget.input.zone.file.open"),
+                                               get_app_dir(),
+                                               get_ui_string("app.extension.shapefile"))
+        if not filename.isNull() and os.path.exists(str(filename)):
+            self.setZonesFile(str(filename))
+                
+    @uiCallChecker
+    @pyqtSlot(bool)
     def setZoneDataType(self, checked=False):
         """ control UI based on zone data radio button selected """
         sender = self.sender()
@@ -374,25 +345,36 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
         #   ignore
 
     @uiCallChecker
-    @logUICall
+    @pyqtSlot(int)
     def setZoneField(self, zone_field):
         # update project if project exists
         if self.project is not None:
             logUICall.log('\tset zone field %s ...' % zone_field, logUICall.DEBUG_L2)
             # update project if project exists
             if self.project is not None:
-                self.project.zone_field = str(zone_field)
+                self.project.zone_field = str(zone_field)            
     
     @uiCallChecker
-    @logUICall
-    def setZoneCountField(self, zone_count_field):
+    @pyqtSlot(int)
+    def setZoneCountField(self, zone_count_field):        
         # update project if project exists
         if self.project is not None:
             logUICall.log('\tset zone count field %s ...' % zone_count_field, logUICall.DEBUG_L2)
             self.project.zone_count_field = str(zone_count_field)
 
     @uiCallChecker
-    @logUICall    
+    @pyqtSlot()
+    def openAggGridData(self):
+        """ show open file dialog box for selecting GED compatible grid file"""
+        filename = QFileDialog.getOpenFileName(self,
+                                               get_ui_string("widget.input.agg.file.open"),
+                                               get_app_dir(),
+                                               get_ui_string("app.extension.shapefile"))
+        if not filename.isNull() and os.path.exists(str(filename)):
+            self.setAggGridFile(str(filename))
+
+    @uiCallChecker
+    @pyqtSlot(bool)    
     def setAggregateType(self, checked=False):
         sender = self.sender()
         if sender.isChecked():            
@@ -418,9 +400,10 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
                               logUICall.WARNING)
         #else:
         #   ignore
-                
-    @logUICall
-    def verifyInput(self, checked=False):
+    
+    @uiCallChecker            
+    @pyqtSlot()
+    def verifyInput(self):
         """ determine if current input data set is enough to build exposure """
         # make sure all required input has been filled in
         # footprint 
@@ -437,8 +420,8 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
             if not os.path.exists(path):
                 QMessageBox.warning(self,
                                     get_ui_string('app.warning.title'),
-                                    get_ui_string('app.error.file.does.not.exist' % path))                
-                return            
+                                    get_ui_string('app.error.file.does.not.exist' % path))   
+                return
         if self.ui.radio_fp_op3.isChecked():
             # story field set 
             if self.ui.cb_fp_story_field.currentText() == ' ':
@@ -512,7 +495,7 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
         
         # update project if project exists
         if self.project is not None:
-            self.project.fp_file = filename
+            self.project.fp_file = filename                        
 
     def setSurveyFile(self, filename):
         # update UI
@@ -550,6 +533,108 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
         # update project if project exists
         if self.project is not None:
             self.project.grid_file = filename
+
+
+    # public methods
+    ###############################
+    
+    @logAPICall
+    def setProject(self, project):
+        self.project = None
+        
+        if project.fp_type == FootprintTypes.None:
+            self.ui.radio_fp_op1.setChecked(True)
+        elif project.fp_type == FootprintTypes.FootprintHt:
+            self.ui.radio_fp_op2.setChecked(True)
+            self.setFootprintFile(project.fp_file)             
+        else:
+            self.ui.radio_fp_op3.setChecked(True)
+            self.setFootprintFile(project.fp_file)            
+        
+        if project.survey_type == SurveyTypes.None:
+            self.ui.radio_svy_op1.setChecked(True)
+        elif project.survey_type == SurveyTypes.CompleteSurvey:
+            self.ui.radio_svy_op2.setChecked(True)
+            self.setSurveyFile(project.survey_file)            
+        else:
+            self.ui.radio_svy_op3.setChecked(True)
+            self.setSurveyFile(project.survey_file)            
+            
+        if project.zone_type == ZonesTypes.None:
+            self.ui.radio_zones_op1.setChecked(True)
+        elif project.zone_type == ZonesTypes.Landuse:
+            self.ui.radio_zones_op2.setChecked(True)
+            self.setZonesFile(project.zone_file)            
+            self.ui.cb_zones_class_field.setCurrentIndex(
+                self.ui.cb_zones_class_field.findText(project.zone_field))
+        else:
+            self.ui.radio_zones_op3.setChecked(True)
+            self.setZonesFile(project.zone_file)            
+            self.ui.cb_zones_class_field.setCurrentIndex(
+                self.ui.cb_zones_class_field.findText(project.zone_field))
+            self.ui.cb_zones_count_field.setCurrentIndex(
+                self.ui.cb_zones_count_field.findText(project.zone_count_field))
+        
+        if project.output_type == OutputTypes.Zone:
+            self.ui.radio_aggr_op1.setChecked(True)
+        else:
+            self.ui.radio_aggr_op2.setChecked(True)
+
+        self.project = project
+        WidgetDataInput.uiCallChecker.project = project        
+        WidgetDataInput.uiCallChecker.project_is_required = True
+
+    @logAPICall
+    def showVerificationResults(self):
+        NO_KEY = ":/imgs/icons/no.png"
+        YES_KEY = ":/imgs/icons/yes.png"
+        
+        project = self.project # 
+        if project.fp_type == FootprintTypes.None:
+            self.ui.img_lb_verify_fp.setPixmap(QPixmap(NO_KEY))
+        else:
+            self.ui.img_lb_verify_fp.setPixmap(QPixmap(YES_KEY))
+
+        if project.survey_type == SurveyTypes.None:
+            self.ui.img_lb_verify_svy.setPixmap(QPixmap(NO_KEY))
+        else:
+            self.ui.img_lb_verify_svy.setPixmap(QPixmap(YES_KEY))
+        
+        if project.zone_type == ZonesTypes.None:
+            self.ui.img_lb_verify_zones.setPixmap(QPixmap(NO_KEY))
+        else:
+            self.ui.img_lb_verify_zones.setPixmap(QPixmap(YES_KEY))
+            
+        if project.output_type == OutputTypes.Zone:
+            self.ui.img_lb_verify_agg_zone.setPixmap(QPixmap(YES_KEY))
+            self.ui.img_lb_verify_agg_grid.setPixmap(QPixmap(NO_KEY))
+        else:
+            self.ui.img_lb_verify_agg_grid.setPixmap(QPixmap(YES_KEY))
+            self.ui.img_lb_verify_agg_zone.setPixmap(QPixmap(NO_KEY))
+        
+        if project.status == ProjectStatus.ReadyForExposure:
+            self.ui.txt_verify_text.setText(get_ui_string('widget.input.verify.sucess'))
+        elif project.status == ProjectStatus.ReadyForMS:
+            self.ui.txt_verify_text.setText(get_ui_string('widget.input.verify.datarequired'))
+            # append error messages
+            for err in project.errors:                
+                errMsg = get_ui_string('project.error.%s' % str(err))
+                if errMsg == '':
+                    errMsg = get_ui_string('widget.input.verify.unknownerror')                 
+                self.ui.txt_verify_text.append('-%s' % errMsg)
+                                                                
+        else: #project.status == ProjectStatus.NotVerified:
+            self.ui.txt_verify_text.setText(get_ui_string('widget.input.verify.noaction'))            
+        
+       
+    @logAPICall
+    def closeProject(self):
+        self.project = None        
+        WidgetDataInput.uiCallChecker.project_is_required = False
+        WidgetDataInput.uiCallChecker.project = None
+        
+        self.resetUI(resetFP=True, resetZone=True, resetSurvey=True, resetOutput=True)
+
 
     def resetUI(self, resetFP=False, resetZone=False, resetSurvey=False, resetOutput=False):
         if resetFP:

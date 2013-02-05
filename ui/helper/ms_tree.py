@@ -20,11 +20,13 @@
 tree model for visualizing mapping scheme
 """
 
-from PyQt4.QtCore import *
+from PyQt4.QtCore import Qt, QVariant,\
+                         QAbstractItemModel, QModelIndex
 
-from sidd.ms import *
+from sidd.ms import MappingSchemeZone, StatisticNode
 
 from ui.constants import logUICall, get_ui_string
+from ui.helper.common import build_attribute_tooltip
 
 class MSTreeModel(QAbstractItemModel):  
     """
@@ -32,20 +34,24 @@ class MSTreeModel(QAbstractItemModel):
     """
     def __init__(self, ms, flag=None):
         """ constructor """
-        super(MSTreeModel, self).__init__(None)  
+        super(MSTreeModel, self).__init__(None)
+        self.setMS(ms)  
+        if flag is None:
+            self.flag = Qt.ItemIsEnabled | Qt.ItemIsSelectable 
+        else:
+            self.flag = flag        
+    
+    def setMS(self, ms):
         self.ms = ms
+        self.valid_codes = ms.taxonomy.codes
         self.rootNode = object()        
         self.zones = ms.get_zones()
         for zone in self.zones:
             #print zone, type(zone.stats.root), zone.stats.root.value
             zone.stats.get_tree().value = zone.name
-        if flag is None:
-            self.flag = Qt.ItemIsEnabled | Qt.ItemIsSelectable 
-        else:
-            self.flag = flag        
 
     def nodeFromIndex(self, index):
-        """ (override function) retrive internal stored node from given index """
+        """ (override function) retrieve internal stored node from given index """
         logUICall.log("nodeFromIndx %s" %index, logUICall.DEBUG_L2)
         if index.isValid():  
             return index.internalPointer()  
@@ -57,7 +63,7 @@ class MSTreeModel(QAbstractItemModel):
         return 1
 
     def rowCount(self, parent):
-        """ (override function) retrive number of children from a given parent node """
+        """ (override function) retrieve number of children from a given parent node """
         logUICall.log("rowCount %s" % (parent), logUICall.DEBUG_L2)
         if parent.column() > 0: # there is only one column
             return 0
@@ -84,32 +90,43 @@ class MSTreeModel(QAbstractItemModel):
     
     def data(self, index, role):
         """
-        (override function) retrive appropriate data to show in UI given a index
-        currently only DisplayRole is implementated
+        (override function) retrieve appropriate data to show in UI given a index
+        currently only DisplayRole is implemented
         """
         logUICall.log("data %s" % (index), logUICall.DEBUG_L2)
         
         if not index.isValid():  # invalid case, nothing to display
             return None
-        if role != Qt.DisplayRole: # only displayRole handled for now
+        
+        if role == Qt.DisplayRole:              
+            # construct data to show in tree UI
+            item = index.internalPointer()
+            if item == self.rootNode:
+                # root node
+                logUICall.log("\tindex is root", logUICall.DEBUG_L2)
+                return 'ROOT'
+            elif isinstance(item, MappingSchemeZone):
+                # zone node(first level under root node)
+                # statistic in each zone should be 100%
+                logUICall.log("\tindex is zone %s" % (item.name), logUICall.DEBUG_L2)
+                return '%s - %2.1f%%' % (item.name, 100.0)
+            else:
+                # statistic node 
+                # show weight for node
+                logUICall.log("\tindex is node %s %s" % (item.value, item.weight), logUICall.DEBUG_L2)
+                return '%s - %2.1f%%' % (item.value, item.weight)
+        elif role == Qt.ToolTipRole: 
+            # lookup data to show in tool tip
+            item = index.internalPointer()
+            if isinstance(item, MappingSchemeZone):
+                return "Mapping Scheme Zone %s" % item.name
+            elif isinstance(item, StatisticNode):
+                return build_attribute_tooltip(self.valid_codes, item.value)
+            else:
+                return ""                
+        else:
             return None
         
-        # construct data to show
-        item = index.internalPointer()
-        if item == self.rootNode:
-            # root node
-            logUICall.log("\tindex is root", logUICall.DEBUG_L2)
-            return 'ROOT'
-        elif isinstance(item, MappingSchemeZone):
-            # zone node(first level under root node)
-            # statistic in each zone should be 100%
-            logUICall.log("\tindex is zone %s" % (item.name), logUICall.DEBUG_L2)
-            return '%s - %2.1f%%' % (item.name, 100.0)
-        else:
-            # statistic node 
-            # show weight for node
-            logUICall.log("\tindex is node %s %s" % (item.value, item.weight), logUICall.DEBUG_L2)
-            return '%s - %2.1f%%' % (item.value, item.weight)
     
     def index(self, row, column, parent):
         """
@@ -141,7 +158,6 @@ class MSTreeModel(QAbstractItemModel):
             childItem = parentItem.children[row]
         
         if childItem:
-            idx = self.createIndex(row, column, childItem)
             return self.createIndex(row, column, childItem)
         else:
             return QModelIndex()
@@ -193,7 +209,7 @@ class MSTreeModel(QAbstractItemModel):
         return self.flag
     
     def headerData(self, section, orientation, role):
-        """ (override function) retrive only column heading for display """
+        """ (override function) retrieve only column heading for display """
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:  
             return QVariant(get_ui_string("widget.ms.tree.title"))
         return None

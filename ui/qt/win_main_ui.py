@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qt\win_main.ui'
 #
-# Created: Mon Sep 17 15:14:10 2012
+# Created: Mon Feb 04 15:32:07 2013
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -71,14 +71,6 @@ class Ui_mainWindow(object):
 
         self.retranslateUi(mainWindow)
         self.mainTabs.setCurrentIndex(-1)
-        QtCore.QObject.connect(self.actionExit, QtCore.SIGNAL(_fromUtf8("triggered()")), mainWindow.close)
-        QtCore.QObject.connect(self.actionOpen_New, QtCore.SIGNAL(_fromUtf8("triggered()")), mainWindow.createProj)
-        QtCore.QObject.connect(self.actionOpen_Existing, QtCore.SIGNAL(_fromUtf8("triggered()")), mainWindow.loadProj)
-        QtCore.QObject.connect(self.actionAbout, QtCore.SIGNAL(_fromUtf8("triggered()")), mainWindow.showAbout)
-        QtCore.QObject.connect(self.actionMapping_Schemes, QtCore.SIGNAL(_fromUtf8("triggered()")), mainWindow.changeTab)
-        QtCore.QObject.connect(self.actionData_Input, QtCore.SIGNAL(_fromUtf8("triggered()")), mainWindow.changeTab)
-        QtCore.QObject.connect(self.actionResult, QtCore.SIGNAL(_fromUtf8("triggered()")), mainWindow.changeTab)
-        QtCore.QObject.connect(self.actionSave, QtCore.SIGNAL(_fromUtf8("triggered()")), mainWindow.saveProj)
         QtCore.QMetaObject.connectSlotsByName(mainWindow)
 
     def retranslateUi(self, mainWindow):

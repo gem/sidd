@@ -19,7 +19,7 @@
 """
 dialog showing about message
 """
-from PyQt4.QtGui import *
+from PyQt4.QtGui import QDialog
 from sidd.constants import SIDD_VERSION
 
 from ui.constants import get_ui_string
@@ -36,6 +36,9 @@ class DialogAbout(Ui_DialogAbout, QDialog):
         self.ui = Ui_DialogAbout()
         self.ui.setupUi(self)
         self.retranslateUi(self.ui)
+        
+        # connect slot (ui event)
+        self.ui.buttonBox.accepted.connect(self.accept)        
 
     def retranslateUi(self, ui):
         self.setWindowTitle(get_ui_string("dlg.about.window.title"))

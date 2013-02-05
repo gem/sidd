@@ -14,8 +14,14 @@
 # version 3 along with SIDD.  If not, see
 # <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 #
-# Version: $Id: __init__.py 5 2012-08-28 23:14:35Z zh $
+# Version: $Id: system.py 18 2012-10-24 20:21:41Z zh $
 
 """
-ui helper package
+XML helper functions
 """
+
+def get_node_attrib(node, attrib_name):
+    try:
+        return node.attrib[attrib_name]
+    except:
+        return ''

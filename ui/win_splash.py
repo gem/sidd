@@ -14,8 +14,16 @@
 # version 3 along with SIDD.  If not, see
 # <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
 #
-# Version: $Id: __init__.py 5 2012-08-28 23:14:35Z zh $
+# Version: $Id: win_main.py 21 2012-10-26 01:48:25Z zh $
 
 """
-ui helper package
+Main application window
 """
+from PyQt4.QtGui import QSplashScreen, QPixmap
+from PyQt4.QtCore import Qt 
+
+class AppSplashScreen(QSplashScreen):
+    def __init__(self):
+        splash_pix = QPixmap(':/imgs/logo.png')
+        super(AppSplashScreen, self).__init__(splash_pix, Qt.WindowStaysOnTopHint)
+        self.setMask(splash_pix.mask())

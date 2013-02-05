@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>629</width>
+    <width>614</width>
     <height>500</height>
    </rect>
   </property>
@@ -52,7 +52,7 @@
   <widget class="QLabel" name="lb_ms_source">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>10</x>
      <y>180</y>
      <width>80</width>
      <height>25</height>
@@ -65,7 +65,7 @@
   <widget class="QLabel" name="lb_ms_quality">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>10</x>
      <y>220</y>
      <width>80</width>
      <height>25</height>
@@ -88,7 +88,7 @@
   <widget class="QLabel" name="lb_ms_notes">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>10</x>
      <y>260</y>
      <width>80</width>
      <height>25</height>
@@ -101,7 +101,7 @@
   <widget class="QLabel" name="lb_ms_name">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>10</x>
      <y>110</y>
      <width>80</width>
      <height>25</height>
@@ -114,7 +114,7 @@
   <widget class="QLabel" name="lb_ms_type">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>10</x>
      <y>80</y>
      <width>80</width>
      <height>25</height>
@@ -137,7 +137,7 @@
   <widget class="QLabel" name="lb_ms_region">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>10</x>
      <y>40</y>
      <width>80</width>
      <height>31</height>
@@ -170,7 +170,7 @@
   <widget class="QLabel" name="lb_ms_create_date">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>10</x>
      <y>150</y>
      <width>80</width>
      <height>25</height>
@@ -232,40 +232,7 @@
   </widget>
  </widget>
  <resources/>
- <connections>
-  <connection>
-   <sender>btn_save</sender>
-   <signal>clicked()</signal>
-   <receiver>saveMSDialog</receiver>
-   <slot>saveMS()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>468</x>
-     <y>475</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>380</x>
-     <y>469</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btn_close</sender>
-   <signal>clicked()</signal>
-   <receiver>saveMSDialog</receiver>
-   <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>579</x>
-     <y>470</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>616</x>
-     <y>467</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
  <slots>
   <slot>saveMS()</slot>
  </slots>

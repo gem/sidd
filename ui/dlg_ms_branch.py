@@ -17,22 +17,23 @@
 # Version: $Id: dlg_ms_branch.py 21 2012-10-26 01:48:25Z zh $
 
 """
-dialog for editing mapping scheme brances
+dialog for editing mapping scheme branches
 """
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
+from PyQt4.QtGui import QDialog, QMessageBox, QAbstractItemView
+from PyQt4.QtCore import Qt, pyqtSlot, QObject
 
-from sidd.ms import *
+from sidd.ms import MappingScheme, MappingSchemeZone, Statistics, StatisticNode 
 from sidd.taxonomy import get_taxonomy
 
 from ui.constants import logUICall, get_ui_string
 from ui.dlg_save_ms import DialogSaveMS
 from ui.qt.dlg_ms_branch_ui import Ui_editMSDialog
 from ui.helper.ms_level_table import MSLevelTableModel
+from ui.helper.ms_attr_delegate import MSAttributeItemDelegate
 
 class DialogEditMS(Ui_editMSDialog, QDialog):
     """
-    dialog for editing mapping scheme brances
+    dialog for editing mapping scheme branches
     """
     # constructor
     ###############################
@@ -43,17 +44,36 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
         self.ui.setupUi(self)
         self.retranslateUi(self.ui)
         
-        self.app =  app        
-        self.ui.table_ms_level.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.app =  app
+        self.taxonomy = get_taxonomy('gem')
 
         # save mapping scheme dialog box        
         self.dlgSave = DialogSaveMS(self.app)
         self.dlgSave.setModal(True)
+        
+        # connect slots (ui events)
+        self.ui.btn_apply.clicked.connect(self.updateWeights)
+        self.ui.btn_add.clicked.connect(self.addValue)
+        self.ui.btn_delete.clicked.connect(self.deleteValue)        
+        self.ui.cb_attributes.currentIndexChanged[str].connect(self.attributeUpdated)        
+        self.ui.btn_save.clicked.connect(self.saveMSBranch)
+        self.ui.btn_close.clicked.connect(self.reject)
+
+    # public properties
+    ###############################
+
+    @property
+    def current_attribute(self):
+        return self.ui.cb_attributes.currentText()
 
     # ui event handler
     ###############################
-
+    @pyqtSlot(QObject)
+    def resizeEvent(self, event):
+        return
+    
     @logUICall
+    @pyqtSlot()
     def updateWeights(self):
         """ 
         event handler for btn_apply
@@ -67,17 +87,19 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
         self.accept()
     
     @logUICall
+    @pyqtSlot()
     def addValue(self):
         """ 
-        event hanlder for btn_add
+        event handler for btn_add
         - add another pair of value/weights  
         """
         self.levelModel.addValues()
     
-    @logUICall  
+    @logUICall 
+    @pyqtSlot() 
     def deleteValue(self):
         """ 
-        event hanlder for btn_delete
+        event handler for btn_delete
         - delete currently selected row of value/weights from table table_ms_level  
         """        
         selected = self.getSelectedCell()
@@ -85,10 +107,11 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
             self.levelModel.deleteValue(selected)
 
     @logUICall
+    @pyqtSlot()
     def saveMSBranch(self):
         """ 
-        event hanlder for btn_save
-        - open "Save mapping scheme" dialogbox to save current set of values/weights
+        event handler for btn_save
+        - open "Save mapping scheme" dialog box to save current set of values/weights
           as a single level mapping scheme
         """
         ms = MappingScheme(self.taxonomy)
@@ -104,9 +127,24 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
         self.dlgSave.setMS(ms, True)
         self.dlgSave.exec_()
 
+    @logUICall
+    @pyqtSlot(str)
+    def attributeUpdated(self, new_attribute):        
+        """ 
+        event handler for cb_attributes
+        - update list of possible values according to attribute selected
+        """
+        self.valid_codes = []
+        attribute_name = new_attribute
+        for code in self.taxonomy.codes.itervalues():
+            if code.attribute.name == attribute_name and code.level == 1:
+                self.valid_codes.append(code)
+                
+        attr_editor = MSAttributeItemDelegate(self.ui.table_ms_level, self.valid_codes, len(self.node.children))
+        self.ui.table_ms_level.setItemDelegateForColumn(0, attr_editor)
+
     # public methods    
-    #############################
-            
+    #############################            
     @logUICall
     def setNode(self, node, addNew=False):
         """ 
@@ -114,19 +152,64 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
         if addNew values/weights correspond to node's children (if any)
         otherwise, values/weights are from node's sibling (if any) 
         """        
+        self.ui.cb_attributes.clear()
+        
         # create copy of values to be shown and modified
         values = []
         weights = []
-        ref_node = node
+        
         if not addNew:
-            ref_node = node.parent
-        for _sibling in ref_node.children:
-            values.append(_sibling.value)
-            weights.append(_sibling.weight)            
+            self.node = node.parent
+            attribute_name = node.name
+            has_know_attribute = True
+        else:
+            self.node = node        
+            if len(self.node.children) > 0:
+                attribute_name = self.node.children[0].name
+                has_know_attribute = True
+            else:
+                attribute_name = ""
+                has_know_attribute = False
+        
+        if has_know_attribute:
+            self.ui.cb_attributes.addItem(attribute_name)
+            self.valid_codes = []
+            for code in self.taxonomy.codes.itervalues():
+                if code.attribute.name == attribute_name and code.level == 1:
+                    self.valid_codes.append(code)
+            
+            attr_editor = MSAttributeItemDelegate(self.ui.table_ms_level, self.valid_codes, len(self.node.children))
+            self.ui.table_ms_level.setItemDelegateForColumn(0, attr_editor)
+        else:            
+            for attr in self.taxonomy.attributes:
+                self.ui.cb_attributes.addItem(attr.name)            
+            
+        for _child in self.node.children:
+            values.append(_child.value)
+            weights.append(_child.weight)
             
         self.levelModel = MSLevelTableModel(values, weights)
-        self.ui.table_ms_level.setModel(self.levelModel)
-        self.taxonomy = get_taxonomy('gem')
+        
+        # initialize table view 
+        tableUI = self.ui.table_ms_level                
+        tableUI.setModel(self.levelModel)
+        tableUI.setSelectionMode(QAbstractItemView.SingleSelection)
+        table_width = tableUI.width()
+        value_col_width = round(table_width*0.6, 0)
+        tableUI.setColumnWidth(0, value_col_width)
+        tableUI.setColumnWidth(1, table_width-value_col_width)
+        tableUI.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+        # handle dataChanged event
+        self.levelModel.dataChanged.connect(self.verifyWeights)
+        
+        # check total weights
+        self.verifyWeights(None, None)
+
+    def verifyWeights(self, startIndex, endIndex):
+        sum_weights = sum(self.levelModel.weights)
+        self.ui.txt_total_weights.setText('%.1f' % sum_weights)
+        self.ui.btn_apply.setEnabled(sum_weights == 100)
 
     # internal helper methods
     ###############################
@@ -147,3 +230,7 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
         ui.btn_apply.setText(get_ui_string("app.dialog.button.apply"))
         ui.btn_close.setText(get_ui_string("app.dialog.button.close"))
     
+        ui.lb_attribute.setText(get_ui_string("dlg.msbranch.edit.attribute.name"))
+        ui.lb_total_weights.setText(get_ui_string("dlg.msbranch.edit.weight.total"))
+        ui.lb_percent.setText("%")
+

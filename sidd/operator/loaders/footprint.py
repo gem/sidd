@@ -21,14 +21,17 @@ module constains class for loading footprint shapefiles
 """
 from os.path import exists
 
-from PyQt4.QtCore import *
-from qgis.core import *
+from PyQt4.QtCore import QVariant
+from qgis.core import QGis, QgsCoordinateReferenceSystem, QgsCoordinateTransform, \
+                      QgsVectorFileWriter, QgsFeature, QgsField, QgsGeometry
 
-from utils.shapefile import *
+from utils.shapefile import load_shapefile, remove_shapefile, layer_features, layer_field_exists
 from utils.system import get_unique_filename
 
-from sidd.constants import *
-from sidd.operator import *
+from sidd.constants import logAPICall, \
+                           GID_FIELD_NAME, LON_FIELD_NAME, LAT_FIELD_NAME, AREA_FIELD_NAME                           
+from sidd.operator import Operator,OperatorError, OperatorDataError
+from sidd.operator.data import OperatorDataTypes
 
 class FootprintLoader(Operator):
     """ operator for loading footprint shapefile """
@@ -91,20 +94,22 @@ class FootprintLoader(Operator):
         
         # output grid
         fields = {
-            0 : QgsField(LON_FIELD_NAME, QVariant.Double),
-            1 : QgsField(LAT_FIELD_NAME, QVariant.Double),
-            2 : QgsField(AREA_FIELD_NAME, QVariant.Double),
+            0 : QgsField(GID_FIELD_NAME, QVariant.Int),
+            1 : QgsField(LON_FIELD_NAME, QVariant.Double),
+            2 : QgsField(LAT_FIELD_NAME, QVariant.Double),
+            3 : QgsField(AREA_FIELD_NAME, QVariant.Double),
         }     
         output_file = '%sfpc_%s.shp' % (self._tmp_dir, get_unique_filename())
         logAPICall.log('create outputfile %s ... ' % output_file, logAPICall.DEBUG)        
         try:
             writer = QgsVectorFileWriter(output_file, "utf-8", fields, QGis.WKBPoint, self._crs, "ESRI Shapefile")
             f = QgsFeature()
+            gid = 0
             for _f in layer_features(tmp_fp_layer):
                 # NOTE: geom.transform does projection in place to underlying
                 #       C object, for some reason, multiple projection does not
                 #       work correctly. following is a work-around
-                
+                 
                 # 1. get geometry
                 geom = _f.geometry()
                 # 2. get original centroid point and project is required
@@ -117,13 +122,15 @@ class FootprintLoader(Operator):
                 area = geom.area()
                 
                 # write to file
+                gid += 1
                 f.setGeometry(QgsGeometry.fromPoint(t_centroid))
-                f.addAttribute(0, QVariant(t_centroid.x()))
-                f.addAttribute(1, QVariant(t_centroid.y()))
-                f.addAttribute(2, QVariant(area))            
+                f.addAttribute(0, QVariant(gid))
+                f.addAttribute(1, QVariant(t_centroid.x()))
+                f.addAttribute(2, QVariant(t_centroid.y()))
+                f.addAttribute(3, QVariant(area))            
                 writer.addFeature(f)
             
-            del writer
+            del writer, f
         except Exception as err:
             remove_shapefile(output_file)
             raise OperatorError("error creating footprint centroids: %s" % err, self.__class__)

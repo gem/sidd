@@ -29,6 +29,9 @@ logUICall = SIDDLogging('ui')
 ###########################
 FILE_MS_DB = '%s/data/ms.db' % get_app_dir()
 
+# constant UI widget padding
+UI_PADDING = 10
+
 #####################
 SIDD_UI_STRINGS = {
     # Errors
@@ -56,9 +59,10 @@ SIDD_UI_STRINGS = {
     "app.extension.kml":'KML (*.kml)',
     "app.extension.xml":'XML(*.xml)',
     "app.extension.nrml":'NRML(*.xml)',
+    "app.extension.gemdb":'GEMDB(*.gemdb)',
     # common UI messages
     ######################    
-    "app.file.select":'Select file:',
+    "app.file.select":'Select file',
     "app.file.button":'...',
     "app.dialog.button.ok":"OK",
     "app.dialog.button.cancel":"Cancel",
@@ -111,8 +115,8 @@ SIDD_UI_STRINGS = {
     "widget.input.fp.title":'Building footprint data',
     "widget.input.fp.description":'What type of data do you have for building footprints?',
     "widget.input.fp.file.open":'Open Footprint File',
-    "widget.input.fp.projection":'Verify projection:',
-    "widget.input.fp.storyfield":'Select field containing number of stories:',
+    "widget.input.fp.projection":'Verify projection',
+    "widget.input.fp.storyfield":'Select field containing number of stories',
     "widget.input.fp.op1":'No Data',
     "widget.input.fp.op2":'Building footprints with number of stories',
     "widget.input.fp.op3":'Building footprints without number of stories',
@@ -122,12 +126,12 @@ SIDD_UI_STRINGS = {
     "widget.input.zone.title":'Homogenous zones data',
     "widget.input.zone.description":'What type of data do you have for zones?',
     "widget.input.zone.file.open":'Open Homogenous Zone File',
-    "widget.input.zone.projection":'Verify projection:',
-    "widget.input.zone.zonefield":'Select field containing land use/class attribute:',
+    "widget.input.zone.projection":'Verify projection',
+    "widget.input.zone.zonefield":'Select field containing zone classification identifier',
     "widget.input.zone.countfield":'Select field containing building count',
     "widget.input.zone.op1":'No Data',
-    "widget.input.zone.op2":'Land use zones',
-    "widget.input.zone.op3":'Land use zones with building count',
+    "widget.input.zone.op2":'Homogenous zones',
+    "widget.input.zone.op3":'Homogenous zones with building count',
     "widget.input.zone.file.missing":'Homogenous zone input file not specified',
     "widget.input.zone.zonefield.missing":'Land use/class field not specified',
     "widget.input.zone.countfield.missing":'Building count field not specified',
@@ -138,7 +142,7 @@ SIDD_UI_STRINGS = {
     "widget.input.agg.op1":'Output into defined zones',
     "widget.input.agg.op2":'GED Compatible 30 arc-second grid',
     # data verification
-    "widget.input.verify.title":'You have supplied the following types of data:',
+    "widget.input.verify.title":'You have supplied the following types of data',
     "widget.input.verify.button":'Verify data',
     "widget.input.verify.footprint":'Footprint',
     "widget.input.verify.survey":'Survey',
@@ -165,25 +169,31 @@ SIDD_UI_STRINGS = {
     "widget.ms.library.notes":'Use Notes',
     "widget.ms.library.enable":'Enable Mapping Scheme Library',
     "widget.ms.library.delete.denied":'Only allowed to delete user-defined mapping scheme',
-    "widget.ms.modifier":'Secondary Modifiers',
+    "widget.ms.modifier":'Modifiers',
     "widget.ms.build":'Build Exposure',
     "widget.ms.warning.deletebranch":'Deleting a node cannot be undone.\nAre you sure that you want to continue?',
     "widget.ms.warning.node.required":'Node from Mapping Scheme Tree must be selected first',
     "widget.ms.warning.node.invalid":'Selected Node from Mapping Scheme Tree is Invalid',
     # main application window / mod tab
     ######################
-    "widget.mod.title":'Manage Secondary Modifiers',
+    "widget.mod.title":'Manage Modifiers',
     "widget.mod.build":'Build Exposure',
     "widget.mod.warning.delete":'Deleting modifier cannot be undone.\nAre you sure that you want to continue?',
     "widget.mod.tableheader.zone":'Zone',
-    "widget.mod.tableheader.level1":'Level 1',
-    "widget.mod.tableheader.level2":'Level 2',
-    "widget.mod.tableheader.level3":'Level 3',
+    "widget.mod.tableheader.level1":'',
+    "widget.mod.tableheader.level2":'',
+    "widget.mod.tableheader.level3":'',
     "widget.mod.tableheader.value":'Value',
     "widget.mod.tableheader.weight":'Percentage',
     # main application window / result tab
     ######################
     "widget.result.title":'Preview Exposure',
+    "widget.result.layers.selector":"Selected Layer",    
+    "widget.result.layer.exposure":"Exposure",
+    "widget.result.layer.survey":"Surveys",
+    "widget.result.layer.footprint":"Footprints",
+    "widget.result.layer.zones":"Zones",
+    "widget.result.layers.theme.title":"Change Thematic for %s",
     "widget.result.info.notfound":'Nothing not found at location',
     "widget.result.export.title":'Export Results',
     "widget.result.export.format":'Select Export Data Format',
@@ -191,6 +201,7 @@ SIDD_UI_STRINGS = {
     "widget.result.export.button":'Export',
     "widget.result.dq.title":'Data Quality Tests',
     "widget.result.dq.warning":'Warning',
+    "widget.result.dq.description":'Exposure generated using Monte-Carlo simulation',
     # about dialog
     ######################
     'dlg.about.window.title': 'About SIDD',
@@ -217,7 +228,9 @@ SIDD_UI_STRINGS = {
     "dlg.msbranch.edit.window.title":'Edit Mapping Scheme Branch',
     "dlg.msbranch.edit.title":'Edit Mapping Scheme Branch', 
     "dlg.msbranch.edit.tableheader.value":'Value',
-    "dlg.msbranch.edit.tableheader.weight":'Percentage',    
+    "dlg.msbranch.edit.tableheader.weight":'Percentage',
+    "dlg.msbranch.edit.attribute.name":'Attribute Name',
+    "dlg.msbranch.edit.weight.total":'Sum of Weights',
     "dlg.msbranch.edit.warning.invalidweight":'weight value must be a numeric value between 0 and 100',
     "dlg.msbranch.edit.warning.node.required":'Node from Mapping Scheme Tree must be selected first',
     # save mapping scheme dialog

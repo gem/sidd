@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qt\wdg_data.ui'
 #
-# Created: Tue Oct 23 17:09:12 2012
+# Created: Mon Feb 04 13:24:42 2013
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -342,26 +342,6 @@ class Ui_widgetDataInput(object):
         self.cb_zones_count_field.setObjectName(_fromUtf8("cb_zones_count_field"))
 
         self.retranslateUi(widgetDataInput)
-        QtCore.QObject.connect(self.btn_fp_select_file, QtCore.SIGNAL(_fromUtf8("clicked()")), widgetDataInput.openFootprintData)
-        QtCore.QObject.connect(self.btn_svy_select_file, QtCore.SIGNAL(_fromUtf8("clicked()")), widgetDataInput.openSurveyData)
-        QtCore.QObject.connect(self.btn_zones_select_file, QtCore.SIGNAL(_fromUtf8("clicked()")), widgetDataInput.openZoneData)
-        QtCore.QObject.connect(self.btn_verify, QtCore.SIGNAL(_fromUtf8("clicked()")), widgetDataInput.verifyInput)
-        QtCore.QObject.connect(self.radio_fp_op1, QtCore.SIGNAL(_fromUtf8("toggled(bool)")), widgetDataInput.setFootprintDataType)
-        QtCore.QObject.connect(self.radio_fp_op2, QtCore.SIGNAL(_fromUtf8("toggled(bool)")), widgetDataInput.setFootprintDataType)
-        QtCore.QObject.connect(self.radio_fp_op3, QtCore.SIGNAL(_fromUtf8("toggled(bool)")), widgetDataInput.setFootprintDataType)
-        QtCore.QObject.connect(self.radio_svy_op1, QtCore.SIGNAL(_fromUtf8("toggled(bool)")), widgetDataInput.setSurveyDataType)
-        QtCore.QObject.connect(self.radio_svy_op2, QtCore.SIGNAL(_fromUtf8("toggled(bool)")), widgetDataInput.setSurveyDataType)
-        QtCore.QObject.connect(self.radio_svy_op3, QtCore.SIGNAL(_fromUtf8("toggled(bool)")), widgetDataInput.setSurveyDataType)
-        QtCore.QObject.connect(self.radio_zones_op1, QtCore.SIGNAL(_fromUtf8("toggled(bool)")), widgetDataInput.setZoneDataType)
-        QtCore.QObject.connect(self.radio_zones_op2, QtCore.SIGNAL(_fromUtf8("toggled(bool)")), widgetDataInput.setZoneDataType)
-        QtCore.QObject.connect(self.radio_zones_op3, QtCore.SIGNAL(_fromUtf8("toggled(bool)")), widgetDataInput.setZoneDataType)
-        QtCore.QObject.connect(self.radio_aggr_op1, QtCore.SIGNAL(_fromUtf8("toggled(bool)")), widgetDataInput.setAggregateType)
-        QtCore.QObject.connect(self.radio_aggr_op2, QtCore.SIGNAL(_fromUtf8("toggled(bool)")), widgetDataInput.setAggregateType)
-        QtCore.QObject.connect(self.btn_aggr_grid_select_file, QtCore.SIGNAL(_fromUtf8("clicked()")), widgetDataInput.openAggGridData)
-        QtCore.QObject.connect(self.radio_aggr_op1, QtCore.SIGNAL(_fromUtf8("clicked()")), widgetDataInput.setAggregateType)
-        QtCore.QObject.connect(self.radio_aggr_op2, QtCore.SIGNAL(_fromUtf8("clicked()")), widgetDataInput.setAggregateType)
-        QtCore.QObject.connect(self.cb_zones_class_field, QtCore.SIGNAL(_fromUtf8("currentIndexChanged(QString)")), widgetDataInput.setZoneField)
-        QtCore.QObject.connect(self.cb_zones_count_field, QtCore.SIGNAL(_fromUtf8("currentIndexChanged(QString)")), widgetDataInput.setZoneCountField)
         QtCore.QMetaObject.connectSlotsByName(widgetDataInput)
         widgetDataInput.setTabOrder(self.radio_fp_op1, self.radio_fp_op2)
         widgetDataInput.setTabOrder(self.radio_fp_op2, self.radio_fp_op3)

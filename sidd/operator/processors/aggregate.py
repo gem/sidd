@@ -21,15 +21,17 @@ module contains class for creating mapping scheme from survey data
 """
 
 import bsddb
+import os 
+from PyQt4.QtCore import QVariant
+from qgis.core import QGis, QgsVectorFileWriter, QgsFeature, QgsField, QgsGeometry, QgsPoint
 
-from PyQt4.QtCore import *
-from qgis.core import *
-
-from utils.shapefile import *
+from utils.shapefile import load_shapefile, layer_features, layer_field_index, remove_shapefile
 from utils.system import get_unique_filename
 
-from sidd.operator import *
-from sidd.constants import *
+from sidd.constants import logAPICall, \
+                           CNT_FIELD_NAME, DEFAULT_GRID_SIZE, MAX_FEATURES_IN_MEMORY
+from sidd.operator import Operator, OperatorError
+from sidd.operator.data import OperatorDataTypes
 
 class FootprintAggregator(Operator):
     def __init__(self, options=None, name='Footprint Aggregator'):

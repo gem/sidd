@@ -24,7 +24,7 @@ import os
 import random
 import datetime
 
-from PyQt4.QtCore import *
+from PyQt4.QtCore import QDir
 
 def get_random_name(length=0):
     """ return random file name """

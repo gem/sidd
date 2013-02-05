@@ -17,13 +17,11 @@
 # Version: $Id: dlg_save_ms.py 21 2012-10-26 01:48:25Z zh $
 
 """
-dialog for editing mapping scheme brances
+dialog for editing mapping scheme branches
 """
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
+from PyQt4.QtGui import QDialog, QAbstractItemView
+from PyQt4.QtCore import QString, pyqtSlot
 from datetime import datetime
-
-from sidd.ms import *
 
 from ui.constants import logUICall, get_ui_string
 from ui.qt.dlg_save_ms_ui import Ui_saveMSDialog
@@ -46,10 +44,15 @@ class DialogSaveMS(Ui_saveMSDialog, QDialog):
         for region in self.app.msdb_dao.get_regions():
             self.ui.cb_ms_region.addItem(QString(region))
 
+        # connect slots (ui event)
+        self.ui.btn_save.clicked.connect(self.saveMS)
+        self.ui.btn_close.clicked.connect(self.accept)
+
     # ui event handlers
     ###############################
-        
+    
     @logUICall
+    @pyqtSlot()
     def saveMS(self):
         """ save current mapping schem into mapping scheme library database """
         # TODO: error handling

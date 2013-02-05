@@ -19,9 +19,9 @@
 """
 base class for SIDD operators 
 """
-from qgis.core import *
+from qgis.core import QgsCoordinateReferenceSystem
 
-from sidd.constants import *
+from sidd.constants import logAPICall, LON_FIELD_NAME, LAT_FIELD_NAME, TAX_FIELD_NAME  
 from data import OperatorData
 from exception import OperatorError, OperatorDataError
 

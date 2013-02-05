@@ -23,7 +23,9 @@ mapping scheme format defined in ms module
 from os.path import exists
 
 from sidd.constants import logAPICall
-from sidd.operator import *
+from sidd.operator import Operator,OperatorError, OperatorDataError
+from sidd.operator.data import OperatorDataTypes
+
 from sidd.taxonomy import get_taxonomy
 from sidd.ms.ms import MappingScheme
 

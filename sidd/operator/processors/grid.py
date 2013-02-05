@@ -21,15 +21,17 @@ module to support grid exposure database write out
 """
 from math import floor, ceil
 
-from PyQt4.QtCore import *
-from qgis.core import *
-from qgis.analysis import *
+from PyQt4.QtCore import QVariant
+from qgis.core import QGis, QgsVectorFileWriter, QgsFeature, QgsField, QgsGeometry, QgsPoint
+from qgis.analysis import QgsOverlayAnalyzer
 
-from utils.shapefile import *
+from utils.shapefile import load_shapefile, layer_features, layer_field_index, remove_shapefile
 from utils.system import get_unique_filename
 
-from sidd.constants import logAPICall, DEFAULT_GRID_SIZE
-from sidd.operator import *
+from sidd.constants import logAPICall, DEFAULT_GRID_SIZE 
+from sidd.operator import Operator, OperatorError, OperatorDataError
+from sidd.operator.data import OperatorDataTypes
+
 
 class GridWriter(Operator):
     """ class to create exposure grid according to GED spec """
@@ -229,7 +231,7 @@ class GridFromRegionWriter(GridWriter):
                 writer.addFeature(f)                
             del writer
         except  Exception as err:
-            print err
+            logAPICall.log(str(err), logAPICall.ERROR)
             raise OperatorError('error writing out grid', self.__class__)
 
         grid_layer = load_shapefile(grid_file, grid_layername)

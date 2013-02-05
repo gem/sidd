@@ -20,17 +20,17 @@
 module contains class for creating mapping scheme from survey data
 """
 
-import os
+from PyQt4.QtCore import QVariant
+from qgis.core import QGis, QgsVectorFileWriter, QgsFeature, QgsField, QgsGeometry, QgsPoint
+from qgis.analysis import QgsOverlayAnalyzer
 
-from PyQt4.QtCore import *
-from qgis.core import *
-from qgis.analysis import QgsOverlayAnalyzer 
-
-from utils.shapefile import *
+from utils.shapefile import load_shapefile, layer_features, layer_field_index, remove_shapefile, \
+                            layer_multifields_stats, layer_fields_stats, load_shapefile_verify 
 from utils.system import get_unique_filename
 
-from sidd.constants import *
-from sidd.operator import *
+from sidd.constants import logAPICall, GID_FIELD_NAME 
+from sidd.operator import Operator, OperatorError
+from sidd.operator.data import OperatorDataTypes
 
 
 class ZoneGridMerger(Operator):
@@ -127,8 +127,8 @@ class ZoneGridMerger(Operator):
                 lat = _f.attributeMap()[lat_idx].toDouble()[0]
                 zone_str = str(_f.attributeMap()[zone_idx].toString()).upper()
                 count_val = _f.attributeMap()[count_idx].toDouble()[0]
-                key = '%s_%d' % (zone_str, count_val)
-                val = stats[key]
+                #key = '%s_%d' % (zone_str, count_val)
+                #val = stats[key]
                 
                 f.setGeometry(QgsGeometry.fromPoint(QgsPoint(lon, lat)))
                 f.addAttribute(0, QVariant(lon))
@@ -193,8 +193,6 @@ class ZoneFootprintMerger(Operator):
     def output_names(self):
         return ["Footprint with Zone Attribute",
                 "Footprint Shapefile"]
-
-    output_descriptions = output_names
 
     output_descriptions = output_names
 
@@ -273,3 +271,120 @@ class ZoneFootprintMerger(Operator):
     def _verify_outputs(self, outputs):
         """ perform operator specific output validation """
         pass    
+
+class ZoneFootprintCounter(Operator):
+    
+    def __init__(self, options=None, name='Zone & Footprint Counter'):
+        super(ZoneFootprintCounter, self).__init__(options, name)
+        self._tmp_dir = options['tmp_dir']
+    
+    # self documenting method override
+    ###########################
+    
+    @property
+    def input_types(self):
+        return [OperatorDataTypes.Zone,
+                OperatorDataTypes.StringAttribute,
+                OperatorDataTypes.StringAttribute,
+                OperatorDataTypes.Footprint]
+        
+    @property    
+    def input_names(self):
+        return ["Homogenous Zone", "Zone Field", "Zone Count Field", "Building Footprint"]
+    
+    input_descriptions = input_names
+
+    @property
+    def output_types(self):
+        return [OperatorDataTypes.Zone,
+                OperatorDataTypes.Shapefile]
+        
+    @property    
+    def output_names(self):
+        return ["Zone with building count",
+                "Zone Shapefile"]
+
+    output_descriptions = output_names    
+        
+
+    # public method override
+    ###########################
+    
+    @logAPICall
+    def do_operation(self):
+        """ perform create mapping scheme operation """
+        
+        # input/output verification already performed during set input/ouput
+        zone_layer = self.inputs[0].value
+        zone_field = self.inputs[1].value
+        zone_count_field = self.inputs[2].value
+        fp_layer = self.inputs[3].value
+
+        # merge with zone 
+        tmp_join = 'joined_%s' % get_unique_filename()
+        tmp_join_file = '%s%s.shp' % (self._tmp_dir, tmp_join)        
+        analyzer = QgsOverlayAnalyzer()
+        try:
+            analyzer.intersection(fp_layer, zone_layer, tmp_join_file)
+            tmp_join_layer = load_shapefile(tmp_join_file, tmp_join)
+        except AssertionError as err:
+            raise OperatorError(str(err), self.__class__)
+        except Exception as err:
+            raise OperatorError(str(err), self.__class__)
+        
+        # count footprint in each zone
+        stats = layer_fields_stats(tmp_join_layer, GID_FIELD_NAME + "_")
+        
+        output_layername = 'zone_%s' % get_unique_filename()
+        output_file = '%s%s.shp' % (self._tmp_dir, output_layername)
+        logAPICall.log('create outputfile %s ... ' % output_file, logAPICall.DEBUG)
+        try:            
+            fields ={
+                0 : QgsField(GID_FIELD_NAME, QVariant.Int),
+                1 : QgsField(zone_field, QVariant.String),
+                2 : QgsField(zone_count_field, QVariant.Int),
+            }
+            writer = QgsVectorFileWriter(output_file, "utf-8", fields, QGis.WKBPolygon, self._crs, "ESRI Shapefile")                     
+            f = QgsFeature()            
+            for _f in layer_features(zone_layer):
+                
+                # write to file
+                f.setGeometry(_f.geometry())
+                f.addAttribute(0, _f.attributeMap()[0])
+                f.addAttribute(1, _f.attributeMap()[1])                
+                
+                # retrieve count from statistic
+                try:
+                    gid = _f.attributeMap()[0].toString()
+                    bldg_count = stats[str(gid)]
+                except:
+                    bldg_count = 0
+                f.addAttribute(2, QVariant(bldg_count))
+                writer.addFeature(f)
+            
+            del writer, f
+        except Exception as err:            
+            remove_shapefile(output_file)
+            raise OperatorError("error creating zone: %s" % err, self.__class__)
+
+        # clean up
+        del tmp_join_layer
+        remove_shapefile(tmp_join_file)
+
+        # store data in output
+        output_layer = load_shapefile(output_file, output_layername)
+        if not output_layer:
+            raise OperatorError('Error loading footprint centroid file' % (output_file), self.__class__)        
+        self.outputs[0].value = output_layer
+        self.outputs[1].value = output_file
+
+    # protected method override
+    ###########################
+
+    def _verify_inputs(self, inputs):
+        """ perform operator specific input validation """
+        pass
+        
+    def _verify_outputs(self, outputs):
+        """ perform operator specific output validation """
+        pass                   

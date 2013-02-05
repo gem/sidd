@@ -21,15 +21,17 @@ module contains class for applying mapping scheme
 """
 import bsddb 
 
-from PyQt4.QtCore import *
-from qgis.core import *
+from PyQt4.QtCore import QVariant
+from qgis.core import QGis, QgsVectorFileWriter, QgsFeature, QgsField, QgsGeometry, QgsPoint
 
-from utils.shapefile import *
+from utils.shapefile import load_shapefile, layer_features, layer_field_index, remove_shapefile
 from utils.system import get_unique_filename
 
-from sidd.constants import *
-from sidd.operator import *
-from sidd.ms import *
+from sidd.constants import logAPICall, \
+                           GID_FIELD_NAME, LON_FIELD_NAME, LAT_FIELD_NAME, CNT_FIELD_NAME, TAX_FIELD_NAME, ZONE_FIELD_NAME, \
+                           DEFAULT_GRID_SIZE, MAX_FEATURES_IN_MEMORY
+from sidd.operator import Operator, OperatorError
+from sidd.operator.data import OperatorDataTypes
 
 class GridMSApplier(Operator):    
     def __init__(self, options=None, name='Grid Mapping Scheme Applier'):
@@ -210,10 +212,8 @@ class SurveyAggregator(GridMSApplier):
             # use bsddb to store temporary lat/lon
             tmp_db_file = '%sdb_%s.db' % (self._tmp_dir, get_unique_filename())
             db = bsddb.btopen(tmp_db_file, 'c')
-            use_db = True
         else:
             db = {}
-            use_db = False
 
         tax_idx = layer_field_index(svy_layer, TAX_FIELD_NAME)
         for f in layer_features(svy_layer):

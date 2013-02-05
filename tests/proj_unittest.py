@@ -10,16 +10,17 @@
 #
 
 import os
-import sys
 import unittest
 import logging
 
 from utils.system import get_random_name
 
 # import sidd packages for testing
-from sidd.ms import *
-from sidd.constants import *
-from sidd.exception import SIDDException, WorkflowException
+from sidd.appconfig import SIDDConfig, types
+from sidd.ms import MappingScheme
+from sidd.constants import logAPICall, \
+                           SurveyTypes, ZonesTypes, OutputTypes, FootprintTypes, SyncModes, \
+                           WorkflowErrors
 from sidd.project import Project
 from sidd.workflow import WorkflowBuilder
 
@@ -33,6 +34,7 @@ class ProjectTestCase(unittest.TestCase):
         self.taxonomy = get_taxonomy("gem")
         self.test_data_dir = str(os.getcwd()) +  "/tests/data/"
         self.test_tmp_dir = str(os.getcwd()) +  "/tests/tmp/"
+        self.test_config = SIDDConfig(self.test_data_dir + '/test.cfg')
         
         self.proj_file = self.test_data_dir +  'test.db'
         self.fp_path = self.test_data_dir +  'footprint.shp'
@@ -46,8 +48,8 @@ class ProjectTestCase(unittest.TestCase):
         
         self.operator_options = {
             'tmp_dir': self.test_tmp_dir,
-            'taxonomy':'gem',
-            'skips':[1,2,3,4,5,6],
+            'taxonomy':self.test_config.get('options', 'taxonomy', 'gem'),
+            'skips': self.test_config.get('options', 'skips', [], types.ListType),     
         }
 
     # tests
@@ -57,7 +59,7 @@ class ProjectTestCase(unittest.TestCase):
         logging.debug('test_CreateProject %s' % skipTest)
         
         proj_file = '%stest.db' % self.test_tmp_dir
-        proj = Project(proj_file)
+        proj = Project(proj_file, self.test_config)
         proj.operator_options = self.operator_options        
         if skipTest:
             return (proj, proj_file)
@@ -69,7 +71,7 @@ class ProjectTestCase(unittest.TestCase):
     def test_LoadProject(self, skipTest=False):
         logging.debug('test_LoadProject %s' % skipTest)
         
-        proj = Project(self.proj_file)
+        proj = Project(self.proj_file, self.test_config)
         proj.operator_options = self.operator_options        
         if skipTest:
             return proj
@@ -82,7 +84,7 @@ class ProjectTestCase(unittest.TestCase):
                 func(param)
             except Exception as ex:
                 import traceback
-                #traceback.print_exc() 
+                traceback.print_exc() 
                 return ex
             return None
 
@@ -95,7 +97,7 @@ class ProjectTestCase(unittest.TestCase):
         # test cases raising exception
         ###################
         # test case, empty project, should have errors NeedsZone, NeedsCount, NeedsMS
-        workflow = builder.build_workflow(proj)        
+        workflow = builder.build_workflow(proj)
         self.assertTrue(not workflow.ready)
         self.assertEqual(len(workflow.errors), 3)
         self.assertListEqual(workflow.errors, [WorkflowErrors.NeedsZone, 
@@ -117,13 +119,13 @@ class ProjectTestCase(unittest.TestCase):
         self.assertEqual(len(workflow.errors), 1)
         self.assertListEqual(workflow.errors, [WorkflowErrors.NeedsMS])
 
-        # complete footprint / zone / ms to zone, should raise exception no action
+        # complete footprint / zone / ms to zone, no exception
         proj.ms = ms 
         proj.set_output_type(OutputTypes.Zone)
         workflow = builder.build_workflow(proj)
-        self.assertTrue(not workflow.ready)
-        self.assertEqual(len(workflow.errors), 1)
-        self.assertListEqual(workflow.errors, [WorkflowErrors.NoActionDefined])
+        self.assertTrue(workflow.ready)
+        self.assertEqual(len(workflow.errors), 0)
+        
         # test cases no exception
         ###################
 

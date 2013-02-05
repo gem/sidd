@@ -19,17 +19,18 @@
 """
 module constains class for loading zone shapefiles
 """
-
 from os.path import exists
 
-from PyQt4.QtCore import *
-from qgis.core import *
+from PyQt4.QtCore import QVariant
+from qgis.core import QGis, QgsCoordinateTransform, QgsVectorFileWriter, QgsFeature, QgsField
 
-from utils.shapefile import *
+from utils.shapefile import load_shapefile_verify, remove_shapefile, layer_features, layer_field_index, load_shapefile
 from utils.system import get_unique_filename
 
-from sidd.constants import logAPICall
-from sidd.operator import *
+from sidd.constants import logAPICall, GID_FIELD_NAME
+
+from sidd.operator import Operator,OperatorError, OperatorDataError
+from sidd.operator.data import OperatorDataTypes
 
 class ZoneLoader(Operator):
     """ load zone shapefile """
@@ -96,10 +97,14 @@ class ZoneLoader(Operator):
         output_file = '%szone_%s.shp' % (self._tmp_dir, get_unique_filename())
         logAPICall.log('create outputfile %s ... ' % output_file, logAPICall.DEBUG)
         try:
-            findices = self._getFieldIndices(tmp_zone_layer)
+            findices = self._getFieldIndices(tmp_zone_layer)            
             fields = self._getFields()
-            writer = QgsVectorFileWriter(output_file, "utf-8", fields, QGis.WKBPolygon, self._crs, "ESRI Shapefile")
+            fields2 = fields.copy()
+            fields2[0] = QgsField(GID_FIELD_NAME, QVariant.Int)
+            writer = QgsVectorFileWriter(output_file, "utf-8", fields2, QGis.WKBPolygon, self._crs, "ESRI Shapefile")
+            
             f = QgsFeature()
+            gid=0
             for _f in layer_features(tmp_zone_layer):
                 geom = _f.geometry()
                 if transform_required:
@@ -107,11 +112,13 @@ class ZoneLoader(Operator):
                 
                 # write to file
                 f.setGeometry(geom)
+                gid+=1
+                f.addAttribute(0, QVariant(gid))
                 for fkey, fidx in map(None, fields.keys(), findices):
                     f.addAttribute(fkey, _f.attributeMap()[fidx])
                 writer.addFeature(f)
-                
-            del writer
+            
+            del writer, f
         except Exception as err:
             remove_shapefile(output_file)
             raise OperatorError("error creating zone: %s" % err, self.__class__)
@@ -143,7 +150,7 @@ class ZoneLoader(Operator):
     
     def _getFields(self):
         return {
-            0 : QgsField(self.inputs[1].value, QVariant.String),
+            1 : QgsField(self.inputs[1].value, QVariant.String),
         }
     
     def _getFieldNames(self):
@@ -196,8 +203,8 @@ class ZoneCountLoader(ZoneLoader):
     
     def _getFields(self):
         return {
-            0 : QgsField(self.inputs[1].value, QVariant.String),
-            1 : QgsField(self.inputs[2].value, QVariant.String),
+            1 : QgsField(self.inputs[1].value, QVariant.String),
+            2 : QgsField(self.inputs[2].value, QVariant.Int),
         }
     
     def _getFieldIndices(self, layer):        

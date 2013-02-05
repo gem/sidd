@@ -22,12 +22,8 @@ Module class for statistic tree handling
 from xml.etree import ElementTree
 
 from sidd.constants import logAPICall
-from sidd.taxonomy import (TaxonomyAttributeMulticodeValue,
-                           TaxonomyAttributePairValue,
-                           TaxonomyAttributeSinglecodeValue)
-from sidd.ms.exceptions import StatisticError, StatisticNodeError
+from sidd.ms.exceptions import StatisticError
 from sidd.ms.node import StatisticNode
-
 
 class Statistics (object):
     """
@@ -48,6 +44,7 @@ class Statistics (object):
         """
         self.root = StatisticNode(None, 'root', 'root')
         self.attributes = []
+        self.leaves = []
         self.taxonomy = taxonomy
         self.skips.append(False)
         self.finalized = False
@@ -84,7 +81,11 @@ class Statistics (object):
             raise StatisticError('stat is already finalized and cannot be modified')
         
         attribute_names = [x.name for x in self.taxonomy.attributes]
-        self.root.add(self.taxonomy.parse(taxstr), 0, attribute_names, self.defaults, self.skips)
+        try:
+            bldg_attrs = self.taxonomy.parse(taxstr)
+            self.root.add(bldg_attrs, 0, attribute_names, self.defaults, self.skips)
+        except Exception as err:
+            logAPICall.log("error adding case %s, %s" % (str(taxstr), str(err)), logAPICall.WARNING)         
 
     @logAPICall
     def finalize(self):
@@ -92,18 +93,30 @@ class Statistics (object):
         collapse the statistic tree and create weights
         required step before sampling and modification can be performed
         """
+        if self.finalized:
+            return
+        
         new_root = StatisticNode(None, 'root')
         self.root.collapse_tree(new_root)
         new_root.calculate_weights()
         self.root = new_root
         self.attributes = self.get_attributes(self.root)
-
-        self.finalized = True
+        
         defaults = []
         for skip, default in map(None, self.skips, self.defaults):            
             if not skip:
                 defaults.append(default)
         self.defaults_collapsed = defaults
+        self.finalized = True        
+
+    @logAPICall
+    def get_leaves(self, refresh=False):
+        if refresh:
+            self.leaves = []
+            for _child in self.root.children:
+                for _val, _wt in _child.leaves(self.taxonomy.attribute_separator, ""):                    
+                    self.leaves.append([_val, _wt])
+        return self.leaves
     
     @logAPICall
     def find_node(self, values):
@@ -191,13 +204,13 @@ class Statistics (object):
         if not self.finalized:
             raise StatisticError('stat must be finalized before modification')
         
-        parent = node.parent        
-        parent.children.remove(node)
+        parent = node.parent
+        parent.children.remove(node)        
         children_count = len(parent.children)
         if  children_count > 1:
             weight_to_distribute = node.weight / float(children_count)
             for child in parent.children:
-                child.weight += child.weight + weight_to_distribute
+                child.weight += weight_to_distribute
     
     @logAPICall
     def get_attributes(self, rootnode):
@@ -232,8 +245,10 @@ class Statistics (object):
         pre-condition: finalize() must be called first
         """
         samples = {}
+        _sample = ''
         for i in range(n):
-            _sample = self.get_sample_walk()
+            #while _sample == '':
+            _sample = self.get_sample_walk(False)
             if samples.has_key(_sample):
                 samples[_sample]+=1
             else:

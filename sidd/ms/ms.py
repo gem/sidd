@@ -22,10 +22,11 @@ Module contains all mapping scheme handling class
 
 from xml.etree.ElementTree import ElementTree, fromstring
 
+from utils.xml import get_node_attrib
 from sidd.constants import logAPICall
 from sidd.exception import SIDDException
 from sidd.taxonomy import get_taxonomy
-from sidd.ms.statistic import Statistics, StatisticError
+from sidd.ms.statistic import Statistics
 
 class MappingSchemeZone (object):
     """
@@ -78,7 +79,7 @@ class MappingScheme (object):
     def from_text(self, xml_str):        
         try:
             tree = fromstring(xml_str)            
-        except Exception as e:
+        except Exception:
             pass
         self.from_xml_tree(tree)
     
@@ -96,7 +97,7 @@ class MappingScheme (object):
             stats.attributes = stats.get_attributes(stats.get_tree())            
 
             #self.ms[zone.attrib['name']] = stats
-            ms_zone = MappingSchemeZone(zone.attrib['name'])
+            ms_zone = MappingSchemeZone(get_node_attrib(zone, 'name'))
             ms_zone.stats = stats
             self.zones.append(ms_zone)
                       
@@ -143,13 +144,13 @@ class MappingScheme (object):
         if type(branch) == MappingSchemeZone:
             # branch starts from zone node, so it is a full stats tree
             # add only the child nodes
-            print 'branch is zone, add children'            
+            logAPICall.log('branch is zone, add children', logAPICall.DEBUG_L2)            
             for child in branch.stats.get_tree().children:                
                 stat_tree.add_branch(node_to_attach, child)
         else:
             # branch is from a tree
             # add branch as child node
-            print 'branch is node, add branch'            
+            logAPICall.log('branch is node, add branch', logAPICall.DEBUG_L2)          
             stat_tree.add_branch(node_to_attach, branch)
 
         # done

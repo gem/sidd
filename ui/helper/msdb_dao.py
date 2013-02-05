@@ -92,10 +92,10 @@ class MSDatabaseDAO:
                                                           date, datasource, quality,
                                                           notes, ms_xml[0:20]), 
                       logUICall.DEBUG_L2)
-        id = int(self.__get_list(self.sql['GET_MAX_MS_ID'])[0]) + 1
-        return self.__exec(self.sql['INSERT_MS'], [id, region, ms_name,
+        _id = int(self.__get_list(self.sql['GET_MAX_MS_ID'])[0]) + 1
+        return self.__exec(self.sql['INSERT_MS'], [_id, region, ms_name,
                                                    source, date, datasource,
-                                                   quality, notes, ms_xml])
+                                                   quality, notes, ms_xml], True)
      
     
     def delete_ms(self, region, ms_type, ms_name):
@@ -116,10 +116,12 @@ class MSDatabaseDAO:
             logUICall.log(e, logUICall.ERROR)
         return results   
     
-    def __exec(self, sql, param):
+    def __exec(self, sql, param, require_commit=False):
         try:
             c = self.conn.cursor()                        
             c.execute(sql, param)            
+            if require_commit:
+                self.conn.commit()
             c.close()
         except Exception as e:
             logUICall.log(e, logUICall.ERROR)

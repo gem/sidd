@@ -20,12 +20,13 @@
 table model for visualizing secondary modifiers from mapping scheme
 """
 
-from PyQt4.QtCore import *
+from PyQt4.QtCore import Qt, QVariant, QString, \
+                         QAbstractTableModel, QModelIndex
 
-from sidd.constants import *
-from sidd.ms import *
+from sidd.constants import logAPICall
 
-from ui.constants import logUICall, get_ui_string
+from ui.constants import get_ui_string
+from ui.helper.common import build_attribute_tooltip, build_multivalue_attribute_tooltip
 
 class MSTableModel(QAbstractTableModel):
     """
@@ -37,6 +38,7 @@ class MSTableModel(QAbstractTableModel):
         super(MSTableModel, self).__init__(None)
 
         self.ms = ms
+        self.valid_codes = self.ms.taxonomy.codes
         self.headers = [
             get_ui_string("widget.mod.tableheader.zone"),
             get_ui_string("widget.mod.tableheader.level1"),
@@ -48,18 +50,20 @@ class MSTableModel(QAbstractTableModel):
         self.modifiers = []
         self.row_count = 0
         for  _zone, _stat in self.ms.assignments():
-            for _node, _idx, _modifier in _stat.get_modifiers(3):
+            for _node, _idx, _modifier in _stat.get_modifiers(4):
                 _start_count = self.row_count                
                 self.row_count += len(_modifier.keys())
                 _end_count = self.row_count
                 _parents = ['', '', '']
                 _parent = _node
                 for i in range(_node.level):
-                    _parents[_node.level-1-i]=_parent.value
-                    _parent = _parent.parent
+                    _parent_idx = _node.level-1-i
+                    if (_parent_idx >= 0 and _parent_idx < 3):
+                        _parents[_node.level-1-i]=_parent.value
+                        _parent = _parent.parent
                 self.modifiers.append((_zone.name, _parents[0], _parents[1], _parents[2],
                                          _start_count, _end_count,
-                                         _idx, _modifier))
+                                         _idx, _modifier, _node))
 
     def columnCount(self, parent):
         return 6
@@ -76,10 +80,11 @@ class MSTableModel(QAbstractTableModel):
             return QModelIndex()
 
     def data(self, index, role):
-        col, row = index.column(), index.row()        
+        col, row = index.column(), index.row()
         logAPICall.log('data col %s row %s' % (row, col), logAPICall.DEBUG_L2)
         
         if role == Qt.DisplayRole:
+            # construct data for display in table
             _mod = self._get_modifier(row)
             _idx = row - _mod[4]                    
             if (col < 4):
@@ -91,14 +96,27 @@ class MSTableModel(QAbstractTableModel):
                     return QVariant()
             else:
                 # for last 2 columns, show modifier value and associated percentage
-                for _val in sorted(_mod[7].keys()):
+                for _key in sorted(_mod[7].keys()):
                     if (_idx == 0):
                         if (col == 4):
-                            return QVariant(_val)
+                            return QVariant(_key)
                         else:
-                            return QVariant(_mod[7][_val])
+                            return QVariant(_mod[7].value(_key))
                     else:
                         _idx -=1
+        elif role == Qt.ToolTipRole:
+            # construct data for display in tooltip
+            _mod = self._get_modifier(row)
+            _idx = row - _mod[4]
+            if (col == 0):
+                return ""
+            elif (col < 4):
+                if (_idx == 0):
+                    return build_attribute_tooltip(self.valid_codes, _mod[col])
+            elif (col==4):
+                _key = sorted(_mod[7].keys())[_idx]
+                if _key is not None:
+                    return build_multivalue_attribute_tooltip(self.valid_codes, self.ms.taxonomy.parse(_key))
         else:
             return QVariant()
 

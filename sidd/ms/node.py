@@ -23,12 +23,80 @@ Module class for statistic node handling
 import random
 from copy import deepcopy
 
+from utils.xml import get_node_attrib
 from sidd.constants import logAPICall
 from sidd.taxonomy import (TaxonomyAttributeMulticodeValue,
                            TaxonomyAttributePairValue,
                            TaxonomyAttributeSinglecodeValue)
 
-from sidd.ms.exceptions import StatisticError, StatisticNodeError 
+from sidd.ms.exceptions import StatisticNodeError 
+
+class StatisticModifier(object):
+    def __init__(self, name='', level=None):
+        self.name = name
+        self.level = level
+        self.values = {}
+    
+    @property
+    def is_default(self):
+        return len(self.values) == 1 and self.values.keys()[0] is None 
+    
+    def iteritems(self):
+        return self.values.iteritems()
+
+    def keys(self):
+        return self.values.keys()
+    
+    def value(self, key):
+        if self.values.has_key(key):
+            return self.values[key]
+        else:
+            return ''
+    
+    def calculate_weights(self, count):
+        for k, v in self.values.iteritems():
+            self.values[k] = v * 100.0 / count 
+    
+    def update(self, key):
+        if not self.values.has_key(key):
+            self.values[key]=1
+        else:
+            self.values[key]+= 1
+                
+    def __str__(self):
+        outstr=[]
+        outstr.append('(name: "%s" ' % self.name)
+        for k, v in self.values.iteritems():
+            outstr.append("%s: %2.1f%%  " % (k, v))
+        outstr.append(')')
+        # return joined string 
+        return ''.join(outstr)    
+
+    @logAPICall
+    def to_xml(self, pretty=False):
+        """ generate XML representation of current node """
+        outstr = []
+        pad = ''
+        line_break=''
+
+        outstr.append('%s  <modifier name="%s" level="%s">%s' % (pad, self.name, self.level, line_break))
+        for k, v in self.values.iteritems():
+            outstr.append('%s    <modifiervalue value="%s" weight="%s" />%s'
+                          % (pad, k, v, line_break))
+        outstr.append('%s  </modifier>%s' % (pad, line_break))
+        # return joined string 
+        return ''.join(outstr)
+    
+    @logAPICall
+    def from_xml(self, xmlnode):
+        self.name = get_node_attrib(xmlnode, 'name')
+        self.level = get_node_attrib(xmlnode, 'level')
+        for mod_node in xmlnode.findall('modifiervalue'):
+            if mod_node.attrib['value'] == 'None':
+                val = None
+            else:
+                val = get_node_attrib(mod_node, 'value')            
+            self.values[val]=float(get_node_attrib(mod_node, 'weight'))                 
 
 class StatisticNode (object):
     """
@@ -79,7 +147,7 @@ class StatisticNode (object):
         self.is_default=is_default
         self.count=0
         self.weight=0.0
-        self.modifiers=[]
+        self.modifiers=[]                
         self.level=level
         self.children=[]
     
@@ -136,11 +204,8 @@ class StatisticNode (object):
                       % (self.level, self.name, self.value, self.is_default,
                          self.is_skipped, self.weight, self.count))
         # add modifiers for current node
-        for mod in self.modifiers:
-            outstr.append('( ')
-            for k, v in mod.iteritems():
-                outstr.append("%s: %2.1f%%  " % (k, v))
-            outstr.append(')')
+        for mod in self.modifiers:           
+            outstr.append(str(mod))
         outstr.append('\n')
         
         # add children
@@ -160,17 +225,12 @@ class StatisticNode (object):
             for i in range(self.level):
                 pad += '  '
             line_break='\n'
-        outstr.append('%s<node value="%s" level="%d" is_default="%s" is_skipped="%s" weight="%f">%s'
-                      % (pad, self.value, self.level, self.is_default,
+        outstr.append('%s<node attribute="%s" value="%s" level="%d" is_default="%s" is_skipped="%s" weight="%f">%s'
+                      % (pad, self.name, self.value, self.level, self.is_default,
                          self.is_skipped, self.weight, line_break))
         outstr.append('%s  <modifiers>%s' % (pad, line_break))
         for mod in self.modifiers:
-            if (len(mod.keys())>=1):
-                outstr.append('%s  <modifier>%s' % (pad, line_break))
-                for k, v in mod.iteritems():
-                    outstr.append('%s    <modifiervalue value="%s" weight="%s" />%s'
-                                  % (pad, k, v, line_break))
-                outstr.append('%s  </modifier>%s' % (pad, line_break))
+            outstr.append(mod.to_xml(pretty))
         outstr.append('%s  </modifiers>%s' % (pad, line_break))                
 
         if not self.is_leaf:
@@ -183,22 +243,18 @@ class StatisticNode (object):
     
     @logAPICall
     def from_xml(self, xmlnode):
-        """ construct node and children from XML """
-        self.value = xmlnode.attrib['value']
-        self.level = int(xmlnode.attrib['level'])
-        self.weight = float(xmlnode.attrib['weight'])
+        """ construct node and children from XML """  
+        self.name = get_node_attrib(xmlnode, 'attribute')      
+        self.value = get_node_attrib(xmlnode, 'value')
+        self.level = int(get_node_attrib(xmlnode, 'level'))
+        self.weight = float(get_node_attrib(xmlnode, 'weight'))
         self.count = self.weight
-        self.is_default = str(xmlnode.attrib['is_default']).upper()=='TRUE'
-        self.is_skipped = str(xmlnode.attrib['is_skipped']).upper()=='TRUE'
+        self.is_default = str(get_node_attrib(xmlnode, 'is_default')).upper()=='TRUE'
+        self.is_skipped = str(get_node_attrib(xmlnode, 'is_skipped')).upper()=='TRUE'
         
         for mod_nodes in xmlnode.findall('modifiers/modifier'):
-            mod = {}
-            for mod_node in mod_nodes.findall('modifiervalue'):
-                if mod_node.attrib['value'] == 'None':
-                    val = None
-                else:
-                    val = mod_node.attrib['value']            
-                mod[val]=float(mod_node.attrib['weight'])
+            mod = StatisticModifier()
+            mod.from_xml(mod_nodes)
             self.modifiers.append(mod)
             
         for childnode in xmlnode.findall('children/node'):
@@ -209,13 +265,57 @@ class StatisticNode (object):
 
     # readonly methods
     ###########################
-   
+    @logAPICall
+    def leaves(self, separator, parent="", parent_weight = 1.0):
+        branches = {'':1.0}
+        mod_is_same_attribute = False
+        for mod in self.modifiers:
+            if self.name==mod.name:
+                mod_is_same_attribute = True
+            _branches = {}
+            for _mod_val, _mod_weight in mod.iteritems():
+                _mod_weight /= 100.0
+                #print self.value, _mod_val, _mod_weight
+                for branch, value in branches.iteritems(): 
+                    #print 'processing', branch, value, _mod_val, _mod_weight,   
+                    if ( _mod_val is not None ):
+                        if branch != '':
+                            _branches[branch + separator + _mod_val] = value * _mod_weight
+                        else:
+                            _branches[_mod_val] = value * _mod_weight
+                    else:
+                        _branches[branch] = value * _mod_weight
+                    #print 'new branch', _branches
+            branches = _branches
+        #print 'value', self.value, 'branches', branches
+        
+        for _val, _weight in branches.iteritems():
+            # modifiers for same attribute are attached 
+            # using a different separator as modifier of different attribute
+            # NOTE: (modifier of different attribute) can happend after collapsed  
+            if (mod_is_same_attribute):
+                mod_separator = self.separator
+            else:
+                mod_separator = separator
+            
+            leaf_value = parent + separator + self.value + mod_separator + _val
+            #print parent + separator + self.value + mod_separator + _val, _weight                
+            if (self.is_leaf):
+                yield leaf_value, parent_weight * self.weight / 100.0 * _weight
+            
+            for _child in self.children:
+                #print '\t','child leaf', _child.value                
+                for _l in _child.leaves(separator, leaf_value, parent_weight * self.weight / 100.0 * _weight):
+                    yield _l
+                       
     @logAPICall
     def random_walk(self, separator, parent="", skip_modifiers=False):                
         """
         generate string by randomly sampling among node's children and modifiers
         """
         val = ""
+        mod_val = ''
+        
         if not skip_modifiers:
             # use modifiers
             for mod in self.modifiers:
@@ -223,7 +323,16 @@ class StatisticNode (object):
                 # NOTE: modifier(dictionary) key contains the actual value,
                 #       modifier(dictionary) value contains count 
                 # if count exceeds _idx, then use key
-                idx = random.random() * self.count
+                idx = random.random() * 100.0
+                
+                # modifiers for same attribute are attached 
+                # using a different separator as modifier of different attribute
+                # NOTE: (modifier of different attribute) can happend after collapsed  
+                if (self.name==mod.name):
+                    mod_separator = self.separator
+                else:
+                    mod_separator = separator
+                    
                 for d, c in mod.iteritems():            
                     if c < idx:
                         # go to next 
@@ -231,21 +340,12 @@ class StatisticNode (object):
                         continue
                     # found
                     if ( d is not None):
-                        # key is not None, add to tax_str
-                        if not self.is_default:
-                            val += self.value + self.separator + d + separator
-                        else:
-                            # key is default, no need to add to result string
-                            val += d + separator
-                            
-                    elif not self.is_default:
-                        # key is None, no need to add to result string
-                        val += self.value + separator
+                        mod_val += mod_separator + d
                     break
-        else:
-            # do not use modifiers
-            if self.level > 0 and not self.is_default:
-                val += self.value + separator
+            
+        # do not use modifiers
+        if self.level > 0 and not self.is_default:
+            val += self.value  + mod_val + separator 
         
         # reached leaf, return result string
         if self.is_leaf:
@@ -256,7 +356,7 @@ class StatisticNode (object):
         for child in self.children:
             # skip if _idx < _children count 
             #if child.count < idx:
-            if child.weight < rand_weight:
+            if child.weight <= rand_weight:
                 rand_weight -= child.weight
                 continue
             return child.random_walk(separator, parent+val, skip_modifiers)
@@ -299,14 +399,12 @@ class StatisticNode (object):
         
         # calculate weight for attached modifiers based on count
         for mod in self.modifiers:            
-            for k in mod.keys():
-                mod[k] = mod[k] * 100.0 / self.count 
+            mod.calculate_weights(self.count)
         
         # recursively travese down to all children
         # will be skipped by leaf nodes
         for child in self.children:
-            child.calculate_weights()        
-    
+            child.calculate_weights()
 
     # tree modifying methods
     ###########################
@@ -408,10 +506,8 @@ class StatisticNode (object):
             node.count = self.count
             level = 1
         elif self.is_skipped:
-            #print 'skipped', self.value
             node = parent            
         else:
-            #print 'added', self.value, 
             node = StatisticNode(parent, self.name, self.value, level,
                                  self.is_default, self.is_skipped)            
             node.count = self.count
@@ -421,7 +517,7 @@ class StatisticNode (object):
         # remove modifiers with only None values
         mod_to_remove = []
         for mod in self.modifiers:
-            if len(mod) == 1 and mod.keys()[0] is None:                
+            if mod.is_default:                
                 mod_to_remove.append(mod)
         for mod in mod_to_remove:
             self.modifiers.remove(mod)
@@ -433,7 +529,6 @@ class StatisticNode (object):
         if self.is_leaf:
             return
         else:
-            #print '\tadd %d children' % len( self.children )
             for child in self.children:                
                 child.collapse_tree(node, level)
 
@@ -443,7 +538,7 @@ class StatisticNode (object):
         generator providing access to all modifiers from node and children nodes
         up to given max_level
         """        
-        if self.level <= max_level and not self.is_leaf:
+        if self.level <= max_level: #and not self.is_leaf:
             # own modifiers
             for idx, mod in enumerate(self.modifiers):
                 # generator return
@@ -455,8 +550,8 @@ class StatisticNode (object):
                     yield node, idx, mod
         # else
         #   reached leaf or modifier from max depth level defined.
-        #   return 
-    
+        #   return
+
     @logAPICall
     def delete_node(self, child):
         """
@@ -503,14 +598,11 @@ class StatisticNode (object):
     def add_modifier(self, val, mod_idx=0):
         """ update statistic for specified modifier """
         if len(self.modifiers) <= mod_idx:
-            mod = {}
-            mod[val]=1
+            mod = StatisticModifier(self.name, self.level)
+            mod.update(val)
             self.modifiers.append(mod)
-        else:
-            if not self.modifiers[mod_idx].has_key(val):
-                self.modifiers[mod_idx][val]=1
-            else:
-                self.modifiers[mod_idx][val]+= 1
+        else:            
+            self.modifiers[mod_idx].update(val)
 
     @logAPICall
     def set_level_recursive(self, level):
@@ -540,46 +632,66 @@ class StatisticNode (object):
         return False       
     
     @logAPICall
-    def update_children(self, values, weights):
+    def update_children(self, attribute, values, weights):
         """ update children based on given values/weights """
         # check to make sure given values/weights can be used to
         # update node's children
         # check for following conditions
         # 1. weights do not add up to 100. 
         #    FAIL, cannot update 
-        # 2. some values not in children 
-        #    ALLOW, add new value nodes and update new weights        
-        # 3. values == children
+        # 2. values not changed, only weights were updated
         #    ALLOW, update children with new weights
-        sum_weight = 0  # for case 1
-        not_in_children = [] # for case 2/3
-        child_name = ''
+        # 3. new values are added  
+        #    ALLOW, add new value nodes, update all weights 
+        # 4. some values are deleted 
+        #    ALLOW, delete child node(s), update all weights
         
-        for v, w in map(None, values, weights):
-            # if node is leaf, then all values are new
+        sum_weight = 0  # for case 1
+
+        # sum up weights, 
+        # check for added/deleted nodes        
+        added = [] 
+        to_delete = []
+        for v, w in map(None, values, weights):            
+            # check deleted
+            if w == 0:
+                to_delete.append(v)
+                continue
+            # update sum
             sum_weight += w
+            
+            # check added
             child_found = False
             for child in self.children:
-                child_name = child.name
-                if child.value == v:
+                if child.value == v:    
                     child_found = True
             if not child_found:
-                not_in_children.append(v)
-                
+                added.append(v)
+
+        # find additional child nodes already deleted
+        for child in self.children:
+            try:
+                values.index(child.value)
+            except:
+                to_delete.append(child.value)
+
         # case 1
         if sum_weight <> 100:
             raise StatisticNodeError('weight does not equal to 100')
+
+        # case 3, new values added
+        for v in added:
+            child = StatisticNode(self, attribute, v, self.level+1)                
+            self.children.append(child)            
         
-        # case 2
-        if len(not_in_children) > 0:
-            # add new value nodes
-            for _val in not_in_children:
-                child = StatisticNode(self, child_name, _val, self.level+1)                
-                self.children.append(child)
-            # once all values not in children are added in,  
-            # case 2 becomes case 3
-            
-        # case 3
+        # case 4, some values are deleted
+        for v in to_delete:
+            for child in self.children:
+                if child.value == v:
+                    self.delete_node(child)
+        
+        # after changes to node, the resulting
+        # case 2, only weight update needed
         for child in self.children:
             try:
                 weight = weights[values.index(child.value)]
@@ -587,8 +699,7 @@ class StatisticNode (object):
                 weight = 0
             child.weight = weight
             child.count = weight
-        self.count = 100
-
+        
     def update_modifier(self, values, weights, modidx=-1):
         """ 
         update node's (modidx) modifier with given values/weights list
@@ -616,9 +727,12 @@ class StatisticNode (object):
         if len(self.modifiers) <= modidx:
             raise StatisticNodeError('modifier with index %s does not exist' % modidx)
 
-        mod = {}
+        mod = StatisticModifier("User", self.level)
         for v, w in map(None, values, weights):
-            mod[v]=w
+            mod.values[v]=w 
+        #mod = {}
+        #for v, w in map(None, values, weights):
+        #    mod[v]=w
         
         if modidx < 0:
             # case 3

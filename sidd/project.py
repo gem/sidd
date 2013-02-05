@@ -23,16 +23,18 @@ main SIDD application controller
 import os
 import bsddb
 import shutil
+import types
 
 from utils.system import get_temp_dir, get_random_name
 from utils.shapefile import remove_shapefile
 
-from sidd.constants import *
-
+from sidd.constants import logAPICall, \
+                           FILE_PROJ_TEMPLATE, \
+                           FootprintTypes, OutputTypes, SurveyTypes, ZonesTypes, \
+                           ProjectStatus, SyncModes                           
+from sidd.ms import MappingScheme
 from sidd.exception import SIDDException, WorkflowException
 from sidd.workflow import Workflow, WorkflowBuilder
-from sidd.ms import *
-from sidd.operator import *
 
 class Project (object):
     """
@@ -42,9 +44,10 @@ class Project (object):
     # constructor / destructor
     ##################################
 
-    def __init__(self, project_file):
+    def __init__(self, project_file, app_config):
         """ constructor """
         self.temp_dir = get_temp_dir('tmp%s'%get_random_name())
+        self.app_config = app_config
         
         if (not os.path.exists(project_file)):
             shutil.copyfile(FILE_PROJ_TEMPLATE, project_file)
@@ -56,8 +59,8 @@ class Project (object):
         
         self.operator_options = {
             'tmp_dir': self.temp_dir,
-            'taxonomy':'gem',
-            'skips':[3,4,5,6,7],
+            'taxonomy':app_config.get('options', 'taxonomy', 'gem'),
+            'skips': app_config.get('options', 'skips', [], types.ListType),            
         }
         self.reset()
     
@@ -70,12 +73,12 @@ class Project (object):
                 del self.exposure   # must delete layer, otherwise exposure_file becomes locked
                                     # and will generate error on shutil.rmtree
                 shutil.rmtree(self.temp_dir)
-        except Exception as err:            
+        except Exception:            
             pass
         try:
             self.db.close()
-        except Exception as err:
-            pass    
+        except Exception:
+            pass
     
     # data setter methods
     ##################################
@@ -94,7 +97,7 @@ class Project (object):
         self.zone_count_field = zone_count_field        
 
     @logAPICall
-    def set_survey(self, survey_type, survey_file='', survey_format='CSV'):
+    def set_survey(self, survey_type, survey_file='', survey_format='GEMDB'):
         """ load survey data """
         self.survey_file = survey_file
         self.survey_type = survey_type
@@ -120,7 +123,7 @@ class Project (object):
         
         self.survey_type = SurveyTypes.None
         self.survey_file = ''
-        self.survey_format = 'CSV'
+        self.survey_format = 'GEMDB' #'CSV'
         
         self.zone_type = ZonesTypes.None
         self.zone_file = ''
@@ -142,6 +145,36 @@ class Project (object):
 
     # exposure processing methods
     ##################################
+    @logAPICall
+    def load_footprint(self):
+        # only load if all required fields exists
+        if self.fp_type == FootprintTypes.None:
+            return
+        if self.fp_file == '':
+            return
+        if self.fp_type == FootprintTypes.FootprintHt and self.fp_ht_field == '':
+            return            
+        
+        self.fp, self.fp_tmp_file = self._load_data('fp_file', 'fp', 'fp_file')
+        return
+
+    @logAPICall
+    def load_zones(self):
+        # only load if all required fields exists
+        if self.zone_type == ZonesTypes.None:
+            return
+        if self.zone_file == '' or self.zone_field == '':
+            return
+        if self.fp_type ==  ZonesTypes.LanduseCount and self.zone_count_field == '':
+            return
+                
+        self.zone, self.zone_tmp_file = self._load_data('zone_file', 'zone', 'zone_file') 
+        return 
+
+    @logAPICall
+    def load_survey(self):
+        self.survey, self.survey_tmp_file = self._load_data('survey_file', 'survey', 'survey_file') 
+        return 
     
     @logAPICall
     def verify_data(self):
@@ -201,25 +234,6 @@ class Project (object):
         # build mapping scheme
         return self._build_ms(isEmpty=True)
 
-    def _build_ms(self, isEmpty=False):
-        """ create mapping scheme """
-        builder = WorkflowBuilder(self.operator_options)
-        try:
-            # create workflow 
-            ms_workflow = builder.build_ms_workflow(self, isEmpty)
-            
-            # process workflow 
-            for step in ms_workflow.nextstep():
-                step.do_operation()
-            self.ms = ms_workflow.operator_data['ms'].value
-            logAPICall.log('mapping scheme created', logAPICall.INFO)
-        except WorkflowException as wbw:
-            return False
-        except Exception as err:
-            logAPICall.log(err, logAPICall.ERROR)
-            return False
-        # survey loading        
-
     @logAPICall
     def export_data(self):
         builder = WorkflowBuilder(self.operator_options)
@@ -229,7 +243,7 @@ class Project (object):
             for step in export_workflow.nextstep():
                 step.do_operation()
             logAPICall.log('data export completed', logAPICall.INFO)            
-        except WorkflowException as wbw:
+        except WorkflowException:
             return False
         except Exception as err:
             logAPICall.log(err, logAPICall.ERROR)
@@ -371,3 +385,61 @@ class Project (object):
         else:
             logAPICall.log('save to db %s => %s ' % (attrib, str(value)[0:25]), logAPICall.DEBUG_L2)
             self.db[attrib]=str(value)
+
+    # protected helper functions
+    ##################################
+    
+    def _load_data(self, input_param, layer, output_file):
+        input_file = getattr(self, input_param, None)
+        if input_file is not None:
+            builder = WorkflowBuilder(self.operator_options)
+            try:
+                # create workflow
+                if input_param == 'fp_file':
+                    workflow = builder.build_load_fp_workflow(self)
+                elif input_param == 'zone_file':
+                    workflow = builder.build_load_zones_workflow(self)
+                elif input_param == 'survey_file':
+                    workflow = builder.build_load_survey_workflow(self)
+                else:
+                    raise Exception('Data Type Not Recognized %s' % input_param)
+                
+                if not workflow.ready:
+                    raise Exception('Cannot load data with %s' % input_param)
+                workflow.process()
+                
+                logAPICall.log('data file %s loaded' % input_file, logAPICall.INFO)
+                return workflow.operator_data[layer].value, workflow.operator_data[output_file].value
+            except WorkflowException:
+                logAPICall.log('Error Loading file %s' % input_file, logAPICall.ERROR)
+            except Exception as err:
+                logAPICall.log(err, logAPICall.ERROR)
+                return False           
+
+    def _build_ms(self, isEmpty=False):
+        """ create mapping scheme """
+        builder = WorkflowBuilder(self.operator_options)
+        try:
+            # create workflow 
+            ms_workflow = builder.build_ms_workflow(self, isEmpty)
+            
+            # process workflow 
+            for step in ms_workflow.nextstep():
+                step.do_operation()
+            self.ms = ms_workflow.operator_data['ms'].value
+            for zone, stats in self.ms.assignments():
+                #print zone
+                leaves = stats.get_leaves(True)
+                total = 0
+                for l in leaves:
+                    total += l[1]
+                #print leaves
+                #print len(leaves), total
+                
+            logAPICall.log('mapping scheme created', logAPICall.INFO)
+        except WorkflowException:
+            return False
+        except Exception as err:
+            logAPICall.log(err, logAPICall.ERROR)
+            return False
+        # survey loading        

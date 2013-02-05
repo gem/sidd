@@ -1,8 +1,5 @@
 <RCC>
   <qresource prefix="imgs">
-    <file>indonesia_ex.PNG</file>
-    <file>map.png</file>
-    <file>ohman.png</file>
     <file>openquake_orange_web.png</file>
     <file>icons/add.png</file>
     <file>logo.png</file>

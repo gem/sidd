@@ -19,11 +19,8 @@
 """
 dialog for editing secondary modifiers
 """
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
-
-from sidd.exception import *
-from sidd.ms import *
+from PyQt4.QtGui import QDialog, QMessageBox
+from PyQt4.QtCore import QString
 
 from ui.constants import logUICall, get_ui_string 
 from ui.qt.dlg_mod_input_ui import Ui_modifierInputDialog
@@ -31,7 +28,7 @@ from ui.helper.ms_level_table import MSLevelTableModel
 
 class DialogModInput(Ui_modifierInputDialog, QDialog):
     """
-    dialog for editing mapping scheme brances
+    dialog for editing mapping scheme branches
     """
     # constructor
     ###############################    
@@ -164,23 +161,9 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
         self.node = None
         
         if not addNew and mod is not None:
-            [zone_name, level1, level2, level3, startIdx, endIdx, modidx, modifier] = mod
-            # get zone
-            stats = self.ms.get_assignment_by_name(zone_name)
-            root_node = stats.get_tree()
-            # get level1 selections
-            lv1_node = self.getSelectedNode(root_node, level1)            
-            if lv1_node is not None:
-                self.node = lv1_node 
-            # get level2 selections
-            lv2_node = self.getSelectedNode(lv1_node, level2)
-            if lv2_node is not None:
-                self.node = lv2_node 
-            # get level3 selections
-            lv3_node = self.getSelectedNode(lv2_node, level3)
-            if lv3_node is not None:
-                self.node = lv3_node 
-
+            [zone_name, level1, level2, level3, startIdx, endIdx, modidx, modifier, src_node] = mod
+            self.node = src_node
+            
             self.modidx = modidx
             for k, v in modifier.iteritems():                
                 self.values.append(k)

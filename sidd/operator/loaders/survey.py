@@ -24,17 +24,20 @@ import sqlite3
 
 from os.path import exists
 
-from PyQt4.QtCore import *
-from qgis.core import *
+from PyQt4.QtCore import QVariant
+from qgis.core import QGis, QgsVectorFileWriter, QgsFeature, QgsField, QgsGeometry, QgsPoint
 
-from utils.shapefile import *
+from utils.shapefile import load_shapefile_verify, remove_shapefile
 from utils.system import get_unique_filename
 
-from sidd.constants import logAPICall
-from sidd.operator import *
+from sidd.constants import logAPICall, \
+                           GID_FIELD_NAME, LON_FIELD_NAME, LAT_FIELD_NAME, TAX_FIELD_NAME
+from sidd.operator import Operator,OperatorError, OperatorDataError
+from sidd.operator.data import OperatorDataTypes
 
 
-class SurveyLoader(Operator):
+
+class GEMDBSurveyLoader(Operator):
     """ loading field survey data in CSV format"""
     
     def __init__(self, options=None, name="Survey Loader"):
@@ -43,9 +46,10 @@ class SurveyLoader(Operator):
         self._tmp_dir = options['tmp_dir']
 
         self._fields = {
-            0 : QgsField(self._lon_field, QVariant.Double),
-            1 : QgsField(self._lat_field, QVariant.Double),
-            2 : QgsField(self._tax_field, QVariant.String),
+            0 : QgsField(GID_FIELD_NAME, QVariant.Int),
+            1 : QgsField(LON_FIELD_NAME, QVariant.Double),
+            2 : QgsField(LAT_FIELD_NAME, QVariant.Double),
+            3 : QgsField(TAX_FIELD_NAME, QVariant.String),
         }    
     # self documenting method override
     ###########################
@@ -77,16 +81,12 @@ class SurveyLoader(Operator):
         """ perform survey data loading """        
         # input/output data checking already done during property set
         survey = self.inputs[0].value
-        survey_type = self.inputs[1].value
-        taxfield = 'taxonomy'
         
         tmp_survey_file = '%ssurvey_%s.shp' % (self._tmp_dir, get_unique_filename())
         # load survey        
         try:
-            if (survey_type == 'CSV'):
-                self._loadCSVSurvey(survey, tmp_survey_file)
-            else:
-                self._loadSQLiteSurvey(survey, tmp_survey_file)
+            self._loadSurvey(survey, tmp_survey_file)
+            
         except Exception as err:
             remove_shapefile(tmp_survey_file)
             raise OperatorError("Error Loading Survey: %s" % err,
@@ -117,33 +117,141 @@ class SurveyLoader(Operator):
 
     # internal helper methods
     ####################################
-
-    def _loadCSVSurvey(self, csvpath, shapefilepath):
+    def _loadSurvey(self, sqlitepath, shapefilepath):
         # load data
-        survey = csv.reader(open(csvpath, 'r'), delimiter=',', quotechar='"')
-        header = survey.next()
-        self._buildSurveyLayer(survey, shapefilepath)
-
-    def _loadSQLiteSurvey(self, sqlitepath, shapefilepath):
-        # load data
-        sql = ""
+        sql = """select X, Y, 
+                MAT_TYPE_L, MAT_TECH_L, MAS_REIN_L, MAS_MORT_L, STEEL_CON_L, 
+                LLRS_L, LLRS_DUCT_L,  
+                ROOFSYSMAT, ROOFSYSTYP,  
+                FLOOR_MAT, FLOOR_TYPE, 
+                STORY_AG_Q, STORY_AG_1, STORY_AG_2,
+                YR_BUILT_Q, YR_BUILT_1, YR_BUILT_2,                
+                STR_IRREG, STR_HZIR_P, STR_HZIR_S, STR_VEIR_P, STR_VEIR_S, 
+                OCCUPCY, OCCUPCY_DT
+                from GEM_OBJECT"""
         conn = sqlite3.connect(sqlitepath)
         c = conn.cursor()
         c.execute(sql)        
         self._buildSurveyLayer(c, shapefilepath)
         c.close()
-        conn.close()        
-    
+        conn.close()
+        
     def _buildSurveyLayer(self, data,  shapefilepath):
         writer = QgsVectorFileWriter(shapefilepath, "utf-8", self._fields, QGis.WKBPoint, self._crs, "ESRI Shapefile")
         f = QgsFeature()
+        gid = 0
+        for row in data:
+            lon = float(row[0])
+            lat = float(row[1])
+            tax_string = self._make_gem_taxstring(row[2:])
+            
+            f.setGeometry(QgsGeometry.fromPoint(QgsPoint(lon, lat)))
+            gid+=1
+            f.addAttribute(0, QVariant(gid))
+            f.addAttribute(1, QVariant(lon))
+            f.addAttribute(2, QVariant(lat))
+            f.addAttribute(3, QVariant(tax_string))
+            writer.addFeature(f)
+        del writer, f
+        
+    def _make_gem_taxstring(self, data):
+        (mat_type_l, mat_tech_l, mas_rein_l, mas_mort_l, steel_con_l, 
+         llrs_l, llrs_duct_l, 
+         roofsysmat, roofsystyp,  
+         floor_mat, floor_type, 
+         story_ag_q, story_ag_1, story_ag_2,
+         yr_built_q, yr_built_1, yr_built_2,
+         str_irreg, str_hzir_p, str_hzir_s, str_veir_p, str_veir_s, 
+         occupcy, occupcy_dt) = [(x) for x in data]
+        
+        separator = "+"
+        
+        # material
+        mat_string = self._coalesce(mat_type_l) \
+            + self._append_not_null(mat_tech_l, separator) + self._append_not_null(mas_rein_l, separator) \
+            + self._append_not_null(mas_mort_l, separator)  + self._append_not_null(steel_con_l, separator) 
+        
+        # lateral load
+        ll_string = llrs_l + self._append_not_null(llrs_duct_l,separator) 
+        
+        # roof 
+        roof_string = self._coalesce(roofsysmat) + self._append_not_null(roofsystyp,separator) 
+        
+        # floor
+        floor_string = self._coalesce(floor_mat) + self._append_not_null(floor_type,separator)
+        
+        # story
+        story_ag_q = self._coalesce(story_ag_q)
+        if story_ag_1 is None:
+            ht_string = "H99"
+        elif story_ag_q.upper() == "CIRCA":
+            ht_string = "H:" + self._coalesce(story_ag_1)
+        elif story_ag_q.upper() == "BETWEEN":
+            ht_string = "H" + story_ag_1 + "," + story_ag_2
+        else:
+            ht_string = "H:" + self._coalesce(story_ag_1)
+        
+        # yr_built
+        yr_built_q = self._coalesce(yr_built_q)
+        if yr_built_1 is None:
+            yr_string = "Y99"
+        elif yr_built_q.upper() == "CIRCA":
+            yr_string = "YA:" + self._coalesce(yr_built_1)
+        elif yr_built_q.upper() == "BETWEEN":
+            yr_string = "YA" + int((yr_built_1 + yr_built_2)/2)
+        else:
+            yr_string = "YN:" + self._coalesce(yr_built_1)
+
+        # irregularity
+        ir_string = self._coalesce(str_irreg) \
+            + self._append_not_null(str_hzir_p,separator) + self._append_not_null(str_hzir_s,separator) \
+            + self._append_not_null(str_veir_p,separator) + self._append_not_null(str_veir_s,separator) 
+        
+        # occupancy
+        occ_string = self._coalesce(occupcy) + self._append_not_null(occupcy_dt,separator)
+        
+        separator = "/"
+        return (mat_string + self._append_not_null(ll_string,separator)
+                           + self._append_not_null(roof_string,separator)
+                           + self._append_not_null(floor_string,separator)
+                           + self._append_not_null(ht_string,separator)
+                           + self._append_not_null(yr_string,separator)
+                           + self._append_not_null(ir_string,separator)
+                           + self._append_not_null(occ_string,separator))
+    
+    def _coalesce(self, val):
+        return str(val) if (val is not None) else ""
+     
+    def _append_not_null(self, val, separator):        
+        if (val is None or val == ""):
+            return ""
+        else:
+            return separator + str(val)
+    
+class CSVSurveyLoader(GEMDBSurveyLoader):
+    """ loading field survey data in CSV format"""
+    
+    def __init__(self, options=None, name="Survey Loader"):
+        """ constructor """
+        super(CSVSurveyLoader, self).__init__(options, name)
+    
+    def _loadSurvey(self, csvpath, shapefilepath):
+        # load data
+        data = csv.reader(open(csvpath, 'r'), delimiter=',', quotechar='"')
+        # skip header, there is probably a better way to accomplish this
+        data.next()
+        writer = QgsVectorFileWriter(shapefilepath, "utf-8", self._fields, QGis.WKBPoint, self._crs, "ESRI Shapefile")
+        f = QgsFeature()
+        gid = 0
         for row in data:
             lon = float(row[0])
             lat = float(row[1])
             f.setGeometry(QgsGeometry.fromPoint(QgsPoint(lon, lat)))
-            f.addAttribute(0, QVariant(lon))
-            f.addAttribute(1, QVariant(lat))
-            f.addAttribute(2, QVariant(row[2]))
+            gid+=1
+            f.addAttribute(0, QVariant(gid))
+            f.addAttribute(1, QVariant(lon))
+            f.addAttribute(2, QVariant(lat))
+            f.addAttribute(3, QVariant(row[2]))
             writer.addFeature(f)
-        del writer, f
+        del writer, f        
         

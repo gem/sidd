@@ -17,5 +17,5 @@
 # Version: $Id: __init__.py 6 2012-08-28 23:22:44Z zh $
 
 """
-package constains miscellaneous utilities 
+package contains miscellaneous utilities 
 """

@@ -24,16 +24,16 @@ import os
 import types
 import logging
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from qgis.core import *
-from qgis.gui import *
+from PyQt4.QtGui import QApplication
+from qgis.core import QgsApplication
 
-from sidd.appconfig import sidd_config
+from sidd.appconfig import SIDDConfig
 from sidd.constants import logAPICall 
+from utils.system import get_app_dir
 
 from ui.constants import logUICall
 from ui.win_main import AppMainWindow
+from ui.win_splash import AppSplashScreen 
 
 # check for required environment parameters
 #############################
@@ -48,17 +48,28 @@ for _key in env_keys:
         print >> sys.stderr, errMsg % _key 
         sys.exit(1)
 
-# initialize logging based on configuration
-logging.basicConfig(level=logging.NOTSET)
-logAPICall.setLevel(sidd_config.get('logging', 'core', 30, types.IntType))
-logUICall.setLevel(sidd_config.get('logging', 'ui', 20, types.IntType))
-os.environ['QGIS_DEBUG'] = sidd_config.get('logging', 'qgis', '-1')
-
 # start application 
 #############################
 
 # initialize QT
 qtApp = QApplication(sys.argv)
+
+splash = AppSplashScreen()
+splash.show()
+qtApp.processEvents()
+
+# show splash screen for at least 1 second
+from time import sleep
+sleep(1)
+
+# read configuration
+sidd_config = SIDDConfig(get_app_dir() + '/app.cfg')
+
+# initialize logging based on configuration
+logging.basicConfig(level=logging.NOTSET)
+logAPICall.setLevel(sidd_config.get('logging', 'core', 30, types.IntType))
+logUICall.setLevel(sidd_config.get('logging', 'ui', 20, types.IntType))
+os.environ['QGIS_DEBUG'] = sidd_config.get('logging', 'qgis', '-1')
 
 # supply path to where is your qgis installed
 QgsApplication.setPrefixPath(os.environ['QGIS'], True)
@@ -66,8 +77,10 @@ QgsApplication.setPrefixPath(os.environ['QGIS'], True)
 QgsApplication.initQgis()
 
 # initialize and show main window
-mainWin = AppMainWindow(qtApp)
+mainWin = AppMainWindow(qtApp, sidd_config)
 mainWin.show()
+
+splash.finish(mainWin)
 
 #exit
 sys.exit(qtApp.exec_())

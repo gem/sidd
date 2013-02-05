@@ -17,11 +17,9 @@
 # Version: $Id: ms_level_table.py 18 2012-10-24 20:21:41Z zh $
 
 """
-dialog for editing mapping scheme brances
+dialog for editing mapping scheme branches
 """
-from PyQt4.QtCore import *
-from sidd.ms import *
-
+from PyQt4.QtCore import Qt, QVariant, QString, QAbstractTableModel
 from ui.constants import logUICall, get_ui_string
 
 class MSLevelTableModel(QAbstractTableModel):
@@ -39,7 +37,7 @@ class MSLevelTableModel(QAbstractTableModel):
             'Value', 'Weight (%)'
         ]
         self.weights = weights
-        self.values = values
+        self.values = values        
     
     def columnCount(self, parent):
         """ only two columns exist. always return 2 """
@@ -58,7 +56,6 @@ class MSLevelTableModel(QAbstractTableModel):
     
     def deleteValue(self, index):
         """ remove selected row """
-        print index.row()
         pass
 
     def headerData(self, section, orientation, role):
@@ -81,7 +78,11 @@ class MSLevelTableModel(QAbstractTableModel):
                              logUICall.DEBUG_L2)
             if (index.column() == 0):
                 # first column, show value
-                return QString(self.values[index.row()])
+                value = self.values[index.row()]
+                if value is not None:
+                    return QString(value)
+                else:
+                    return ""
             else:
                 # second column, show weight
                 return QString('%2.1f'% self.weights[index.row()])
@@ -94,7 +95,6 @@ class MSLevelTableModel(QAbstractTableModel):
             if (index.column() == 0):
                 # first column, change value
                 taxStr = str(value.toString())
-                
                 # do nothing for empty string
                 if taxStr == "":
                     return False           
@@ -105,19 +105,18 @@ class MSLevelTableModel(QAbstractTableModel):
             else:
                 # second column, change weight
                 (dVal, sucess) = value.toDouble()
-                #print 'got from editor', dVal, value.toString()
-                
                 # conversion to double failed
                 if not sucess:
                     raise Exception(get_ui_string("dlg.msbranch.edit.warning.invalidweight"))
-                    
                 # make sure 0 <= dVal <= 100
                 if dVal < 0 or dVal > 100:
-                    raise Exception(get_ui_string("dlg.msbranch.edit.warning.invalidweight"))                    
-                
+                    raise Exception(get_ui_string("dlg.msbranch.edit.warning.invalidweight"))
+                                    
                 # passed all checks. set value
                 self.weights[index.row()] = round(dVal, 1)
-                return True
+
+            self.dataChanged.emit(self.createIndex(0, 0), self.createIndex(self.rowCount(0),self.columnCount(0)))
+            return True
         return False
     
     def flags(self, index):

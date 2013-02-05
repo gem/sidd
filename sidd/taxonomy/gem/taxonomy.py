@@ -23,7 +23,6 @@ import sqlite3
 import os
 import re
 import copy
-import sys 
 
 from sidd.constants import logAPICall
 from sidd.taxonomy import Taxonomy, TaxonomyAttribute, TaxonomyAttributeCode
@@ -36,7 +35,7 @@ class GemTaxonomy(Taxonomy):
     """
     
     # protected member attributes
-    __GEM_TAXONOMY_FILE = 'gem_v1.0.db'
+    __GEM_TAXONOMY_FILE = 'gem_v1.0.1.db'
     __attrs = []
     __codes = {}
     __empty = []
@@ -101,23 +100,30 @@ class GemTaxonomy(Taxonomy):
                 _levels = _attr.split('+')
                 for _i, _lvl in enumerate(_levels):
                     _attr_val = _attributes[self.__codes[_lvl].order-1]
-                    if not isinstance(_attr_val, GemTaxonomyAttributeMulticodeValue):
-                        raise TaxonomyParseError('incorrect value type for %s' %(_attr))                    
-                    _attr_val.add_value(_lvl)
+                    if isinstance(_attr_val, GemTaxonomyAttributeMulticodeValue):
+                        _attr_val.add_value(_lvl)
+                    else:
+                        raise TaxonomyParseError('incorrect value type for %s' %(_attr))
             elif re.match('\w+\:\d+', _attr):
                 # code:value format
                 (_type_id, _val) = _attr.split(':')
                 _attr_val = _attributes[self.__codes[_type_id].order-1]
-                if not isinstance(_attr_val, GemTaxonomyAttributePairValue):
+                if isinstance(_attr_val, GemTaxonomyAttributePairValue):
+                    _attr_val.add_value(_type_id, _val)
+                else:
                     raise TaxonomyParseError('additional value is not needed for code %s' % (_type_id))
-                _attr_val.add_value(_type_id, _val)
+                
             elif re.match('\w+', _attr):
                 # code only, search code table
                 _attr_val = _attributes[self.__codes[_attr].order-1]
-                if not (isinstance(_attr_val, GemTaxonomyAttributeSinglecodeValue)
+                if isinstance(_attr_val, GemTaxonomyAttributePairValue) and _attr_val.is_empty:
+                    _attr_val.add_value(_attr, '')
+                elif (isinstance(_attr_val, GemTaxonomyAttributeSinglecodeValue)
                         or isinstance(_attr_val, GemTaxonomyAttributeMulticodeValue)):
+                    _attr_val.add_value(_attr)
+                else:
                     raise TaxonomyParseError('incorrect value type for %s' %(_attr))
-                _attr_val.add_value(_attr)        
+                
         return _attributes
     
     @logAPICall

@@ -19,9 +19,7 @@
 """
 dialog showing about message
 """
-
-from PyQt4.QtCore import *
-from PyQt4.QtGui import * 
+from PyQt4.QtGui import QDialog
 
 from ui.constants import get_ui_string
 from ui.qt.dlg_apply_ui import Ui_DialogApply

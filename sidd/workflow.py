@@ -21,11 +21,12 @@ SIDD workflow manager
 """
 from xml.etree.ElementTree import ElementTree, fromstring
 
-
-from sidd.exception import *
-from sidd.constants import *
+from sidd.exception import WorkflowException
+from sidd.constants import logAPICall, WorkflowErrors, \
+                           FootprintTypes, ExportTypes, OutputTypes, SurveyTypes, ZonesTypes, \
+                           CNT_FIELD_NAME
+from sidd.ms import MappingScheme
 from sidd.operator import *
-from sidd.ms import *
 
 class Workflow(object):
     """
@@ -140,19 +141,53 @@ class WorkflowBuilder(object):
         self._process_chains = [
             (['survey_file', 'survey_is_complete'], OutputTypes.Grid, self._completesurvey_to_grid_workflow),
             (['fp', 'zone',], OutputTypes.Grid, self._footprint_to_grid_workflow),
+            (['fp', 'zone',], OutputTypes.Zone, self._footprint_to_zone_workflow),
             (['zone', 'zone_count_field'], OutputTypes.Zone, self._zonecount_to_zone_workflow),
             (['zone', 'zone_count_field'], OutputTypes.Grid, self._zonecount_to_grid_workflow),
         ]
 
     # public method
     ##################################
+    def build_load_fp_workflow(self, project):
+        workflow = Workflow()
+        workflow.ready=True
+        if project.fp_type == FootprintTypes.FootprintHt:
+            self.load_footprint(project, workflow, True)
+        elif project.fp_type == FootprintTypes.Footprint:
+            self.load_footprint(project, workflow, False)
+        else:
+            workflow.ready=False        
+        return workflow
+
+    def build_load_survey_workflow(self, project):
+        workflow = Workflow()
+        workflow.ready=True
+        if project.survey_type == SurveyTypes.CompleteSurvey:
+            self.load_survey(project, workflow, True)
+        elif project.survey_type == SurveyTypes.SampledSurvey:
+            self.load_survey(project, workflow, False)
+        else:
+            workflow.ready=False        
+        return workflow
+    
+    def build_load_zones_workflow(self, project):
+        workflow = Workflow()
+        workflow.ready=True
+        if project.zone_type == ZonesTypes.LanduseCount:
+            self.load_zone(project, workflow, True)
+        elif project.zone_type == ZonesTypes.Landuse:
+            self.load_zone(project, workflow, False)
+        else:
+            workflow.ready=False
+        return workflow        
+        
     @logAPICall
     def build_ms_workflow(self, project, isEmpty=False):
         workflow = Workflow()
         
         logAPICall.log('creating survey loader ...', logAPICall.DEBUG_L2)
         if not isEmpty:
-            self._load_survey(project, workflow, False)
+            self.load_survey(project, workflow, False)
 
         if project.zone_type == ZonesTypes.None:
             if isEmpty:
@@ -164,10 +199,10 @@ class WorkflowBuilder(object):
                 ms_creator = SurveyOnlyMSCreator(self._operator_options)
                 ms_creator.inputs = [workflow.operator_data['survey'],]
         else:
-            self._load_zone(project, workflow, False)
+            self.load_zone(project, workflow, False)
             if isEmpty:                
                 logAPICall.log('creating empty mapping scheme from zones ...', logAPICall.DEBUG_L2)
-                ms_creator = EmptyZonesMSCreator(self.operator_options)
+                ms_creator = EmptyZonesMSCreator(self._operator_options)
                 ms_creator.inputs = [
                     workflow.operator_data['zone'],
                     workflow.operator_data['zone_field'],]
@@ -195,33 +230,33 @@ class WorkflowBuilder(object):
         still_needs_ms = True
             
         # footprint loading
-        logAPICall.log('checking footprint data', logAPICall.DEBUG)
+        logAPICall.log('checking footprint data', logAPICall.DEBUG)        
         if project.fp_type == FootprintTypes.FootprintHt:
-            self._load_footprint(project, workflow, True)
+            self.load_footprint(project, workflow, True)
             still_needs_count = False
         elif project.fp_type == FootprintTypes.Footprint:
-            self._load_footprint(project, workflow, False)
+            self.load_footprint(project, workflow, False)
             still_needs_count = False
 
         # survey loading
         logAPICall.log('checking survey data', logAPICall.DEBUG)        
         if project.survey_type == SurveyTypes.CompleteSurvey:
-            self._load_survey(project, workflow, True)
+            self.load_survey(project, workflow, True)
             still_needs_count = False
             still_needs_zone = False
             still_needs_ms = False
         elif project.survey_type == SurveyTypes.SampledSurvey:
-            self._load_survey(project, workflow, False)
+            self.load_survey(project, workflow, False)
         
         # zones loading
         logAPICall.log('checking zone data', logAPICall.DEBUG)
         if project.zone_type == ZonesTypes.LanduseCount:
-            self._load_zone(project, workflow, True)            
+            self.load_zone(project, workflow, True)            
             still_needs_count = False
             still_needs_zone = False
             
         elif project.zone_type == ZonesTypes.Landuse:
-            self._load_zone(project, workflow, False)        
+            self.load_zone(project, workflow, False)        
             still_needs_zone = False
 
         # need to load MS
@@ -276,19 +311,27 @@ class WorkflowBuilder(object):
         workflow.operators.append(export_operator)
         workflow.ready=True
         
-        return workflow       
+        return workflow
 
 
     # workflow helper methods - build data loading operator
     ##################################
 
     @logAPICall
-    def _load_footprint(self, project, workflow, withHt):
+    def load_footprint(self, project, workflow, withHt):
         """ create operator for loading footprint data and add to workflow """
-        # inputs / outputs
+        # required operator_data for additional processing
         workflow.operator_data['fp_input_file'] = OperatorData(OperatorDataTypes.Shapefile, project.fp_file)
         if withHt:
             workflow.operator_data['fp_ht_field'] = OperatorData(OperatorDataTypes.StringAttribute, project.fp_ht_field)
+
+        # skip if already loaded
+        if getattr(project, 'fp', None) is not None and getattr(project, 'fp_tmp_file', None) is not None:
+            workflow.operator_data['fp'] = OperatorData(OperatorDataTypes.Footprint, project.fp)
+            workflow.operator_data['fp_file'] = OperatorData(OperatorDataTypes.Shapefile, project.fp_tmp_file)
+            return
+        
+        # inputs / outputs
         workflow.operator_data['fp'] = OperatorData(OperatorDataTypes.Footprint)
         workflow.operator_data['fp_file'] = OperatorData(OperatorDataTypes.Shapefile)
         
@@ -307,11 +350,19 @@ class WorkflowBuilder(object):
         workflow.operators.append(fp_loader)        
 
     @logAPICall
-    def _load_zone(self, project, workflow, withCount):
+    def load_zone(self, project, workflow, withCount):
         """ create operator for loading zone data and add to workflow """
-        # inputs / outputs
+        # required operator_data for additional processing
         workflow.operator_data['zone_input_file'] = OperatorData(OperatorDataTypes.Shapefile, project.zone_file)
         workflow.operator_data['zone_field'] = OperatorData(OperatorDataTypes.StringAttribute, project.zone_field)
+
+        # skip loading operator if project already has data loaded
+        if getattr(project, 'zone', None) is not None and getattr(project, 'zone_tmp_file', None) is not None:
+            workflow.operator_data['zone'] = OperatorData(OperatorDataTypes.Footprint, project.zone)
+            workflow.operator_data['zone_file'] = OperatorData(OperatorDataTypes.Shapefile, project.zone_tmp_file)
+            return
+
+        # inputs / outputs
         workflow.operator_data['zone'] = OperatorData(OperatorDataTypes.Zone)
         workflow.operator_data['zone_file'] = OperatorData(OperatorDataTypes.Shapefile)
         if withCount:
@@ -333,16 +384,27 @@ class WorkflowBuilder(object):
         # add to workflow
         workflow.operators.append(zone_loader)
     
-    def _load_survey(self, project, workflow, isComplete):
-        # inputs / outputs
+    def load_survey(self, project, workflow, isComplete):
+        # required operator_data for additional processing
         workflow.operator_data['survey_input_file'] = OperatorData(OperatorDataTypes.File, project.survey_file)
-        workflow.operator_data['survey'] = OperatorData(OperatorDataTypes.Survey)
-        workflow.operator_data['survey_file'] = OperatorData(OperatorDataTypes.Shapefile)
         if isComplete:
             workflow.operator_data['survey_is_complete'] = OperatorData(OperatorDataTypes.StringAttribute, 'Yes')
         
+        # skip if already loaded
+        if getattr(project, 'survey', None) is not None and getattr(project, 'survey_tmp_file', None) is not None:
+            workflow.operator_data['survey'] = OperatorData(OperatorDataTypes.Survey, project.survey)
+            workflow.operator_data['survey_file'] = OperatorData(OperatorDataTypes.Shapefile, project.survey_tmp_file)
+            return
+                
+        # inputs / outputs
+        workflow.operator_data['survey'] = OperatorData(OperatorDataTypes.Survey)
+        workflow.operator_data['survey_file'] = OperatorData(OperatorDataTypes.Shapefile)
+        
         # operator 
-        svy_loader = SurveyLoader(self._operator_options)
+        if (project.survey_format == "CSV"):
+            svy_loader = CSVSurveyLoader(self._operator_options)
+        else:
+            svy_loader = GEMDBSurveyLoader(self._operator_options)
         svy_loader.inputs = [workflow.operator_data['survey_input_file'],
                              OperatorData(OperatorDataTypes.StringAttribute, project.survey_format),]
         svy_loader.outputs = [workflow.operator_data['survey'],
@@ -430,6 +492,32 @@ class WorkflowBuilder(object):
         
         workflow.operators.append(ms_applier)              
         
+    def _footprint_to_zone_workflow(self, project, workflow):
+        """ create exposure aggregated into ged grid with footprint data """
+        
+        # action (operator) required
+        # 1 attach footprint counts to zones
+        # 2 process additional steps as _zonecount_to_zone_workflow
+        ###################################
+        workflow.operator_data['zone2'] = OperatorData(OperatorDataTypes.Zone)
+        workflow.operator_data['zone_file2'] = OperatorData(OperatorDataTypes.Shapefile)
+        workflow.operator_data['zone_count_field'] = OperatorData(OperatorDataTypes.StringAttribute, 
+                                                                  CNT_FIELD_NAME)
+        merger = ZoneFootprintCounter(self._operator_options)
+        merger.inputs = [workflow.operator_data['zone'],
+                         workflow.operator_data['zone_field'],
+                         workflow.operator_data['zone_count_field'],
+                         workflow.operator_data['fp'],]
+        merger.outputs = [workflow.operator_data['zone2'],
+                          workflow.operator_data['zone_file2'],]
+        
+        workflow.operator_data['zone'] = workflow.operator_data['zone2']
+        workflow.operator_data['zone_file'] = workflow.operator_data['zone_file2']
+        
+        workflow.operators.append(merger)
+        self._zonecount_to_zone_workflow(project, workflow)
+        
+                
     def _zonecount_to_zone_workflow(self, project, workflow):
         """ create exposure aggregated into original zone with zone/count """
         

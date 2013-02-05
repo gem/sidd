@@ -10,9 +10,7 @@
 #
 
 import os
-import sys
 import unittest
-import logging
 import shutil
 
 # import sidd packages for testing
@@ -21,7 +19,7 @@ from utils.system import get_app_dir
 
 class MSDBTestCase(unittest.TestCase):
 
-    # run for everytesy
+    # run for every test
     ##################################
     
     def setUp(self):
@@ -45,7 +43,7 @@ class MSDBTestCase(unittest.TestCase):
             os.remove(self.lib_ms_file2)
         shutil.copyfile(self.lib_ms_file, self.lib_ms_file2)
                 
-        ms_db_reader = MSDatabaseDAO(self.lib_ms_file)
+        ms_db_reader = MSDatabaseDAO(self.lib_ms_file2)
         
         region = 'REGION'
         ms_name = 'NAME'
@@ -76,7 +74,8 @@ class MSDBTestCase(unittest.TestCase):
         self.assertEquals(len(regions), 1)        
         types = ms_db_reader.get_types_in_region(region)
         self.assertEquals(len(types), 0)
-                
+        
+        del ms_db_reader
         os.remove(self.lib_ms_file2)
                 
         

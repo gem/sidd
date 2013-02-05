@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>935</width>
+    <width>921</width>
     <height>684</height>
    </rect>
   </property>
@@ -16,7 +16,7 @@
   <widget class="QPushButton" name="btn_secondary_mod">
    <property name="geometry">
     <rect>
-     <x>640</x>
+     <x>630</x>
      <y>630</y>
      <width>131</width>
      <height>31</height>
@@ -39,42 +39,15 @@
     <string>Apply Mapping Scheme</string>
    </property>
   </widget>
-  <widget class="QTreeView" name="tree_ms">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>80</y>
-     <width>331</width>
-     <height>531</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="btn_create_ms">
-   <property name="geometry">
-    <rect>
-     <x>170</x>
-     <y>50</y>
-     <width>31</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-   <property name="icon">
-    <iconset resource="resources/SIDDResource.qrc">
-     <normaloff>:/imgs/icons/new.png</normaloff>:/imgs/icons/new.png</iconset>
-   </property>
-  </widget>
-  <widget class="QGroupBox" name="box_library">
+  <widget class="QGroupBox" name="box_ms_library">
    <property name="enabled">
     <bool>true</bool>
    </property>
    <property name="geometry">
     <rect>
-     <x>380</x>
+     <x>390</x>
      <y>70</y>
-     <width>531</width>
+     <width>521</width>
      <height>551</height>
     </rect>
    </property>
@@ -84,7 +57,7 @@
    <widget class="QListWidget" name="list_ms_library_regions">
     <property name="geometry">
      <rect>
-      <x>320</x>
+      <x>310</x>
       <y>40</y>
       <width>200</width>
       <height>191</height>
@@ -94,7 +67,7 @@
    <widget class="QLabel" name="lb_ms_library_regions">
     <property name="geometry">
      <rect>
-      <x>320</x>
+      <x>310</x>
       <y>20</y>
       <width>200</width>
       <height>16</height>
@@ -113,7 +86,7 @@
    <widget class="QLabel" name="lb_ms_library_types">
     <property name="geometry">
      <rect>
-      <x>320</x>
+      <x>310</x>
       <y>240</y>
       <width>200</width>
       <height>16</height>
@@ -132,7 +105,7 @@
    <widget class="QListWidget" name="list_ms_library_types">
     <property name="geometry">
      <rect>
-      <x>320</x>
+      <x>310</x>
       <y>260</y>
       <width>200</width>
       <height>81</height>
@@ -142,7 +115,7 @@
    <widget class="QListWidget" name="list_ms_library_msnames">
     <property name="geometry">
      <rect>
-      <x>320</x>
+      <x>310</x>
       <y>380</y>
       <width>200</width>
       <height>151</height>
@@ -152,7 +125,7 @@
    <widget class="QLabel" name="lb_ms_library_msnames">
     <property name="geometry">
      <rect>
-      <x>320</x>
+      <x>310</x>
       <y>350</y>
       <width>200</width>
       <height>25</height>
@@ -171,7 +144,7 @@
    <widget class="QTreeView" name="tree_ms_library">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>10</x>
       <y>40</y>
       <width>280</width>
       <height>321</height>
@@ -197,7 +170,7 @@
    <widget class="QLabel" name="lb_ms_library_date">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>10</x>
       <y>370</y>
       <width>100</width>
       <height>16</height>
@@ -216,7 +189,7 @@
    <widget class="QLabel" name="lb_ms_library_notes">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>10</x>
       <y>460</y>
       <width>100</width>
       <height>16</height>
@@ -235,7 +208,7 @@
    <widget class="QLineEdit" name="txt_ms_library_date">
     <property name="geometry">
      <rect>
-      <x>130</x>
+      <x>120</x>
       <y>370</y>
       <width>171</width>
       <height>20</height>
@@ -248,7 +221,7 @@
    <widget class="QTextEdit" name="txt_ms_library_notes">
     <property name="geometry">
      <rect>
-      <x>130</x>
+      <x>120</x>
       <y>460</y>
       <width>171</width>
       <height>71</height>
@@ -261,7 +234,7 @@
    <widget class="QLineEdit" name="txt_ms_library_datasource">
     <property name="geometry">
      <rect>
-      <x>130</x>
+      <x>120</x>
       <y>400</y>
       <width>171</width>
       <height>20</height>
@@ -274,7 +247,7 @@
    <widget class="QLabel" name="lb_ms_library_datasource">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>10</x>
       <y>400</y>
       <width>100</width>
       <height>16</height>
@@ -293,7 +266,7 @@
    <widget class="QLabel" name="lb_ms_library_quality">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>10</x>
       <y>430</y>
       <width>100</width>
       <height>16</height>
@@ -312,7 +285,7 @@
    <widget class="QLineEdit" name="txt_ms_library_quality">
     <property name="geometry">
      <rect>
-      <x>130</x>
+      <x>120</x>
       <y>430</y>
       <width>171</width>
       <height>21</height>
@@ -325,7 +298,7 @@
    <widget class="QLabel" name="lb_ms_library_ms">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>10</x>
       <y>20</y>
       <width>100</width>
       <height>16</height>
@@ -344,7 +317,7 @@
    <widget class="QPushButton" name="btn_del_lib_ms">
     <property name="geometry">
      <rect>
-      <x>490</x>
+      <x>480</x>
       <y>350</y>
       <width>31</width>
       <height>25</height>
@@ -358,57 +331,6 @@
       <normaloff>:/imgs/icons/minus.png</normaloff>:/imgs/icons/minus.png</iconset>
     </property>
    </widget>
-  </widget>
-  <widget class="QPushButton" name="btn_save_ms">
-   <property name="geometry">
-    <rect>
-     <x>200</x>
-     <y>50</y>
-     <width>31</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-   <property name="icon">
-    <iconset resource="resources/SIDDResource.qrc">
-     <normaloff>:/imgs/icons/save.png</normaloff>:/imgs/icons/save.png</iconset>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="btn_del_child">
-   <property name="geometry">
-    <rect>
-     <x>280</x>
-     <y>50</y>
-     <width>31</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-   <property name="icon">
-    <iconset resource="resources/SIDDResource.qrc">
-     <normaloff>:/imgs/icons/minus.png</normaloff>:/imgs/icons/minus.png</iconset>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="btn_edit_level">
-   <property name="geometry">
-    <rect>
-     <x>310</x>
-     <y>50</y>
-     <width>31</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-   <property name="icon">
-    <iconset resource="resources/SIDDResource.qrc">
-     <normaloff>:/imgs/icons/edit.png</normaloff>:/imgs/icons/edit.png</iconset>
-   </property>
   </widget>
   <widget class="QLabel" name="lb_panel_title">
    <property name="geometry">
@@ -430,23 +352,6 @@
     <string>Assign Mapping Schemes</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="btn_add_child">
-   <property name="geometry">
-    <rect>
-     <x>250</x>
-     <y>50</y>
-     <width>31</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-   <property name="icon">
-    <iconset resource="resources/SIDDResource.qrc">
-     <normaloff>:/imgs/icons/add.png</normaloff>:/imgs/icons/add.png</iconset>
-   </property>
-  </widget>
   <widget class="QPushButton" name="btn_add_branch">
    <property name="geometry">
     <rect>
@@ -464,23 +369,6 @@
      <normaloff>:/imgs/icons/arrow_left.png</normaloff>:/imgs/icons/arrow_left.png</iconset>
    </property>
   </widget>
-  <widget class="QPushButton" name="btn_build_ms">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>50</y>
-     <width>31</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-   <property name="icon">
-    <iconset resource="resources/SIDDResource.qrc">
-     <normaloff>:/imgs/icons/magnify.png</normaloff>:/imgs/icons/magnify.png</iconset>
-   </property>
-  </widget>
   <widget class="QCheckBox" name="ck_enable_ms_library">
    <property name="geometry">
     <rect>
@@ -494,236 +382,153 @@
     <string>Enable MS Library</string>
    </property>
   </widget>
+  <widget class="QWidget" name="widget_ms_tree" native="true">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>50</y>
+     <width>331</width>
+     <height>571</height>
+    </rect>
+   </property>
+   <widget class="QWidget" name="widget_ms_buttons_r" native="true">
+    <property name="geometry">
+     <rect>
+      <x>160</x>
+      <y>0</y>
+      <width>171</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <widget class="QPushButton" name="btn_create_ms">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/new.png</normaloff>:/imgs/icons/new.png</iconset>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_edit_level">
+     <property name="geometry">
+      <rect>
+       <x>140</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/edit.png</normaloff>:/imgs/icons/edit.png</iconset>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_save_ms">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/save.png</normaloff>:/imgs/icons/save.png</iconset>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_del_child">
+     <property name="geometry">
+      <rect>
+       <x>110</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/minus.png</normaloff>:/imgs/icons/minus.png</iconset>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_add_child">
+     <property name="geometry">
+      <rect>
+       <x>80</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/add.png</normaloff>:/imgs/icons/add.png</iconset>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QTreeView" name="tree_ms">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>30</y>
+      <width>331</width>
+      <height>541</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QWidget" name="widget_ms_buttons_l" native="true">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>41</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <widget class="QPushButton" name="btn_build_ms">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/magnify.png</normaloff>:/imgs/icons/magnify.png</iconset>
+     </property>
+    </widget>
+   </widget>
+  </widget>
  </widget>
  <resources>
   <include location="resources/SIDDResource.qrc"/>
  </resources>
- <connections>
-  <connection>
-   <sender>btn_build_ms</sender>
-   <signal>clicked()</signal>
-   <receiver>widgetMappingSchemes</receiver>
-   <slot>buildMS()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>35</x>
-     <y>62</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>77</x>
-     <y>62</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btn_create_ms</sender>
-   <signal>clicked()</signal>
-   <receiver>widgetMappingSchemes</receiver>
-   <slot>createMS()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>190</x>
-     <y>64</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>147</x>
-     <y>64</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btn_save_ms</sender>
-   <signal>clicked()</signal>
-   <receiver>widgetMappingSchemes</receiver>
-   <slot>saveMS()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>223</x>
-     <y>56</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>149</x>
-     <y>54</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btn_add_child</sender>
-   <signal>clicked()</signal>
-   <receiver>widgetMappingSchemes</receiver>
-   <slot>addBranch()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>257</x>
-     <y>59</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>236</x>
-     <y>65</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btn_del_child</sender>
-   <signal>clicked()</signal>
-   <receiver>widgetMappingSchemes</receiver>
-   <slot>removeBranch()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>298</x>
-     <y>59</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>246</x>
-     <y>47</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btn_edit_level</sender>
-   <signal>clicked()</signal>
-   <receiver>widgetMappingSchemes</receiver>
-   <slot>editBranch()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>329</x>
-     <y>61</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>313</x>
-     <y>45</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btn_add_branch</sender>
-   <signal>clicked()</signal>
-   <receiver>widgetMappingSchemes</receiver>
-   <slot>appendBranch()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>363</x>
-     <y>216</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>363</x>
-     <y>237</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btn_secondary_mod</sender>
-   <signal>clicked()</signal>
-   <receiver>widgetMappingSchemes</receiver>
-   <slot>setModifiers()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>680</x>
-     <y>654</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>544</x>
-     <y>653</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btn_build_exposure</sender>
-   <signal>clicked()</signal>
-   <receiver>widgetMappingSchemes</receiver>
-   <slot>applyMS()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>858</x>
-     <y>654</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>569</x>
-     <y>648</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>list_ms_library_regions</sender>
-   <signal>clicked(QModelIndex)</signal>
-   <receiver>widgetMappingSchemes</receiver>
-   <slot>regionSelected()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>861</x>
-     <y>150</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>923</x>
-     <y>167</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>list_ms_library_types</sender>
-   <signal>clicked(QModelIndex)</signal>
-   <receiver>widgetMappingSchemes</receiver>
-   <slot>typeSelected()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>832</x>
-     <y>302</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>924</x>
-     <y>329</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>list_ms_library_msnames</sender>
-   <signal>clicked(QModelIndex)</signal>
-   <receiver>widgetMappingSchemes</receiver>
-   <slot>msSelected()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>870</x>
-     <y>450</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>925</x>
-     <y>448</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>ck_enable_ms_library</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>widgetMappingSchemes</receiver>
-   <slot>toggleMSLibrary()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>460</x>
-     <y>61</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>674</x>
-     <y>57</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btn_del_lib_ms</sender>
-   <signal>clicked()</signal>
-   <receiver>widgetMappingSchemes</receiver>
-   <slot>deleteLibraryMS()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>893</x>
-     <y>436</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>923</x>
-     <y>421</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
  <slots>
   <slot>buildMS()</slot>
   <slot>createMS()</slot>

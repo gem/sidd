@@ -23,7 +23,7 @@ import os
 import shutil 
 import osgeo.ogr as ogr
 
-from qgis.core import *
+from qgis.core import QgsVectorLayer, QgsFeature
 from utils.system import get_random_name
 
 # internal helper methods
@@ -80,7 +80,7 @@ def shapefile_to_kml(input_file, output_file):
         input_ds = ogr.Open(input_file)
         kml_driver = ogr.GetDriverByName('KML')
         kml_driver.CopyDataSource(input_ds, output_file)
-    except Exception as err:
+    except Exception:
         return False
     return True
 

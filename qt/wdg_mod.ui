@@ -32,7 +32,7 @@
      <x>10</x>
      <y>40</y>
      <width>901</width>
-     <height>551</height>
+     <height>561</height>
     </rect>
    </property>
    <attribute name="verticalHeaderVisible">
@@ -41,40 +41,6 @@
    <attribute name="verticalHeaderDefaultSectionSize">
     <number>0</number>
    </attribute>
-  </widget>
-  <widget class="QPushButton" name="btn_del_mod">
-   <property name="geometry">
-    <rect>
-     <x>830</x>
-     <y>10</y>
-     <width>31</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-   <property name="icon">
-    <iconset resource="resources/SIDDResource.qrc">
-     <normaloff>:/imgs/icons/minus.png</normaloff>:/imgs/icons/minus.png</iconset>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="btn_add_mod">
-   <property name="geometry">
-    <rect>
-     <x>790</x>
-     <y>10</y>
-     <width>31</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-   <property name="icon">
-    <iconset resource="resources/SIDDResource.qrc">
-     <normaloff>:/imgs/icons/add.png</normaloff>:/imgs/icons/add.png</iconset>
-   </property>
   </widget>
   <widget class="QLabel" name="lb_panel_title">
    <property name="geometry">
@@ -96,93 +62,72 @@
     <string>Assign Secondary Modifiers</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="btn_edit_mod">
+  <widget class="QWidget" name="widget_buttons" native="true">
    <property name="geometry">
     <rect>
-     <x>870</x>
+     <x>730</x>
      <y>10</y>
-     <width>31</width>
-     <height>23</height>
+     <width>181</width>
+     <height>31</height>
     </rect>
    </property>
-   <property name="text">
-    <string/>
-   </property>
-   <property name="icon">
-    <iconset resource="resources/SIDDResource.qrc">
-     <normaloff>:/imgs/icons/edit.png</normaloff>:/imgs/icons/edit.png</iconset>
-   </property>
+   <widget class="QPushButton" name="btn_del_mod">
+    <property name="geometry">
+     <rect>
+      <x>120</x>
+      <y>0</y>
+      <width>31</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset resource="resources/SIDDResource.qrc">
+      <normaloff>:/imgs/icons/minus.png</normaloff>:/imgs/icons/minus.png</iconset>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_edit_mod">
+    <property name="geometry">
+     <rect>
+      <x>150</x>
+      <y>0</y>
+      <width>31</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset resource="resources/SIDDResource.qrc">
+      <normaloff>:/imgs/icons/edit.png</normaloff>:/imgs/icons/edit.png</iconset>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_add_mod">
+    <property name="geometry">
+     <rect>
+      <x>90</x>
+      <y>0</y>
+      <width>31</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset resource="resources/SIDDResource.qrc">
+      <normaloff>:/imgs/icons/add.png</normaloff>:/imgs/icons/add.png</iconset>
+    </property>
+   </widget>
   </widget>
  </widget>
  <resources>
   <include location="resources/SIDDResource.qrc"/>
  </resources>
- <connections>
-  <connection>
-   <sender>btn_add_mod</sender>
-   <signal>clicked()</signal>
-   <receiver>widgetSecondaryModifier</receiver>
-   <slot>addModifier()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>799</x>
-     <y>22</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>765</x>
-     <y>17</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btn_del_mod</sender>
-   <signal>clicked()</signal>
-   <receiver>widgetSecondaryModifier</receiver>
-   <slot>deleteModifier()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>841</x>
-     <y>26</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>718</x>
-     <y>30</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btn_edit_mod</sender>
-   <signal>clicked()</signal>
-   <receiver>widgetSecondaryModifier</receiver>
-   <slot>editModifier()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>892</x>
-     <y>24</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>906</x>
-     <y>23</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btn_build_exposure</sender>
-   <signal>clicked()</signal>
-   <receiver>widgetSecondaryModifier</receiver>
-   <slot>applyMS()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>817</x>
-     <y>624</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>728</x>
-     <y>626</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
  <slots>
   <slot>addModifier()</slot>
   <slot>deleteModifier()</slot>

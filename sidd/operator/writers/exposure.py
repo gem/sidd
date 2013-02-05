@@ -19,13 +19,11 @@
 """
 module to support exposure export 
 """
-from PyQt4.QtCore import *
-from qgis.core import *
+from utils.shapefile import copy_shapefile, shapefile_to_kml
 
-from utils.shapefile import *
-
-from sidd.constants import *
-from sidd.operator import *
+from sidd.constants import logAPICall
+from sidd.operator import Operator
+from sidd.operator.data import OperatorDataTypes
 
 class ExposureSHPWriter(Operator):
     def __init__(self, options=None, name="Grid Writer"):

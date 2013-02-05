@@ -10,18 +10,17 @@
 #
 
 import os
-import sys
 import unittest
 import logging
 
 # import sidd packages for testing
-from sidd.ms import *
+from sidd.ms import MappingScheme
 from sidd.operator import *
 from utils.shapefile import remove_shapefile, layer_fields_stats, load_shapefile
 
 class OperatorTestCase(unittest.TestCase):
     
-    # run for everytesy
+    # run for every test
     ##################################
     
     def setUp(self):
@@ -33,6 +32,7 @@ class OperatorTestCase(unittest.TestCase):
         self.fp_path = self.test_data_dir +  'footprint.shp'
         self.fp_feature_count = 1475
         self.survey_path = self.test_data_dir +  "survey.csv"
+        self.gemdb_path = self.test_data_dir +  "survey.gemdb"
         self.zone_path = self.test_data_dir +  "zones.shp"
         self.zone_field = 'LandUse'
         self.zone_bldg_count = 546
@@ -155,7 +155,7 @@ class OperatorTestCase(unittest.TestCase):
     def test_LoadSurvey(self, skipTest=False):   
         logging.debug('test_LoadSurvey %s' % skipTest)
         
-        loader = SurveyLoader(self.operator_options)
+        loader = CSVSurveyLoader(self.operator_options)
         loader.inputs = [
             OperatorData(OperatorDataTypes.File, self.survey_path),
             OperatorData(OperatorDataTypes.StringAttribute, 'CSV'),            
@@ -170,6 +170,26 @@ class OperatorTestCase(unittest.TestCase):
         
         # clean up
         self._clean_layer(loader.outputs)  
+
+    def test_LoadGEMDBSurvey(self, skipTest=False):   
+        logging.debug('test_LoadSurvey %s' % skipTest)
+        
+        loader = GEMDBSurveyLoader(self.operator_options)
+        loader.inputs = [
+            OperatorData(OperatorDataTypes.File, self.gemdb_path),
+            OperatorData(OperatorDataTypes.StringAttribute, 'CSV'),            
+        ]
+        loader.outputs = [
+            OperatorData(OperatorDataTypes.Survey),
+            OperatorData(OperatorDataTypes.Shapefile),
+        ]
+        loader.do_operation()
+        if skipTest:
+            return loader.outputs
+        
+        # clean up
+        self._clean_layer(loader.outputs)  
+
 
     def test_LoadMS(self, skipTest=False):
         logging.debug('test_LoadMS %s' % skipTest)
@@ -307,7 +327,36 @@ class OperatorTestCase(unittest.TestCase):
         # cleanup        
         self._clean_layer(merger.outputs)  
         
+    def test_ZoneFootprintCount(self, skipTest=False):
+        logging.debug('test_ZoneFootprintJoin %s' % skipTest)
+        
+        zone_data = self.test_LoadZone(True, 2)
+        fp_opdata = self.test_LoadFootprint(True)
+        
+        merger = ZoneFootprintCounter(self.operator_options)
+        merger.inputs = [
+            zone_data[0],
+            OperatorData(OperatorDataTypes.StringAttribute, self.zone2_field),
+            OperatorData(OperatorDataTypes.StringAttribute, 'BLDG_COUNT'),
+            fp_opdata[0],
+        ]
+        merger.outputs = [
+            OperatorData(OperatorDataTypes.Zone),
+            OperatorData(OperatorDataTypes.Shapefile)
+        ]
+        merger.do_operation()
 
+        # clean up intermediate data
+        self._clean_layer(fp_opdata)
+        self._clean_layer(zone_data)
+
+        if skipTest:
+            return merger.outputs
+        
+        self.assertTrue(os.path.exists(merger.outputs[1].value))
+        # cleanup        
+        self._clean_layer(merger.outputs)
+        
     # test mapping scheme creator
     ##################################
     

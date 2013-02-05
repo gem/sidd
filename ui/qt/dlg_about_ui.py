@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qt\dlg_about.ui'
 #
-# Created: Mon Oct 15 17:42:18 2012
+# Created: Mon Feb 04 15:42:20 2013
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -33,8 +33,6 @@ class Ui_DialogAbout(object):
         self.textEdit.setObjectName(_fromUtf8("textEdit"))
 
         self.retranslateUi(DialogAbout)
-        QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("accepted()")), DialogAbout.accept)
-        QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("rejected()")), DialogAbout.reject)
         QtCore.QMetaObject.connectSlotsByName(DialogAbout)
 
     def retranslateUi(self, DialogAbout):
