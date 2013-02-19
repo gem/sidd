@@ -26,3 +26,7 @@ class TaxonomyTestCase(unittest.TestCase):
         tax_string = 'MUR+CLBRS+MOL/LWAL+ND/RWO+RWO1/FE+FM1/H:3/Y99/+IRHO/RES+RES2C'
         self.taxonomy.parse(tax_string)
         
+        self.taxonomy.set_parse_order(['Occupancy', 'Material', 'Lateral Load-Resisting System', 'Roof', 'Floor', 'Height', 'Date of Construction', 'Irregularity'])
+        self.taxonomy.parse(tax_string)
+    
+    

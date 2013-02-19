@@ -19,6 +19,7 @@
 """
 module contains abstract taxonomy interface to be extended
 """
+import types
 class Taxonomy(object):
     """
     main Taxonomy class
@@ -61,17 +62,18 @@ class TaxonomyAttribute(object):
     represented by the taxonomy
     """
     
-    def __init__(self, name="", order=1, levels=1, default=""):
+    def __init__(self, name="", order=1, levels=1, default="", attribute_type=1):
         """ constructor """
         self.__name = name
         self.__order = order
-        self.__levels = levels 
+        self.__levels = levels
         self.__default = default
+        self.__type = attribute_type
 
     def __str__(self):
         """ string representation """
-        return "name:%s\torder:%s\t\tdefault=%s" % (
-            self.__name, self.__order, self.__default)
+        return "name:%s\ttype:%s\torder:%s\t\tdefault=%s" % (
+            self.__name, self.__type, self.__order, self.__default)
 
     @property
     def name(self):
@@ -80,6 +82,10 @@ class TaxonomyAttribute(object):
     @property
     def order(self):
         return self.__order
+
+    @order.setter
+    def order(self, order):
+        self.__order = order
     
     @property
     def levels(self):
@@ -89,6 +95,10 @@ class TaxonomyAttribute(object):
     def default(self):
         return self.__default
 
+    @property
+    def type(self):
+        return self.__type
+    
 class TaxonomyAttributeValue(object):
     """
     This is an abstract class that can be derived to stores valid value

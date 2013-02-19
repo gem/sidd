@@ -40,15 +40,15 @@ class MSAttributeItemDelegate(QItemDelegate):
             return None
     
     # provides the widget with data to manipulate
-    def setEditorData(self, editor, index):        
-        existing_values = index.model().values
-        for code in self.valid_codes:
-            try:
-                existing_values.index(code)
-            except:
-                # code not in existing values list
-                editor.addItem(code)
-     
+    def setEditorData(self, editor, index):
+        current_val = str(index.data(Qt.DisplayRole).toString())
+        editor.clear()
+        for idx, code in enumerate(self.valid_codes):
+            editor.addItem(code)            
+            # set current value as selected from the drop-down
+            if code == current_val:
+                editor.setCurrentIndex(idx)
+ 
     # ensures that the editor is displayed correctly with respect to the item view.
     def updateEditorGeometry(self, editor, option, index):
         editor.setGeometry(option.rect);

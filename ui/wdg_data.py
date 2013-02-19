@@ -111,6 +111,11 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
         # verify
         self.ui.btn_verify.clicked.connect(self.verifyInput)
         
+        # GED input grid no longer required 
+        self.ui.lb_aggr_grid_select_file.hide()
+        self.ui.txt_aggr_grid_select_file.hide()
+        self.ui.btn_aggr_grid_select_file.hide()
+        
     # UI event handling calls
     ###############################
     def resizeEvent(self, event):
@@ -495,7 +500,7 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
         
         # update project if project exists
         if self.project is not None:
-            self.project.fp_file = filename                        
+            self.project.fp_file = filename
 
     def setSurveyFile(self, filename):
         # update UI

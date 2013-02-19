@@ -7,13 +7,13 @@
     <x>0</x>
     <y>0</y>
     <width>449</width>
-    <height>365</height>
+    <height>380</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Secondary Modifier Input</string>
   </property>
-  <widget class="QLabel" name="lb_ms_zone">
+  <widget class="QLabel" name="lb_ms_tree">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -51,109 +51,12 @@
     <string>Values</string>
    </property>
   </widget>
-  <widget class="QLabel" name="lb_level1">
-   <property name="geometry">
-    <rect>
-     <x>9</x>
-     <y>121</y>
-     <width>121</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <weight>75</weight>
-     <bold>true</bold>
-    </font>
-   </property>
-   <property name="text">
-    <string>1st level</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="lb_level3">
-   <property name="geometry">
-    <rect>
-     <x>9</x>
-     <y>251</y>
-     <width>121</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <weight>75</weight>
-     <bold>true</bold>
-    </font>
-   </property>
-   <property name="text">
-    <string>3rd level</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="lb_level2">
-   <property name="geometry">
-    <rect>
-     <x>9</x>
-     <y>181</y>
-     <width>121</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <weight>75</weight>
-     <bold>true</bold>
-    </font>
-   </property>
-   <property name="text">
-    <string>2nd level</string>
-   </property>
-  </widget>
-  <widget class="QComboBox" name="cb_ms_zone">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>70</y>
-     <width>151</width>
-     <height>31</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QComboBox" name="cb_level1">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>140</y>
-     <width>151</width>
-     <height>31</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QComboBox" name="cb_level2">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>200</y>
-     <width>151</width>
-     <height>31</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QComboBox" name="cb_level3">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>270</y>
-     <width>151</width>
-     <height>31</height>
-    </rect>
-   </property>
-  </widget>
   <widget class="QTableView" name="table_mod_values">
    <property name="geometry">
     <rect>
      <x>200</x>
      <y>70</y>
-     <width>220</width>
+     <width>231</width>
      <height>231</height>
     </rect>
    </property>
@@ -164,24 +67,11 @@
     <enum>Qt::ScrollBarAlwaysOff</enum>
    </property>
   </widget>
-  <widget class="QPushButton" name="btn_mod_build">
-   <property name="geometry">
-    <rect>
-     <x>180</x>
-     <y>320</y>
-     <width>75</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>from Survey</string>
-   </property>
-  </widget>
   <widget class="QPushButton" name="btn_apply">
    <property name="geometry">
     <rect>
-     <x>260</x>
-     <y>320</y>
+     <x>280</x>
+     <y>340</y>
      <width>75</width>
      <height>23</height>
     </rect>
@@ -193,8 +83,8 @@
   <widget class="QPushButton" name="btn_cancel">
    <property name="geometry">
     <rect>
-     <x>340</x>
-     <y>320</y>
+     <x>360</x>
+     <y>340</y>
      <width>75</width>
      <height>23</height>
     </rect>
@@ -220,193 +110,130 @@
     </font>
    </property>
    <property name="text">
-    <string>Edit Mapping Scheme Branch</string>
+    <string>Edit Modifier</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="btn_add">
+  <widget class="QLineEdit" name="txt_total_weights">
    <property name="geometry">
     <rect>
      <x>360</x>
-     <y>40</y>
-     <width>31</width>
-     <height>23</height>
+     <y>310</y>
+     <width>51</width>
+     <height>20</height>
     </rect>
    </property>
-   <property name="text">
-    <string/>
+   <property name="alignment">
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
-   <property name="icon">
-    <iconset resource="resources/SIDDResource.qrc">
-     <normaloff>:/imgs/icons/add.png</normaloff>:/imgs/icons/add.png</iconset>
+   <property name="readOnly">
+    <bool>true</bool>
    </property>
   </widget>
-  <widget class="QPushButton" name="btn_delete">
+  <widget class="QLabel" name="lb_percent">
    <property name="geometry">
     <rect>
-     <x>390</x>
-     <y>40</y>
-     <width>31</width>
-     <height>23</height>
+     <x>410</x>
+     <y>310</y>
+     <width>16</width>
+     <height>20</height>
     </rect>
    </property>
    <property name="text">
-    <string/>
+    <string>%</string>
    </property>
-   <property name="icon">
-    <iconset resource="resources/SIDDResource.qrc">
-     <normaloff>:/imgs/icons/minus.png</normaloff>:/imgs/icons/minus.png</iconset>
+  </widget>
+  <widget class="QLabel" name="lb_total_weights">
+   <property name="geometry">
+    <rect>
+     <x>200</x>
+     <y>310</y>
+     <width>141</width>
+     <height>20</height>
+    </rect>
    </property>
+   <property name="text">
+    <string>Some of Weights</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+   </property>
+  </widget>
+  <widget class="QTreeView" name="tree_ms">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>70</y>
+     <width>181</width>
+     <height>261</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QWidget" name="widget_mod_values_menu_r" native="true">
+   <property name="geometry">
+    <rect>
+     <x>310</x>
+     <y>40</y>
+     <width>121</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <widget class="QPushButton" name="btn_add">
+    <property name="geometry">
+     <rect>
+      <x>60</x>
+      <y>0</y>
+      <width>31</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset resource="resources/SIDDResource.qrc">
+      <normaloff>:/imgs/icons/add.png</normaloff>:/imgs/icons/add.png</iconset>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_delete">
+    <property name="geometry">
+     <rect>
+      <x>90</x>
+      <y>0</y>
+      <width>31</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset resource="resources/SIDDResource.qrc">
+      <normaloff>:/imgs/icons/minus.png</normaloff>:/imgs/icons/minus.png</iconset>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_mod_build">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>31</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset resource="resources/SIDDResource.qrc">
+      <normaloff>:/imgs/icons/cog.png</normaloff>:/imgs/icons/cog.png</iconset>
+    </property>
+   </widget>
   </widget>
  </widget>
  <resources>
   <include location="resources/SIDDResource.qrc"/>
  </resources>
- <connections>
-  <connection>
-   <sender>cb_level1</sender>
-   <signal>currentIndexChanged(int)</signal>
-   <receiver>modifierInputDialog</receiver>
-   <slot>level1Selected()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>153</x>
-     <y>152</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>182</x>
-     <y>115</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>cb_level2</sender>
-   <signal>currentIndexChanged(int)</signal>
-   <receiver>modifierInputDialog</receiver>
-   <slot>level2Selected()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>142</x>
-     <y>223</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>196</x>
-     <y>185</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>cb_level3</sender>
-   <signal>currentIndexChanged(int)</signal>
-   <receiver>modifierInputDialog</receiver>
-   <slot>level3Selected()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>113</x>
-     <y>281</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>202</x>
-     <y>242</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btn_mod_build</sender>
-   <signal>clicked()</signal>
-   <receiver>modifierInputDialog</receiver>
-   <slot>buildFromSurvey()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>198</x>
-     <y>341</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>398</x>
-     <y>234</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btn_apply</sender>
-   <signal>clicked()</signal>
-   <receiver>modifierInputDialog</receiver>
-   <slot>setModifier()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>298</x>
-     <y>333</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>337</x>
-     <y>247</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btn_cancel</sender>
-   <signal>clicked()</signal>
-   <receiver>modifierInputDialog</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>393</x>
-     <y>335</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>434</x>
-     <y>243</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>cb_ms_zone</sender>
-   <signal>currentIndexChanged(int)</signal>
-   <receiver>modifierInputDialog</receiver>
-   <slot>zoneSelected()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>110</x>
-     <y>85</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>202</x>
-     <y>72</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btn_add</sender>
-   <signal>clicked()</signal>
-   <receiver>modifierInputDialog</receiver>
-   <slot>addValue()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>375</x>
-     <y>50</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>340</x>
-     <y>46</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>btn_delete</sender>
-   <signal>clicked()</signal>
-   <receiver>modifierInputDialog</receiver>
-   <slot>deleteValue()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>417</x>
-     <y>55</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>435</x>
-     <y>57</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
  <slots>
   <slot>level1Selected()</slot>
   <slot>level2Selected()</slot>

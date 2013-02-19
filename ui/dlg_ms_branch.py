@@ -23,7 +23,6 @@ from PyQt4.QtGui import QDialog, QMessageBox, QAbstractItemView
 from PyQt4.QtCore import Qt, pyqtSlot, QObject
 
 from sidd.ms import MappingScheme, MappingSchemeZone, Statistics, StatisticNode 
-from sidd.taxonomy import get_taxonomy
 
 from ui.constants import logUICall, get_ui_string
 from ui.dlg_save_ms import DialogSaveMS
@@ -45,7 +44,7 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
         self.retranslateUi(self.ui)
         
         self.app =  app
-        self.taxonomy = get_taxonomy('gem')
+        self.taxonomy = app.taxonomy
 
         # save mapping scheme dialog box        
         self.dlgSave = DialogSaveMS(self.app)
@@ -173,13 +172,20 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
         
         if has_know_attribute:
             self.ui.cb_attributes.addItem(attribute_name)
+            for attr in self.taxonomy.attributes:
+                if attr.name != attribute_name:
+                    continue
+                use_combobox = (attr.type == 1)
+                break
             self.valid_codes = []
-            for code in self.taxonomy.codes.itervalues():
+            for code in self.taxonomy.codes.itervalues():                
                 if code.attribute.name == attribute_name and code.level == 1:
                     self.valid_codes.append(code)
-            
-            attr_editor = MSAttributeItemDelegate(self.ui.table_ms_level, self.valid_codes, len(self.node.children))
-            self.ui.table_ms_level.setItemDelegateForColumn(0, attr_editor)
+            if use_combobox and len(self.valid_codes) > 0:
+                attr_editor = MSAttributeItemDelegate(self.ui.table_ms_level, self.valid_codes, 0)
+                self.ui.table_ms_level.setItemDelegateForColumn(0, attr_editor)
+            else:
+                self.ui.table_ms_level.setItemDelegateForColumn(0, self.ui.table_ms_level.itemDelegateForColumn(1))
         else:            
             for attr in self.taxonomy.attributes:
                 self.ui.cb_attributes.addItem(attr.name)            
@@ -209,7 +215,12 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
     def verifyWeights(self, startIndex, endIndex):
         sum_weights = sum(self.levelModel.weights)
         self.ui.txt_total_weights.setText('%.1f' % sum_weights)
-        self.ui.btn_apply.setEnabled(sum_weights == 100)
+        if (sum_weights == 100):
+            self.ui.txt_total_weights.setStyleSheet('color:black')
+            self.ui.btn_apply.setEnabled(True)
+        else:
+            self.ui.txt_total_weights.setStyleSheet('color:red')
+            self.ui.btn_apply.setEnabled(False)
 
     # internal helper methods
     ###############################

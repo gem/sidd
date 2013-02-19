@@ -20,9 +20,11 @@
 module supporting GEM taxonomy version 1
 """
 import sqlite3
+import types
 import os
 import re
 import copy
+from operator import attrgetter
 
 from sidd.constants import logAPICall
 from sidd.taxonomy import Taxonomy, TaxonomyAttribute, TaxonomyAttributeCode
@@ -63,7 +65,9 @@ class GemTaxonomy(Taxonomy):
     
     @property
     def attributes(self):
-        return GemTaxonomy.__attrs
+        attrs = GemTaxonomy.__attrs
+        attrs.sort(key=attrgetter('order'))      
+        return attrs
 
     @property
     def attribute_separator(self):
@@ -86,8 +90,18 @@ class GemTaxonomy(Taxonomy):
         """
         take a string and parse into a statistic case object
         this is the reverse function of case2str
-        """    
-        _attributes = copy.deepcopy(self.__empty)
+        """     
+        if getattr(self, 'parse_order', None) is not None:
+            _attributes = [0]*8
+            for attr in self.__empty:
+                new_idx = self.parse_order.index(attr.attribute.name)
+                attr.order = new_idx + 1                
+                _attributes[new_idx] = copy.deepcopy(attr)
+            _order = self.parse_order            
+        else:
+            _attributes = copy.deepcopy(self.__empty)
+            _order = [attr.name for attr in self.attributes] 
+        
         _str_attrs = taxonomy_str.split('/')
         
         if len(_str_attrs)== 0:
@@ -99,7 +113,9 @@ class GemTaxonomy(Taxonomy):
                 # multiple codes, split and search each
                 _levels = _attr.split('+')
                 for _i, _lvl in enumerate(_levels):
-                    _attr_val = _attributes[self.__codes[_lvl].order-1]
+                    _attr_idx =  _order.index(self.__codes[_lvl].attribute.name)
+                    _attr_val = _attributes[_attr_idx]
+                    #_attr_val = _attributes[self.__codes[_lvl].order-1]
                     if isinstance(_attr_val, GemTaxonomyAttributeMulticodeValue):
                         _attr_val.add_value(_lvl)
                     else:
@@ -107,7 +123,9 @@ class GemTaxonomy(Taxonomy):
             elif re.match('\w+\:\d+', _attr):
                 # code:value format
                 (_type_id, _val) = _attr.split(':')
-                _attr_val = _attributes[self.__codes[_type_id].order-1]
+                _attr_idx =  _order.index(self.__codes[_type_id].attribute.name)
+                _attr_val = _attributes[_attr_idx]
+                #_attr_val = _attributes[self.__codes[_type_id].order-1]
                 if isinstance(_attr_val, GemTaxonomyAttributePairValue):
                     _attr_val.add_value(_type_id, _val)
                 else:
@@ -115,7 +133,9 @@ class GemTaxonomy(Taxonomy):
                 
             elif re.match('\w+', _attr):
                 # code only, search code table
-                _attr_val = _attributes[self.__codes[_attr].order-1]
+                _attr_idx =  _order.index(self.__codes[_attr].attribute.name)
+                _attr_val = _attributes[_attr_idx]
+                #_attr_val = _attributes[self.__codes[_attr].order-1]
                 if isinstance(_attr_val, GemTaxonomyAttributePairValue) and _attr_val.is_empty:
                     _attr_val.add_value(_attr, '')
                 elif (isinstance(_attr_val, GemTaxonomyAttributeSinglecodeValue)
@@ -133,6 +153,11 @@ class GemTaxonomy(Taxonomy):
         for _attr_val in taxonomy_values:
             outstr = outstr + str(_attr_val) + "/"
         return outstr
+    
+    def set_parse_order(self, order):
+        self.parse_order = order
+        for attr in GemTaxonomy.__attrs:
+            attr.order = order.index(attr.name)+1
     
     def __initialize(self, db_path):
         """
@@ -155,7 +180,7 @@ class GemTaxonomy(Taxonomy):
         c.execute(sql)
         GemTaxonomy.__attrs = []
         for row in c:
-            _attr = TaxonomyAttribute(str(row[1]), int(row[0]), int(row[2]), str(row[3]))
+            _attr = TaxonomyAttribute(str(row[1]), int(row[0]), int(row[2]), str(row[3]), int(row[4]))
             GemTaxonomy.__attrs.append(_attr)
             attr_format = int(row[4])
             if attr_format == 1:

@@ -51,6 +51,11 @@ class WidgetResult(Ui_widgetResult, QWidget):
         get_ui_string("app.extension.kml"):ExportTypes.KML,
         get_ui_string("app.extension.nrml"):ExportTypes.NRML,
     };
+    EXPORT_EXTENSIONS = {
+        get_ui_string("app.extension.shapefile"):".shp",
+        get_ui_string("app.extension.kml"):".kml",
+        get_ui_string("app.extension.nrml"):".nrml",
+    }
     ''' ennumaration of Layer to be previewed '''
     EXPOSURE, SURVEY, FOOTPRINT, ZONES = range(4);
     ''' name for Layer to be previewed '''
@@ -105,6 +110,7 @@ class WidgetResult(Ui_widgetResult, QWidget):
         
         # default export setting
         self.export_format = ExportTypes.Shapefile
+        self.ui.btn_export.setEnabled(False)   # disable export until there is result shown
 
         # connect slots (ui event)
         self.ui.btn_zoom_full.clicked.connect(self.mapZoomFull)
@@ -114,7 +120,7 @@ class WidgetResult(Ui_widgetResult, QWidget):
         self.ui.btn_theme.clicked.connect(self.mapEditTheme)
         self.ui.btn_info.clicked.connect(self.mapIdentify)
         
-        self.ui.cb_export_format.currentIndexChanged.connect(self.exportFormatChanged)
+        self.ui.cb_export_format.currentIndexChanged[str].connect(self.exportFormatChanged)
         self.ui.btn_export.clicked.connect(self.exportData)
         self.ui.btn_export_select_file.clicked.connect(self.selectExportFile)
 
@@ -211,21 +217,26 @@ class WidgetResult(Ui_widgetResult, QWidget):
             self.ui.txt_export_select_file.setText(filename)            
     
     @logUICall
-    @pyqtSlot(int)
+    @pyqtSlot(str)
     def exportFormatChanged(self, selected_val):
         """
         event handler for cb_export_format 
         - update selected file after format change
         """
-        if type(selected_val) == int:
-            selected_val = 0 if (selected_val >= len(self.EXPORT_FORMATS) or selected_val < 0) else selected_val
-            self.export_format = self.EXPORT_FORMATS.values()[selected_val]
-        else:
-            self.export_format = self.EXPORT_FORMATS[str(selected_val)]
+        self.export_format = self.EXPORT_FORMATS[str(selected_val)]
+        export_extension = self.EXPORT_EXTENSIONS[str(selected_val)]
         
-        # TODO: get base name and change extension based on format 
-        #       instead of clearing out        
-        self.ui.txt_export_select_file.setText("")
+        # get base name and change extension based on format 
+        export_file = str(self.ui.txt_export_select_file.text())
+        if export_file != "":
+            # replace extension
+            if export_file.find('.') != -1:                
+                export_file = export_file[:export_file.find('.')] + export_extension
+            else:                
+                export_file = export_file + export_extension            
+            self.ui.txt_export_select_file.setText(export_file)
+        #else
+        #   file not specified, do nothing 
     
     @logUICall
     @pyqtSlot()
@@ -235,6 +246,11 @@ class WidgetResult(Ui_widgetResult, QWidget):
         - do export data 
         """
         export_file = str(self.ui.txt_export_select_file.text())
+        if export_file == "":
+            QMessageBox.critical(self, 
+                                 get_ui_string("app.warning.title"), 
+                                 get_ui_string("app.error.path.is.null"))
+            return
         self._project.set_export(self.export_format, export_file)
         self._project.export_data()
         
@@ -337,13 +353,16 @@ class WidgetResult(Ui_widgetResult, QWidget):
         
     
     def refreshResult(self):
+        self.refreshView()
         exposure = getattr(self._project, 'exposure', None)
         if exposure is not None:
             self.map_layers[self.EXPOSURE] = exposure 
             self.showDataLayer(self.map_layers[self.EXPOSURE])
+            self.ui.btn_export.setEnabled(True)
         else:
             self.map_layers[self.EXPOSURE] = None 
             self.removeDataLayer(self.EXPOSURE)
+            self.ui.btn_export.setEnabled(False)
             
     @logUICall
     def closeResult(self):
@@ -353,7 +372,6 @@ class WidgetResult(Ui_widgetResult, QWidget):
     def closeAll(self):
         for i in range(4):
             self.removeDataLayer(i)
-
     
     # internal helper methods
     ###############################

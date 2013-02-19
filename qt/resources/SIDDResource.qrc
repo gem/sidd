@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="imgs">
+    <file>icons/arrow_bottom.png</file>
+    <file>icons/arrow_top.png</file>
     <file>openquake_orange_web.png</file>
     <file>icons/add.png</file>
     <file>logo.png</file>

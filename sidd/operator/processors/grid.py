@@ -47,7 +47,6 @@ class GridWriter(Operator):
             0 : QgsField(self._lon_field, QVariant.Double),
             1 : QgsField(self._lat_field, QVariant.Double),
         }
-
         
     # self documenting method override
     ###########################

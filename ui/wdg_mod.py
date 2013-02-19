@@ -20,7 +20,7 @@
 Widget (Panel) for managing secondary modifier 
 """
 from PyQt4.QtGui import QWidget, QDialog, QMessageBox, QAbstractItemView
-from PyQt4.QtCore import pyqtSlot, QSize, QPoint 
+from PyQt4.QtCore import pyqtSlot, Qt, QSize, QPoint 
 
 from ui.constants import logUICall, get_ui_string, UI_PADDING
 from ui.qt.wdg_mod_ui import Ui_widgetSecondaryModifier
@@ -39,6 +39,8 @@ class WidgetSecondaryModifier(Ui_widgetSecondaryModifier, QWidget):
         self.ui = Ui_widgetSecondaryModifier()
         self.ui.setupUi(self)
         self.retranslateUi(self.ui)
+
+        self.ui.table_mod.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
         self.dlgEditMod = DialogModInput(app)
         self.dlgEditMod.setModal(True)
@@ -62,7 +64,13 @@ class WidgetSecondaryModifier(Ui_widgetSecondaryModifier, QWidget):
                    self.ui.widget_buttons.y() ))
         self.ui.table_mod.resize(
             QSize(self.width()-2*UI_PADDING,
-                  self.height()-self.ui.table_mod.y()-self.ui.btn_build_exposure.height()-2*UI_PADDING))        
+                  self.height()-self.ui.table_mod.y()-self.ui.btn_build_exposure.height()-2*UI_PADDING))
+        
+        self.ui.table_mod.horizontalHeader().resizeSection(0, self.ui.table_mod.width() * 0.1)
+        self.ui.table_mod.horizontalHeader().resizeSection(1, self.ui.table_mod.width() * 0.6)
+        self.ui.table_mod.horizontalHeader().resizeSection(2, self.ui.table_mod.width() * 0.1)
+        self.ui.table_mod.horizontalHeader().resizeSection(3, self.ui.table_mod.width() * 0.1)
+        
         #logUICall.log('resize done for %s' % self.__module__, logUICall.INFO)
         
     @logUICall
@@ -82,7 +90,7 @@ class WidgetSecondaryModifier(Ui_widgetSecondaryModifier, QWidget):
             self.dlgEditMod.node.update_modifier(self.dlgEditMod.values,
                                                  self.dlgEditMod.weights)
             self.app.visualizeMappingScheme(self.ms)
-                    
+
     @logUICall
     @pyqtSlot()
     def deleteModifier(self):

@@ -81,7 +81,7 @@ mainWin = AppMainWindow(qtApp, sidd_config)
 mainWin.show()
 
 splash.finish(mainWin)
-
+    
 #exit
 sys.exit(qtApp.exec_())
 QgsApplication.exitQgis()

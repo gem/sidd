@@ -65,8 +65,8 @@ class MSTreeModel(QAbstractItemModel):
     def rowCount(self, parent):
         """ (override function) retrieve number of children from a given parent node """
         logUICall.log("rowCount %s" % (parent), logUICall.DEBUG_L2)
-        if parent.column() > 0: # there is only one column
-            return 0
+        #if parent.column() > 0: # there is only one column
+        #    return 0
         if not parent.isValid(): # invalid case treated same as root node
             return len(self.zones)
         
@@ -98,7 +98,7 @@ class MSTreeModel(QAbstractItemModel):
         if not index.isValid():  # invalid case, nothing to display
             return None
         
-        if role == Qt.DisplayRole:              
+        if role == Qt.DisplayRole:
             # construct data to show in tree UI
             item = index.internalPointer()
             if item == self.rootNode:
@@ -213,3 +213,39 @@ class MSTreeModel(QAbstractItemModel):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:  
             return QVariant(get_ui_string("widget.ms.tree.title"))
         return None
+
+    def match(self, index, role, value, hits=1, flags=Qt.MatchStartsWith | Qt.MatchWrap):
+        found = []
+        if index.isValid():
+            item = index.internalPointer()
+            if item == self.rootNode:
+                # root node
+                node_value = 'ROOT'
+            elif isinstance(item, MappingSchemeZone):
+                # zone node(first level under root node)
+                # statistic in each zone should be 100%
+                node_value = item.name
+            else:
+                # statistic node 
+                # show weight for node                
+                node_value = item.value           
+        else:
+            node_value = 'ROOT'                
+        if node_value == value:
+            found.append(index)
+            hits -= 1
+        if hits>0:
+            for i in range(self.rowCount(index)):
+                child = self.index(i, 1, index)
+                indices = self.match(child, role, value, hits, flags)
+                if len(indices) == 0:
+                    continue
+                while hits > 0:
+                    found.append(indices.pop())
+                    hits-= 1
+                if hits == 0:
+                    break
+        return found
+            
+        
+        

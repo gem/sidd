@@ -42,6 +42,7 @@ SIDD_UI_STRINGS = {
     "app.error.model":'Error Processing Request',
     'app.error.ui':'Error Processing Request',
     'app.error.file.does.not.exist':'File %s cannot be found',
+    'app.error.path.is.null':'Path cannot be null',
     'app.warning.title':'Warning',
     # project errors
     ######################
@@ -255,6 +256,13 @@ SIDD_UI_STRINGS = {
     "dlg.mod.level2":'Level2',
     "dlg.mod.level3":'Level3',
     "dlg.mod.build":'Build From Survey',
+    # attribute ranges dialog
+    ######################
+    "dlg.attr.range.window.title":'Attribute Ranges',
+    "dlg.attr.title":'Attribute Ranges',
+    "dlg.attr.min_value":'Minimum Values',
+    "dlg.attr.max_value":'Maximum Values',
+    "dlg.attr.value.error":'Only numeric value is accepted',
 }
 
 def get_ui_string(key):

@@ -27,7 +27,6 @@ from utils.system import get_unique_filename
 
 from sidd.constants import logAPICall
 from sidd.ms import MappingScheme, MappingSchemeZone, Statistics
-from sidd.taxonomy import get_taxonomy
 
 from sidd.operator import Operator, OperatorError
 from sidd.operator.data import OperatorDataTypes
@@ -36,7 +35,7 @@ class EmptyMSCreator(Operator):
     def __init__(self, options=None, name='EmptyMSCreator'):
         super(EmptyMSCreator, self).__init__(options, name)
         self._tmp_dir = options['tmp_dir']
-        self._taxonomy = get_taxonomy(options['taxonomy'])
+        self._taxonomy = options['taxonomy']
         self._skips = options['skips']
 
     # self documenting method override

@@ -24,6 +24,7 @@ import os
 import bsddb
 import shutil
 import types
+import json
 
 from utils.system import get_temp_dir, get_random_name
 from utils.shapefile import remove_shapefile
@@ -31,7 +32,7 @@ from utils.shapefile import remove_shapefile
 from sidd.constants import logAPICall, \
                            FILE_PROJ_TEMPLATE, \
                            FootprintTypes, OutputTypes, SurveyTypes, ZonesTypes, \
-                           ProjectStatus, SyncModes                           
+                           ProjectStatus, SyncModes
 from sidd.ms import MappingScheme
 from sidd.exception import SIDDException, WorkflowException
 from sidd.workflow import Workflow, WorkflowBuilder
@@ -44,7 +45,7 @@ class Project (object):
     # constructor / destructor
     ##################################
 
-    def __init__(self, project_file, app_config):
+    def __init__(self, project_file, app_config, taxonomy):
         """ constructor """
         self.temp_dir = get_temp_dir('tmp%s'%get_random_name())
         self.app_config = app_config
@@ -59,7 +60,7 @@ class Project (object):
         
         self.operator_options = {
             'tmp_dir': self.temp_dir,
-            'taxonomy':app_config.get('options', 'taxonomy', 'gem'),
+            'taxonomy':taxonomy,
             'skips': app_config.get('options', 'skips', [], types.ListType),            
         }
         self.reset()
@@ -314,6 +315,13 @@ class Project (object):
             if _ms_str is not None:
                 self.ms = MappingScheme(None)
                 self.ms.from_text(_ms_str)
+                
+            # load operator attributes
+            for attr in self.operator_options['taxonomy'].attributes:
+                _attr_options = self._get_project_data(attr.name)
+                if _attr_options is not None:
+                    self.operator_options[attr.name] = json.loads(_attr_options)
+            
         else:
             logAPICall.log("store existing datasets into DB", logAPICall.DEBUG)
             # store footprint            
@@ -362,8 +370,19 @@ class Project (object):
             else:
                 self._save_project_data('data.ms', self.ms.to_xml())
             
+            # load operator attributes
+            for attr in self.operator_options['taxonomy'].attributes:
+                if self.operator_options.has_key(attr.name):
+                    self._save_project_data(attr.name, json.dumps(self.operator_options[attr.name]))                            
+            
             # flush to disk
             self.db.sync()
+
+    def get_operator_options(self):
+        pass
+    
+    def set_operator_options(self, options):
+        pass
 
     # bsddb help functions
     ##################################
@@ -420,6 +439,9 @@ class Project (object):
         """ create mapping scheme """
         builder = WorkflowBuilder(self.operator_options)
         try:
+            # force reload existing survey
+            self.survey = None
+            
             # create workflow 
             ms_workflow = builder.build_ms_workflow(self, isEmpty)
             

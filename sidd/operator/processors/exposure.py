@@ -26,6 +26,7 @@ from qgis.core import QGis, QgsVectorFileWriter, QgsFeature, QgsField, QgsGeomet
 
 from utils.shapefile import load_shapefile, layer_features, layer_field_index, remove_shapefile
 from utils.system import get_unique_filename
+from utils.grid import latlon_to_grid
 
 from sidd.constants import logAPICall, \
                            GID_FIELD_NAME, LON_FIELD_NAME, LAT_FIELD_NAME, CNT_FIELD_NAME, TAX_FIELD_NAME, ZONE_FIELD_NAME, \
@@ -125,7 +126,8 @@ class GridMSApplier(Operator):
                     # write out if there are structures assigned
                     if _c > 0:
                         out_feature.setGeometry(geom)
-                        out_feature.addAttribute(0, QVariant(gid))
+                        #out_feature.addAttribute(0, QVariant(gid))
+                        out_feature.addAttribute(0, QVariant(latlon_to_grid(centroid.y(), centroid.x())))
                         out_feature.addAttribute(1, QVariant(centroid.x()))
                         out_feature.addAttribute(2, QVariant(centroid.y()))
                         out_feature.addAttribute(3, QVariant(_l))
@@ -242,7 +244,8 @@ class SurveyAggregator(GridMSApplier):
                 (tax_str, x, y) = key.split(' ')
                 point = QgsPoint(int(x)*DEFAULT_GRID_SIZE, int(y)*DEFAULT_GRID_SIZE)
                 f.setGeometry(QgsGeometry.fromPoint(point))
-                f.addAttribute(0, QVariant(gid))
+                #f.addAttribute(0, QVariant(gid))
+                f.addAttribute(0, QVariant(latlon_to_grid(point.y(), point.x())))
                 f.addAttribute(1, QVariant(point.x()))
                 f.addAttribute(2, QVariant(point.y()))
                 f.addAttribute(3, QVariant(tax_str))
@@ -263,4 +266,3 @@ class SurveyAggregator(GridMSApplier):
         # store data in output
         self.outputs[0].value = exposure_layer
         self.outputs[1].value = exposure_file
-

@@ -35,22 +35,31 @@ from sidd.constants import logAPICall, \
 from sidd.operator import Operator,OperatorError, OperatorDataError
 from sidd.operator.data import OperatorDataTypes
 
-
-
 class GEMDBSurveyLoader(Operator):
     """ loading field survey data in CSV format"""
+    HT_ATTRIBUTE_NAME='Height'
+    YR_ATTRIBUTE_NAME='Date of Construction'
     
     def __init__(self, options=None, name="Survey Loader"):
         """ constructor """
         Operator.__init__(self, options, name)
         self._tmp_dir = options['tmp_dir']
+        if options.has_key('year_translator'):
+            self._make_year_string = (options['year_translator']).translate
+        if options.has_key('ht_translator'):   
+            self._make_year_string = (options['ht_translator']).translate 
 
+        if options.has_key(self.HT_ATTRIBUTE_NAME):
+            self.ht_ranges = options[self.HT_ATTRIBUTE_NAME]            
+        if options.has_key(self.YR_ATTRIBUTE_NAME):
+            self.yr_ranges = options[self.YR_ATTRIBUTE_NAME]
+            
         self._fields = {
             0 : QgsField(GID_FIELD_NAME, QVariant.Int),
             1 : QgsField(LON_FIELD_NAME, QVariant.Double),
             2 : QgsField(LAT_FIELD_NAME, QVariant.Double),
             3 : QgsField(TAX_FIELD_NAME, QVariant.String),
-        }    
+        }
     # self documenting method override
     ###########################
  
@@ -181,26 +190,19 @@ class GEMDBSurveyLoader(Operator):
         floor_string = self._coalesce(floor_mat) + self._append_not_null(floor_type,separator)
         
         # story
-        story_ag_q = self._coalesce(story_ag_q)
-        if story_ag_1 is None:
-            ht_string = "H99"
-        elif story_ag_q.upper() == "CIRCA":
-            ht_string = "H:" + self._coalesce(story_ag_1)
-        elif story_ag_q.upper() == "BETWEEN":
-            ht_string = "H" + story_ag_1 + "," + story_ag_2
+        if getattr(self, 'ht_ranges', None) is None:
+            ht_string = self._make_height_string(self._coalesce(story_ag_q), 
+                                                 self._toint(story_ag_1), self._toint(story_ag_2))
         else:
-            ht_string = "H:" + self._coalesce(story_ag_1)
-        
+            ht_string = self._make_range_height_string(self._coalesce(story_ag_q), 
+                                                       self._toint(story_ag_1), self._toint(story_ag_2))
         # yr_built
-        yr_built_q = self._coalesce(yr_built_q)
-        if yr_built_1 is None:
-            yr_string = "Y99"
-        elif yr_built_q.upper() == "CIRCA":
-            yr_string = "YA:" + self._coalesce(yr_built_1)
-        elif yr_built_q.upper() == "BETWEEN":
-            yr_string = "YA" + int((yr_built_1 + yr_built_2)/2)
+        if getattr(self, 'yr_ranges', None) is None:
+            yr_string = self._make_year_string(self._coalesce(yr_built_q), 
+                                               self._toint(yr_built_1), self._toint(yr_built_2))
         else:
-            yr_string = "YN:" + self._coalesce(yr_built_1)
+            yr_string = self._make_range_year_string(self._coalesce(yr_built_q), 
+                                                     self._toint(yr_built_1), self._toint(yr_built_2))
 
         # irregularity
         ir_string = self._coalesce(str_irreg) \
@@ -221,12 +223,92 @@ class GEMDBSurveyLoader(Operator):
     
     def _coalesce(self, val):
         return str(val) if (val is not None) else ""
+    
+    def _toint(self, val):
+        try:
+            return int(val) 
+        except:
+            return 0
      
     def _append_not_null(self, val, separator):        
         if (val is None or val == ""):
             return ""
         else:
             return separator + str(val)
+
+    def _make_height_string(self, story_ag_q, story_ag_1, story_ag_2):
+        # create story string from given qualifier and parameters
+        ht_string = "H99"
+        if story_ag_1 is None:
+            ht_string = "H99"
+        elif story_ag_q.upper() == "CIRCA":
+            ht_string = "H:" + self._coalesce(story_ag_1)
+        elif story_ag_q.upper() == "BETWEEN":
+            ht_string = "H" + story_ag_1 + "," + story_ag_2
+        else:
+            ht_string = "H:" + self._coalesce(story_ag_1)
+        return ht_string
+    
+    def _make_year_string(self, yr_built_q, yr_built_1, yr_built_2):
+        yr_string = "Y99"
+        if yr_built_1 is None:
+            yr_string = "Y99"
+        elif yr_built_q.upper() == "CIRCA":
+            yr_string = "YA:" + self._coalesce(yr_built_1)
+        elif yr_built_q.upper() == "BETWEEN":
+            yr_string = "YA" + int((yr_built_1 + yr_built_2)/2)
+        else:
+            yr_string = "YN:" + self._coalesce(yr_built_1)
+        return yr_string
+
+    def _make_range_height_string(self, story_ag_q, story_ag_1, story_ag_2):
+        ht_string = "H99"
+        if story_ag_1 is None:
+            ht_string = "H99"
+        elif story_ag_q.upper() == "CIRCA":
+            ht_range = self._find_range(story_ag_1, 
+                                        self.ht_ranges['min_values'], self.ht_ranges['max_values'])
+        elif story_ag_q.upper() == "BETWEEN":
+            ht_range = self._find_range((story_ag_1 + story_ag_2) / 2.0, 
+                                        self.ht_ranges['min_values'], self.ht_ranges['max_values'])
+        else:
+            ht_range = self._find_range(story_ag_1, 
+                                        self.ht_ranges['min_values'], self.ht_ranges['max_values'])
+        if ht_range is not None:
+            ht_string = "H:%s,%s"%(ht_range) 
+        return ht_string
+
+    def _make_range_year_string(self, yr_built_q, yr_built_1, yr_built_2):
+        yr_string = "Y99"
+        if yr_built_1 is None:
+            yr_string = "Y99"
+        elif yr_built_q.upper() == "CIRCA":            
+            yr_range = self._find_range(yr_built_1, 
+                                        self.yr_ranges['min_values'], self.yr_ranges['max_values'])            
+        elif yr_built_q.upper() == "BETWEEN":
+            yr_range = self._find_range((yr_built_1 + yr_built_2)/2, 
+                                        self.yr_ranges['min_values'], self.yr_ranges['max_values'])            
+        else:
+            yr_range = self._find_range(yr_built_1, 
+                                        self.yr_ranges['min_values'], self.yr_ranges['max_values'])
+        if yr_range is not None:
+            yr_string = "Y:%s,%s"%(yr_range)                    
+        return yr_string
+
+    
+    def _find_range(self, value, min_values, max_values):
+        for min_val, max_val in map(None, min_values, max_values):
+            if value >= min_val and value <= max_val:
+                return min_val, max_val
+        return None
+        
+    def _range_year_string(self, yr_built_q, yr_built_1, yr_built_2):
+        input_val = '_get_val'
+        for min_val, max_val in map(None, self.yr_ranges['min_values'], self.yr_ranges['max_values']):
+            if input_val >= min_val and input_val <= max_val:
+                return 'label'
+        return None
+       
     
 class CSVSurveyLoader(GEMDBSurveyLoader):
     """ loading field survey data in CSV format"""

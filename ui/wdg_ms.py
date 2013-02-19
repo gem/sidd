@@ -28,8 +28,10 @@ from sidd.exception import SIDDException
 from ui.exception import SIDDUIException
 from ui.constants import logUICall, get_ui_string, UI_PADDING
 from ui.dlg_ms_branch import DialogEditMS
-from ui.dlg_save_ms import DialogSaveMS 
+from ui.dlg_save_ms import DialogSaveMS
+from ui.dlg_build_ms import DialogMSOptions 
 from ui.helper.ms_tree import MSTreeModel
+from ui.helper.vlabel import VerticalQLabel
 from ui.qt.wdg_ms_ui import Ui_widgetMappingSchemes
 
 class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
@@ -74,9 +76,21 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         self.ui.setupUi(self)
         self.retranslateUi(self.ui)
 
+        # vertical label for toggle mapping scheme library 
+        self.ms_library_vlabel = VerticalQLabel(self)
+        self.ms_library_vlabel.setFixedSize(25, 200)
+        self.ms_library_vlabel.setText("Mapping Scheme Library")
+        self.ms_library_vlabel.clicked.connect(self.toggleMSLibraryView)
+
         self.app = app
         self.ms = None
         self.ui.tree_ms.animated=True
+        
+        try:
+            taxonomy =  self.app.taxonomy
+            attributeList = [att.name for att in taxonomy.attributes]
+        except:
+            attributeList = []
         
         self.msdb_dao =  app.msdb_dao
         for region in self.msdb_dao.get_regions(with_ms=True):
@@ -88,12 +102,16 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         self.dlgEditMS = DialogEditMS(self.app)
         self.dlgEditMS.setModal(True)
         self.dlgSaveMS = DialogSaveMS(self.app)        
-        self.dlgSaveMS.setModal(True)
+        self.dlgSaveMS.setModal(True)        
+        self.dlgMSOptions = DialogMSOptions(self.app)
+        self.dlgMSOptions.setModal(True)
 
         # connect slots (ui event)
-        self.ui.btn_build_ms.clicked.connect(self.buildMS)
-        self.ui.btn_create_ms.clicked.connect(self.createMS)
+        self.ui.btn_create_ms.clicked.connect(self.createMS)        
         self.ui.btn_save_ms.clicked.connect(self.saveMS)
+        self.ui.btn_expand_tree.clicked.connect(self.expandTree)
+        self.ui.btn_collapse_tree.clicked.connect(self.collapseTree)
+        
         self.ui.btn_add_child.clicked.connect(self.addBranch)
         self.ui.btn_del_child.clicked.connect(self.removeBranch)
         self.ui.btn_edit_level.clicked.connect(self.editBranch)
@@ -109,6 +127,8 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         self.ui.btn_secondary_mod.clicked.connect(self.setModifiers)
         self.ui.btn_build_exposure.clicked.connect(self.applyMS)
         
+        self.ms_library_visible = True
+        self.setMSLibraryVisible(False)
 
     # UI event handling calls
     ###############################
@@ -118,7 +138,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         ui = self.ui
         # right align box_ms_library
         ui.box_ms_library.move(
-            QPoint(self.width()-ui.box_ms_library.width()-UI_PADDING,
+            QPoint(self.width()-self.ms_library_vlabel.width()-ui.box_ms_library.width()-UI_PADDING,
                    ui.box_ms_library.y()))
         ui.ck_enable_ms_library.move(
             QPoint(ui.box_ms_library.x(),ui.ck_enable_ms_library.y()))
@@ -144,17 +164,25 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         # adjust size of 
         logUICall.log('resize done for %s' % self.__module__, logUICall.INFO)
     
-    @uiCallChecker
-    @pyqtSlot()
-    def buildMS(self):
-        """ build mapping scheme from survey data """
-        self.app.buildMappingScheme()
-
+        self.ms_library_vlabel.move(QPoint(self.width()-self.ms_library_vlabel.width(),
+                                           self.height()/2-self.ms_library_vlabel.height()))
+        
     @uiCallChecker
     @pyqtSlot()
     def createMS(self):
         """ create new mapping scheme """
-        self.app.createEmptyMS()
+        self.dlgMSOptions.resetList()
+        if self.dlgMSOptions.exec_() == QDialog.Accepted:
+            try:
+                attribute_order = self.dlgMSOptions.attributes                
+                self.app.taxonomy.set_parse_order(attribute_order)
+            except Exception as err:
+                print err            
+                pass
+            if self.dlgMSOptions.build_option == self.dlgMSOptions.BUILD_EMPTY:
+                self.app.createEmptyMS()
+            else:
+                self.app.buildMappingScheme()
         
     @uiCallChecker
     @pyqtSlot()
@@ -165,6 +193,30 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
             self.dlgSaveMS.setMS(self.ms)
             self.dlgSaveMS.exec_()
 
+    @uiCallChecker
+    @pyqtSlot()
+    def expandTree(self):
+        selectedIndexes = self.ui.tree_ms.selectedIndexes()
+        if len(selectedIndexes) == 0:
+            self.ui.tree_ms.expandAll()
+        else:
+            self.recursive_expand(self.ui.tree_ms, selectedIndexes[0], True)
+    
+    @uiCallChecker
+    @pyqtSlot()
+    def collapseTree(self):
+        selectedIndexes = self.ui.tree_ms.selectedIndexes()
+        if len(selectedIndexes) == 0:
+            self.ui.tree_ms.collapseAll()            
+        else:
+            self.recursive_expand(self.ui.tree_ms, selectedIndexes[0], False)
+
+    def recursive_expand(self, tree, index, expand):
+        tree.setExpanded(index, expand)
+        for i in range(index.model().rowCount(index)):
+            child = index.child(i, 0)
+            self.recursive_expand(tree, child, expand)
+        
     @uiCallChecker
     @pyqtSlot()
     def addBranch(self):
@@ -258,7 +310,13 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         - apply mapping scheme and generate exposure 
         """        
         self.app.buildExposure()
-    
+
+    @logUICall
+    @pyqtSlot()
+    def toggleMSLibraryView(self):
+        self.ms_library_visible = not (self.ms_library_visible)
+        self.setMSLibraryVisible(self.ms_library_visible)
+            
     @logUICall
     @pyqtSlot(bool)
     def toggleMSLibrary(self, value):
@@ -374,6 +432,12 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
     
     # internal helper methods
     ###############################
+    def setMSLibraryVisible(self, visible):
+        self.ui.box_ms_library.setVisible(visible)
+        self.ui.ck_enable_ms_library.setVisible(visible)
+        self.ui.lb_ms_library_ms.setVisible(visible)
+        self.ms_library_vlabel.setVisible(not visible)        
+        
     def setMSLibraryEnabled(self, enable):
         """ toggle access to mapping scheme library """
         self.ui.box_ms_library.setEnabled(enable)

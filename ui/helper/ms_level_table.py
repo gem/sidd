@@ -36,8 +36,9 @@ class MSLevelTableModel(QAbstractTableModel):
             get_ui_string('dlg.msbranch.edit.tableheader.weight'),
             'Value', 'Weight (%)'
         ]
-        self.weights = weights
-        self.values = values        
+        #self.weights = weights
+        #self.values = values
+        self.values, self.weights = self._sort(values, weights)
     
     def columnCount(self, parent):
         """ only two columns exist. always return 2 """
@@ -124,3 +125,14 @@ class MSLevelTableModel(QAbstractTableModel):
         # NOTE: 
         #   ItemIsEditable also required data() and setData() function
         return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsEditable
+
+    def _sort(self, values, weights, reverse_sort=False):
+        dist = []
+        for v, w in map(None, values, weights):
+            dist.append({v:w})
+        dist.sort(reverse=reverse_sort)
+        sorted_values, sorted_weights = [], []
+        for val in dist:            
+            sorted_values.append(val.items()[0][0])
+            sorted_weights.append(val.items()[0][1])
+        return sorted_values, sorted_weights 

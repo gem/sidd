@@ -22,16 +22,18 @@ Main application window
 from threading import Thread
 from time import sleep
 
-from PyQt4.QtCore import pyqtSlot
-from PyQt4.QtGui import QMainWindow, QFileDialog, QMessageBox
+from PyQt4.QtCore import pyqtSlot, QSettings
+from PyQt4.QtGui import QMainWindow, QFileDialog, QMessageBox, QCloseEvent
 
 from sidd.exception import SIDDException
 from utils.system import get_app_dir
-from sidd.constants import logAPICall, \
+from sidd.constants import SIDD_COMPANY, SIDD_APP_NAME, SIDD_VERSION, logAPICall, \
                            ProjectStatus, SyncModes
 from sidd.project import Project
+from sidd.taxonomy import get_taxonomy
 
 from ui.constants import logUICall, get_ui_string, FILE_MS_DB
+
 from ui.exception import SIDDUIException
 from ui.qt.win_main_ui import Ui_mainWindow
 from ui.wdg_data import WidgetDataInput
@@ -72,10 +74,14 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
             return wrapper
         
     apiCallChecker = CallChecker()
+    
+    # CONSTANTS
+    #############################    
+    UI_WINDOW_GEOM = 'main/geometry'
+    UI_WINDOW_STATE = 'main/windowState'
 
     # constructor / destructor
-    #############################
-    
+    #############################    
     def __init__(self, qtapp, app_config):
         """ constructor """
         
@@ -84,9 +90,14 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         
         self.qtapp = qtapp
         self.app_config = app_config
+        self.taxonomy = get_taxonomy(app_config.get('options', 'taxonomy', 'gem'))
         self.ui = Ui_mainWindow()
-        self.ui.setupUi(self)        
+        self.ui.setupUi(self)
         self.retranslateUi(self.ui)
+        
+        settings = QSettings(SIDD_COMPANY, '%s %s' %(SIDD_APP_NAME, SIDD_VERSION));
+        self.restoreGeometry(settings.value(self.UI_WINDOW_GEOM).toByteArray());
+        self.restoreState(settings.value(self.UI_WINDOW_STATE).toByteArray());
         
         self.msdb_dao = MSDatabaseDAO(FILE_MS_DB)
         
@@ -117,29 +128,17 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         self.showTab(0)
         self.ui.statusbar.showMessage(get_ui_string("app.window.status.ready"))
         
-        
         # connect menu action to slots (ui events)
         self.ui.actionOpen_New.triggered.connect(self.createProj)
         self.ui.actionOpen_Existing.triggered.connect(self.loadProj)
         self.ui.actionSave.triggered.connect(self.saveProj)
-        self.ui.actionExit.triggered.connect(self.closeApplication)
+        self.ui.actionExit.triggered.connect(self.close)
         
         self.ui.actionData_Input.triggered.connect(self.changeTab)
         self.ui.actionMapping_Schemes.triggered.connect(self.changeTab)
         self.ui.actionResult.triggered.connect(self.changeTab)
         
         self.ui.actionAbout.triggered.connect(self.showAbout)
-        
-        """
-        QtCore.QObject.connect(self.actionExit, QtCore.SIGNAL(_fromUtf8("triggered()")), mainWindow.close)
-        QtCore.QObject.connect(self.actionOpen_New, QtCore.SIGNAL(_fromUtf8("triggered()")), mainWindow.createProj)
-        QtCore.QObject.connect(self.actionOpen_Existing, QtCore.SIGNAL(_fromUtf8("triggered()")), mainWindow.loadProj)
-        QtCore.QObject.connect(self.actionAbout, QtCore.SIGNAL(_fromUtf8("triggered()")), mainWindow.showAbout)
-        QtCore.QObject.connect(self.actionMapping_Schemes, QtCore.SIGNAL(_fromUtf8("triggered()")), mainWindow.changeTab)
-        QtCore.QObject.connect(self.actionData_Input, QtCore.SIGNAL(_fromUtf8("triggered()")), mainWindow.changeTab)
-        QtCore.QObject.connect(self.actionResult, QtCore.SIGNAL(_fromUtf8("triggered()")), mainWindow.changeTab)
-        QtCore.QObject.connect(self.actionSave, QtCore.SIGNAL(_fromUtf8("triggered()")), mainWindow.saveProj)
-        """
         
         # enable following during development
         self._dev_short_cut()
@@ -154,10 +153,18 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
 
     # event handlers
     #############################
+    @pyqtSlot(QCloseEvent)
     def resizeEvent(self, event):
         """ handle window resize """
         self.ui.mainTabs.resize(self.width(), self.height()-40)
-        #logUICall.log('resize done for %s' % self.__module__, logUICall.INFO)
+    
+    @pyqtSlot(QCloseEvent)    
+    def closeEvent(self, event):
+        self.close_project()
+        settings = QSettings(SIDD_COMPANY, '%s %s' %(SIDD_APP_NAME, SIDD_VERSION));
+        settings.setValue(self.UI_WINDOW_GEOM, self.saveGeometry());
+        settings.setValue(self.UI_WINDOW_STATE, self.saveState());        
+        super(AppMainWindow, self).closeEvent(event)
     
     @logUICall 
     @pyqtSlot()   
@@ -169,7 +176,7 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
                                                get_app_dir(),
                                                get_ui_string("app.extension.db"))       
         if not filename.isNull():            
-            project = Project(str(filename), self.app_config)
+            project = Project(str(filename), self.app_config, self.taxonomy)
             
             self.project = project
             # open sucessful
@@ -193,12 +200,6 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
     def saveProj(self):
         """ save active project """
         self.project.sync(SyncModes.Write)
-
-    @logUICall    
-    @pyqtSlot()
-    def closeApplication(self):
-        self.close_project()
-        super(AppMainWindow, self).close()
 
     @logUICall
     @pyqtSlot()
@@ -256,7 +257,7 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         """ open a project and sync UI accordingly"""        
         self.close_project()
         
-        project = Project(str(project_file), self.app_config)
+        project = Project(str(project_file), self.app_config, self.taxonomy)
         project.sync(SyncModes.Read)
         # open sucessful
         # sync ui
@@ -296,14 +297,12 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
     @apiCallChecker
     def buildMappingScheme(self):
         """ build mapping scheme with given data """
-        # TODO: allow customization of mapping scheme creation        
         self.project.build_ms()
         self.visualizeMappingScheme(self.project.ms)
 
     @apiCallChecker
     def createEmptyMS(self):
         """ build an empty mapping scheme tree for user to manipulate manually """
-        # TODO: allow customization of mapping scheme creation
         self.project.create_empty_ms()
         self.visualizeMappingScheme(self.project.ms)
     

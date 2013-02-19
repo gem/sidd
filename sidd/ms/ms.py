@@ -87,7 +87,7 @@ class MappingScheme (object):
         # check to make sure it is correct.
         # use DTD???
         tax = tree.find('taxonomy')
-        self.taxonomy = get_taxonomy(tax.find('name').text)
+        self.taxonomy = get_taxonomy(tax.find('name').text)        
         self.ms = {}
         for zone in tree.findall("zone"):
             stats = Statistics(self.taxonomy)

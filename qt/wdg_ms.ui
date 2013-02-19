@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>921</width>
-    <height>684</height>
+    <width>934</width>
+    <height>687</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -39,299 +39,6 @@
     <string>Apply Mapping Scheme</string>
    </property>
   </widget>
-  <widget class="QGroupBox" name="box_ms_library">
-   <property name="enabled">
-    <bool>true</bool>
-   </property>
-   <property name="geometry">
-    <rect>
-     <x>390</x>
-     <y>70</y>
-     <width>521</width>
-     <height>551</height>
-    </rect>
-   </property>
-   <property name="title">
-    <string>Mapping Schemes</string>
-   </property>
-   <widget class="QListWidget" name="list_ms_library_regions">
-    <property name="geometry">
-     <rect>
-      <x>310</x>
-      <y>40</y>
-      <width>200</width>
-      <height>191</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLabel" name="lb_ms_library_regions">
-    <property name="geometry">
-     <rect>
-      <x>310</x>
-      <y>20</y>
-      <width>200</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <weight>75</weight>
-      <bold>true</bold>
-     </font>
-    </property>
-    <property name="text">
-     <string>Regions</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="lb_ms_library_types">
-    <property name="geometry">
-     <rect>
-      <x>310</x>
-      <y>240</y>
-      <width>200</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <weight>75</weight>
-      <bold>true</bold>
-     </font>
-    </property>
-    <property name="text">
-     <string>Types</string>
-    </property>
-   </widget>
-   <widget class="QListWidget" name="list_ms_library_types">
-    <property name="geometry">
-     <rect>
-      <x>310</x>
-      <y>260</y>
-      <width>200</width>
-      <height>81</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QListWidget" name="list_ms_library_msnames">
-    <property name="geometry">
-     <rect>
-      <x>310</x>
-      <y>380</y>
-      <width>200</width>
-      <height>151</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLabel" name="lb_ms_library_msnames">
-    <property name="geometry">
-     <rect>
-      <x>310</x>
-      <y>350</y>
-      <width>200</width>
-      <height>25</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <weight>75</weight>
-      <bold>true</bold>
-     </font>
-    </property>
-    <property name="text">
-     <string>Available Mapping Schemes</string>
-    </property>
-   </widget>
-   <widget class="QTreeView" name="tree_ms_library">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>40</y>
-      <width>280</width>
-      <height>321</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLabel" name="lb_tree_ms_library">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>20</y>
-      <width>280</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <weight>75</weight>
-      <bold>true</bold>
-     </font>
-    </property>
-   </widget>
-   <widget class="QLabel" name="lb_ms_library_date">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>370</y>
-      <width>100</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <weight>75</weight>
-      <bold>true</bold>
-     </font>
-    </property>
-    <property name="text">
-     <string>Date Created</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="lb_ms_library_notes">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>460</y>
-      <width>100</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <weight>75</weight>
-      <bold>true</bold>
-     </font>
-    </property>
-    <property name="text">
-     <string>Use Notes</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="txt_ms_library_date">
-    <property name="geometry">
-     <rect>
-      <x>120</x>
-      <y>370</y>
-      <width>171</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="readOnly">
-     <bool>true</bool>
-    </property>
-   </widget>
-   <widget class="QTextEdit" name="txt_ms_library_notes">
-    <property name="geometry">
-     <rect>
-      <x>120</x>
-      <y>460</y>
-      <width>171</width>
-      <height>71</height>
-     </rect>
-    </property>
-    <property name="readOnly">
-     <bool>true</bool>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="txt_ms_library_datasource">
-    <property name="geometry">
-     <rect>
-      <x>120</x>
-      <y>400</y>
-      <width>171</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="readOnly">
-     <bool>true</bool>
-    </property>
-   </widget>
-   <widget class="QLabel" name="lb_ms_library_datasource">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>400</y>
-      <width>100</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <weight>75</weight>
-      <bold>true</bold>
-     </font>
-    </property>
-    <property name="text">
-     <string>Data Source</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="lb_ms_library_quality">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>430</y>
-      <width>100</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <weight>75</weight>
-      <bold>true</bold>
-     </font>
-    </property>
-    <property name="text">
-     <string>Percentage of</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="txt_ms_library_quality">
-    <property name="geometry">
-     <rect>
-      <x>120</x>
-      <y>430</y>
-      <width>171</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="readOnly">
-     <bool>true</bool>
-    </property>
-   </widget>
-   <widget class="QLabel" name="lb_ms_library_ms">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>20</y>
-      <width>100</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <weight>75</weight>
-      <bold>true</bold>
-     </font>
-    </property>
-    <property name="text">
-     <string>Use Notes</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btn_del_lib_ms">
-    <property name="geometry">
-     <rect>
-      <x>480</x>
-      <y>350</y>
-      <width>31</width>
-      <height>25</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="icon">
-     <iconset resource="resources/SIDDResource.qrc">
-      <normaloff>:/imgs/icons/minus.png</normaloff>:/imgs/icons/minus.png</iconset>
-    </property>
-   </widget>
-  </widget>
   <widget class="QLabel" name="lb_panel_title">
    <property name="geometry">
     <rect>
@@ -352,36 +59,6 @@
     <string>Assign Mapping Schemes</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="btn_add_branch">
-   <property name="geometry">
-    <rect>
-     <x>350</x>
-     <y>200</y>
-     <width>31</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string/>
-   </property>
-   <property name="icon">
-    <iconset resource="resources/SIDDResource.qrc">
-     <normaloff>:/imgs/icons/arrow_left.png</normaloff>:/imgs/icons/arrow_left.png</iconset>
-   </property>
-  </widget>
-  <widget class="QCheckBox" name="ck_enable_ms_library">
-   <property name="geometry">
-    <rect>
-     <x>390</x>
-     <y>50</y>
-     <width>251</width>
-     <height>17</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Enable MS Library</string>
-   </property>
-  </widget>
   <widget class="QWidget" name="widget_ms_tree" native="true">
    <property name="geometry">
     <rect>
@@ -400,23 +77,6 @@
       <height>31</height>
      </rect>
     </property>
-    <widget class="QPushButton" name="btn_create_ms">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>0</y>
-       <width>31</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-     <property name="icon">
-      <iconset resource="resources/SIDDResource.qrc">
-       <normaloff>:/imgs/icons/new.png</normaloff>:/imgs/icons/new.png</iconset>
-     </property>
-    </widget>
     <widget class="QPushButton" name="btn_edit_level">
      <property name="geometry">
       <rect>
@@ -432,23 +92,6 @@
      <property name="icon">
       <iconset resource="resources/SIDDResource.qrc">
        <normaloff>:/imgs/icons/edit.png</normaloff>:/imgs/icons/edit.png</iconset>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="btn_save_ms">
-     <property name="geometry">
-      <rect>
-       <x>30</x>
-       <y>0</y>
-       <width>31</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-     <property name="icon">
-      <iconset resource="resources/SIDDResource.qrc">
-       <normaloff>:/imgs/icons/save.png</normaloff>:/imgs/icons/save.png</iconset>
      </property>
     </widget>
     <widget class="QPushButton" name="btn_del_child">
@@ -485,6 +128,40 @@
        <normaloff>:/imgs/icons/add.png</normaloff>:/imgs/icons/add.png</iconset>
      </property>
     </widget>
+    <widget class="QPushButton" name="btn_expand_tree">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/magnify_plus.png</normaloff>:/imgs/icons/magnify_plus.png</iconset>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_collapse_tree">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/magnify_minus.png</normaloff>:/imgs/icons/magnify_minus.png</iconset>
+     </property>
+    </widget>
    </widget>
    <widget class="QTreeView" name="tree_ms">
     <property name="geometry">
@@ -501,11 +178,28 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>41</width>
+      <width>71</width>
       <height>31</height>
      </rect>
     </property>
-    <widget class="QPushButton" name="btn_build_ms">
+    <widget class="QPushButton" name="btn_save_ms">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/save.png</normaloff>:/imgs/icons/save.png</iconset>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_create_ms">
      <property name="geometry">
       <rect>
        <x>0</x>
@@ -519,7 +213,428 @@
      </property>
      <property name="icon">
       <iconset resource="resources/SIDDResource.qrc">
-       <normaloff>:/imgs/icons/magnify.png</normaloff>:/imgs/icons/magnify.png</iconset>
+       <normaloff>:/imgs/icons/new.png</normaloff>:/imgs/icons/new.png</iconset>
+     </property>
+    </widget>
+   </widget>
+  </widget>
+  <widget class="QWidget" name="widgetMSLibrary" native="true">
+   <property name="geometry">
+    <rect>
+     <x>350</x>
+     <y>50</y>
+     <width>561</width>
+     <height>571</height>
+    </rect>
+   </property>
+   <widget class="QCheckBox" name="ck_enable_ms_library">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>0</y>
+      <width>251</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Enable MS Library</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_add_branch">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>150</y>
+      <width>31</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset resource="resources/SIDDResource.qrc">
+      <normaloff>:/imgs/icons/arrow_left.png</normaloff>:/imgs/icons/arrow_left.png</iconset>
+    </property>
+   </widget>
+   <widget class="QGroupBox" name="box_ms_library">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>20</y>
+      <width>521</width>
+      <height>551</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Mapping Schemes</string>
+    </property>
+    <widget class="QListWidget" name="list_ms_library_regions_2">
+     <property name="geometry">
+      <rect>
+       <x>310</x>
+       <y>40</y>
+       <width>200</width>
+       <height>191</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_ms_library_regions_2">
+     <property name="geometry">
+      <rect>
+       <x>310</x>
+       <y>20</y>
+       <width>200</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Regions</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_ms_library_types_2">
+     <property name="geometry">
+      <rect>
+       <x>310</x>
+       <y>240</y>
+       <width>200</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Types</string>
+     </property>
+    </widget>
+    <widget class="QListWidget" name="list_ms_library_types_2">
+     <property name="geometry">
+      <rect>
+       <x>310</x>
+       <y>260</y>
+       <width>200</width>
+       <height>81</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QListWidget" name="list_ms_library_msnames_2">
+     <property name="geometry">
+      <rect>
+       <x>310</x>
+       <y>380</y>
+       <width>200</width>
+       <height>151</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_ms_library_msnames_2">
+     <property name="geometry">
+      <rect>
+       <x>310</x>
+       <y>350</y>
+       <width>200</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Available Mapping Schemes</string>
+     </property>
+    </widget>
+    <widget class="QTreeView" name="tree_ms_library_2">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>40</y>
+       <width>280</width>
+       <height>321</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_tree_ms_library_2">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>20</y>
+       <width>280</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_ms_library_date_2">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>370</y>
+       <width>100</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Date Created</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_ms_library_notes_2">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>460</y>
+       <width>100</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Use Notes</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txt_ms_library_date_2">
+     <property name="geometry">
+      <rect>
+       <x>120</x>
+       <y>370</y>
+       <width>171</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QTextEdit" name="txt_ms_library_notes_2">
+     <property name="geometry">
+      <rect>
+       <x>120</x>
+       <y>460</y>
+       <width>171</width>
+       <height>71</height>
+      </rect>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txt_ms_library_datasource_2">
+     <property name="geometry">
+      <rect>
+       <x>120</x>
+       <y>400</y>
+       <width>171</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_ms_library_datasource_2">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>400</y>
+       <width>100</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Data Source</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_ms_library_quality_2">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>430</y>
+       <width>100</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Percentage of</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txt_ms_library_quality_2">
+     <property name="geometry">
+      <rect>
+       <x>120</x>
+       <y>430</y>
+       <width>171</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_ms_library_ms_2">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>100</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Use Notes</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_del_lib_ms_2">
+     <property name="geometry">
+      <rect>
+       <x>480</x>
+       <y>350</y>
+       <width>31</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/minus.png</normaloff>:/imgs/icons/minus.png</iconset>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="widgetMSLeaves" native="true">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>561</width>
+      <height>571</height>
+     </rect>
+    </property>
+    <widget class="QTableView" name="table_ms_leaves">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>80</y>
+       <width>561</width>
+       <height>441</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="cb_ms_zones">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>30</y>
+       <width>151</width>
+       <height>22</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_ms_zones">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>30</y>
+       <width>41</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Zone</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txt_leaves_total">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>410</x>
+       <y>530</y>
+       <width>151</width>
+       <height>20</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_leaves_total">
+     <property name="geometry">
+      <rect>
+       <x>300</x>
+       <y>530</y>
+       <width>91</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Total</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_ms_leaves">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>60</y>
+       <width>111</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Building Distribution</string>
      </property>
     </widget>
    </widget>
