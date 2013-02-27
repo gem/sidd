@@ -148,6 +148,7 @@ class WorkflowBuilder(object):
 
     # public method
     ##################################
+    @logAPICall
     def build_load_fp_workflow(self, project):
         workflow = Workflow()
         workflow.ready=True
@@ -159,6 +160,7 @@ class WorkflowBuilder(object):
             workflow.ready=False        
         return workflow
 
+    @logAPICall
     def build_load_survey_workflow(self, project):
         workflow = Workflow()
         workflow.ready=True
@@ -170,6 +172,7 @@ class WorkflowBuilder(object):
             workflow.ready=False        
         return workflow
     
+    @logAPICall
     def build_load_zones_workflow(self, project):
         workflow = Workflow()
         workflow.ready=True
@@ -292,25 +295,88 @@ class WorkflowBuilder(object):
         
         return workflow
 
+    @logAPICall
     def build_export_workflow(self, project):
         workflow = Workflow()
         
         workflow.operator_data['exposure_file'] = OperatorData(OperatorDataTypes.Shapefile, project.exposure_file)
-        workflow.operator_data['export_file'] = OperatorData(OperatorDataTypes.File, project.export_file)
+        workflow.operator_data['export_path'] = OperatorData(OperatorDataTypes.File, project.export_path)
         export_type = project.export_type
         if export_type == ExportTypes.Shapefile:
             export_operator = ExposureSHPWriter(self._operator_options)
         elif export_type == ExportTypes.KML:
             export_operator = ExposureKMLWriter(self._operator_options)
+        elif export_type == ExportTypes.CSV:
+            export_operator = ExposureCSVWriter(self._operator_options)
         elif export_type == ExportTypes.NRML:
             export_operator = ExposureNRMLWriter(self._operator_options)
         else:
             return
         export_operator.inputs= [workflow.operator_data['exposure_file'],
-                                 workflow.operator_data['export_file'],]        
+                                 workflow.operator_data['export_path'],]        
         workflow.operators.append(export_operator)
         workflow.ready=True
         
+        return workflow
+
+    @logAPICall
+    def build_export_distribution_workflow(self, project, export_folder):
+        workflow = Workflow()
+        workflow.operator_data['ms'] = OperatorData(OperatorDataTypes.MappingScheme, project.ms)
+        workflow.operator_data['export_folder'] = OperatorData(OperatorDataTypes.StringAttribute, export_folder)
+        
+        export_operator = MSLeavesCSVWriter(self._operator_options)
+        export_operator.inputs = [workflow.operator_data['ms'],
+                                  workflow.operator_data['export_folder']]
+        
+        workflow.operators.append(export_operator)
+        workflow.ready=True
+        
+        return workflow
+        
+
+    @logAPICall
+    def build_verify_result_workflow(self, project):
+        workflow = Workflow()
+        
+        if getattr(project, 'exposure', None) is None:
+            workflow.add_error(WorkflowErrors.NeedExposure)            
+            return workflow
+        
+        # check fragmentation
+        workflow.operator_data['exposure'] = OperatorData(OperatorDataTypes.Exposure, project.exposure)
+        workflow.operator_data['frag_report'] = OperatorData(OperatorDataTypes.Report)
+        
+        frag_analyzer = ExposureFragmentationAnalyzer(self._operator_options)
+        frag_analyzer.inputs = [workflow.operator_data['exposure']]
+        frag_analyzer.outputs = [workflow.operator_data['frag_report']]
+        workflow.operators.append(frag_analyzer)
+        
+        # check count
+        # building count from fp or zone vs. exposure
+        cnt_analyzer = None
+        if project.fp_type == FootprintTypes.Footprint:
+            self.load_footprint(project, workflow, withHt=False)
+            cnt_analyzer = ExposureFootprintCountAnalyzer(self._operator_options)
+            cnt_analyzer.inputs = [workflow.operator_data['exposure'],
+                                   workflow.operator_data['fp']]
+        elif project.zone_type == ZonesTypes.LanduseCount:
+            self.load_zone(project, workflow, withCount=True)
+            cnt_analyzer = ExposureZoneCountAnalyzer(self._operator_options)
+            cnt_analyzer.inputs = [workflow.operator_data['exposure'],
+                                   workflow.operator_data['zone'],
+                                   workflow.operator_data['zone_count_field'],]
+        else:
+            workflow.add_error(WorkflowErrors.NeedsCount)
+            return workflow
+            
+        if cnt_analyzer is not None:
+            # cnt_analyzer <> None only if data requirement is met 
+            workflow.operator_data['count_report'] = OperatorData(OperatorDataTypes.Report)
+            cnt_analyzer.outputs = [workflow.operator_data['count_report']]
+            workflow.operators.append(cnt_analyzer)
+        
+        workflow.ready = True
         return workflow
 
 
@@ -384,6 +450,7 @@ class WorkflowBuilder(object):
         # add to workflow
         workflow.operators.append(zone_loader)
     
+    @logAPICall
     def load_survey(self, project, workflow, isComplete):
         # required operator_data for additional processing
         workflow.operator_data['survey_input_file'] = OperatorData(OperatorDataTypes.File, project.survey_file)

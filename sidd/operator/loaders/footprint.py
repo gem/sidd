@@ -43,7 +43,6 @@ class FootprintLoader(Operator):
         
     # self documenting method override
     ###########################
-    
     @property
     def input_types(self):
         return [OperatorDataTypes.Shapefile]

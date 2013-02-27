@@ -42,11 +42,11 @@ def Enum(*names):
         def __cmp__(self, other):
             # C fans might want to remove the following assertion
             # to make all enums comparable by ordinal value {;))
-            assert self.EnumType is other.EnumType, "Only values from the same enum are comparable"
-            return cmp(self.__value, other.__value)
+            assert self.EnumType is other.EnumType, "Only values from the same enum are comparable"                        
+            return cmp(self.__value, other.__value)            
         def __invert__(self):      return constants[maximum - self.__value]
         def __nonzero__(self):     return bool(self.__value)
-        def __repr__(self):        return str(names[self.__value])
+        def __repr__(self):        return str(names[self.__value])        
 
     maximum = len(names) - 1
     constants = [None] * len(names)

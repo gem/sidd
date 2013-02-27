@@ -20,7 +20,7 @@
 dialog for editing mapping scheme branches
 """
 from PyQt4.QtGui import QDialog, QAbstractItemView
-from PyQt4.QtCore import QSize, Qt, QVariant, QString, QAbstractTableModel
+from PyQt4.QtCore import Qt, QVariant, QString, QAbstractTableModel
 from operator import itemgetter
 
 from sidd.constants import logAPICall, CNT_FIELD_NAME
@@ -48,11 +48,9 @@ class DialogResult(Ui_tablePreviewDialog, QDialog):
     # window event handler overrides
     #############################
     def resizeEvent(self, event):
-        """ handle window resize """
-        self.ui.table_result.resize(
-            QSize(self.width()-2*UI_PADDING, 
-                  self.height() - self.ui.table_result.y()-self.ui.btn_ok.height()-2*UI_PADDING))
-        
+        """ handle window resize """        
+        self.ui.table_result.resize(self.width()-2*UI_PADDING,
+                                    self.height() - self.ui.table_result.y()-self.ui.btn_ok.height()-2*UI_PADDING)                        
         below_table = self.height() - self.ui.btn_ok.height() - UI_PADDING
         self.ui.lb_bldgcount.move(UI_PADDING, below_table)        
         self.ui.txt_bldgcount.move(self.ui.lb_bldgcount.width()+(2*UI_PADDING), below_table)
@@ -66,26 +64,29 @@ class DialogResult(Ui_tablePreviewDialog, QDialog):
         """
         display selected rows with header
         """
-        fnames =[]        
+        fnames =[]      # retrieve field name as table headers
+        cnt_sum = 0     # total number of buildings 
+                
+        # find index for building count field
         cnt_idx = -1
         for i, f in header.iteritems():
             fnames.append(f.name())
             if f.name() == CNT_FIELD_NAME:
                 cnt_idx = i        
-
-        # TODO: error handling if cnt_idx == -1
-        cnt_sum = 0
-        for s in selected:
-            cnt_sum  += s[cnt_idx].toInt()[0]
-
-        # sync UI 
+        if cnt_idx <> -1:   # building count index is found
+            # increment building count
+            for s in selected:
+                cnt_sum  += s[cnt_idx].toInt()[0]
+                
+        # display result 
         self.resultDetailModel = ResultDetailTableModel(header.values(), selected)        
         self.ui.table_result.setModel(self.resultDetailModel)
-        self.ui.table_result.sortByColumn(3, Qt.AscendingOrder)
-        self.ui.txt_bldgcount.setText('%d'% cnt_sum) 
-        self.ui.txt_bldgcount.setReadOnly(True)
+        self.ui.table_result.sortByColumn(3, Qt.AscendingOrder)        
+        # following only visible for exposure layers        
         self.ui.txt_bldgcount.setVisible(True) 
         self.ui.lb_bldgcount.setVisible(True)
+        self.ui.txt_bldgcount.setText('%d'% cnt_sum)
+        self.ui.txt_bldgcount.setReadOnly(True)        
 
     @logUICall
     def showInfoData(self, header, selected):
@@ -93,6 +94,7 @@ class DialogResult(Ui_tablePreviewDialog, QDialog):
         self.resultDetailModel = ResultDetailTableModel(header.values(), selected)        
         self.ui.table_result.setModel(self.resultDetailModel)
         self.ui.table_result.sortByColumn(3, Qt.AscendingOrder)
+        # following not visible for other layers
         self.ui.txt_bldgcount.setVisible(False) 
         self.ui.lb_bldgcount.setVisible(False)
 
@@ -109,6 +111,7 @@ class ResultDetailTableModel(QAbstractTableModel):
         # table header 
         self.headers = fields        
         # create copy of values to be shown and modified
+        # this format makes it easier to sort
         self.selected = []
         for row in selected:
             new_row = []

@@ -22,17 +22,17 @@ Widget (Panel) for result review
 from os.path import exists  
 
 from PyQt4.QtGui import QWidget, QMessageBox, QFileDialog
-from PyQt4.QtCore import Qt, QObject, QRect, QSize, QPoint, pyqtSlot
+from PyQt4.QtCore import Qt, QObject, QPoint, pyqtSlot
 from qgis.gui import QgsMapCanvas, QgsMapCanvasLayer, \
                      QgsMapToolPan, QgsMapToolZoom, QgsMapToolEmitPoint, \
-                     QgsSymbolV2SelectorDialog
+                     QgsRendererV2PropertiesDialog
 from qgis.core import QGis, QgsMapLayerRegistry, QgsStyleV2, \
                       QgsCoordinateReferenceSystem, QgsCoordinateTransform, \
                       QgsFeature, QgsRectangle
 
 from utils.shapefile import load_shapefile
 from utils.system import get_app_dir
-from sidd.constants import ExportTypes
+from sidd.constants import ExportTypes, ExtrapolateOptions
 
 from ui.constants import logUICall, get_ui_string, UI_PADDING
 from ui.dlg_result import DialogResult
@@ -49,13 +49,9 @@ class WidgetResult(Ui_widgetResult, QWidget):
     EXPORT_FORMATS = {
         get_ui_string("app.extension.shapefile"):ExportTypes.Shapefile,
         get_ui_string("app.extension.kml"):ExportTypes.KML,
-        get_ui_string("app.extension.nrml"):ExportTypes.NRML,
+        #get_ui_string("app.extension.nrml"):ExportTypes.NRML,
+        get_ui_string("app.extension.csv"):ExportTypes.CSV,
     };
-    EXPORT_EXTENSIONS = {
-        get_ui_string("app.extension.shapefile"):".shp",
-        get_ui_string("app.extension.kml"):".kml",
-        get_ui_string("app.extension.nrml"):".nrml",
-    }
     ''' ennumaration of Layer to be previewed '''
     EXPOSURE, SURVEY, FOOTPRINT, ZONES = range(4);
     ''' name for Layer to be previewed '''
@@ -78,18 +74,21 @@ class WidgetResult(Ui_widgetResult, QWidget):
 
         # create canvas
         self.canvas = QgsMapCanvas(self.ui.widget_map)
-        self.canvas.setGeometry(QRect(
+        self.canvas.setGeometry(
             0,                                                                # x
             self.ui.widget_map_menu_l.x()+self.ui.widget_map_menu_l.height(), # y  
             self.ui.widget_map.width() - 2*UI_PADDING,  # width
             self.ui.widget_map.width() - 2*UI_PADDING   # height
-            ))
+            )
         
         self.canvas.setCanvasColor(Qt.white)
         self.canvas.enableAntiAliasing(True)
         self.canvas.mapRenderer().setProjectionsEnabled(True)
         self.canvas.mapRenderer().setDestinationCrs(QgsCoordinateReferenceSystem(4326, QgsCoordinateReferenceSystem.PostgisCrsId))
         self.map_layers = [None] * 4
+        
+        # style object
+        self.style = QgsStyleV2()
         
         # create the map tools
         self.toolPan = QgsMapToolPan(self.canvas)
@@ -116,13 +115,14 @@ class WidgetResult(Ui_widgetResult, QWidget):
         self.ui.btn_zoom_full.clicked.connect(self.mapZoomFull)
         self.ui.btn_zoom_in.clicked.connect(self.mapZoomIn)
         self.ui.btn_zoom_out.clicked.connect(self.mapZoomOut)
+        self.ui.btn_zoom_layer.clicked.connect(self.mapZoomLayer)
         self.ui.btn_pan.clicked.connect(self.mapPan)
         self.ui.btn_theme.clicked.connect(self.mapEditTheme)
         self.ui.btn_info.clicked.connect(self.mapIdentify)
         
         self.ui.cb_export_format.currentIndexChanged[str].connect(self.exportFormatChanged)
         self.ui.btn_export.clicked.connect(self.exportData)
-        self.ui.btn_export_select_file.clicked.connect(self.selectExportFile)
+        self.ui.btn_export_select_path.clicked.connect(self.selectExportFile)
 
     # UI event handling calls (Qt slots)
     ###############################
@@ -133,21 +133,19 @@ class WidgetResult(Ui_widgetResult, QWidget):
         # find left coordinate for right side panels
         x_right_side = self.width()-self.ui.widget_export.width()-UI_PADDING
         # adjust right side panels
-        self.ui.widget_export.move(QPoint(x_right_side, 30))
-        self.ui.widget_dq_test.move(QPoint(x_right_side, self.ui.widget_export.y()+self.ui.widget_export.height()+UI_PADDING))
+        self.ui.widget_export.move(x_right_side, 30)
+        self.ui.widget_dq_test.move(x_right_side, self.ui.widget_export.y()+self.ui.widget_export.height()+UI_PADDING)
         # adjust map panel (left side)        
-        self.ui.widget_map.resize(QSize(x_right_side-UI_PADDING, self.height()-2*UI_PADDING))
+        self.ui.widget_map.resize(x_right_side-UI_PADDING, self.height()-2*UI_PADDING)
         # adjust map canvas within the map panel        
         map_top = self.ui.widget_map_menu_l.x()+self.ui.widget_map_menu_l.height()+UI_PADDING        
-        self.canvas.resize(QSize(
+        self.canvas.resize(
             x_right_side-UI_PADDING,                            # same width as self.ui.widget_map
-            self.ui.widget_map.height()-map_top-2*UI_PADDING    # height
-            ))
+            self.ui.widget_map.height()-map_top-2*UI_PADDING)   # height        
         # adjust map menu
         self.ui.widget_map_menu_r.move(
             self.ui.widget_map.width()-self.ui.widget_map_menu_r.width(),   # right align with map panel 
             0)
-        #logUICall.log('resize done for %s' % self.__module__, logUICall.INFO)
 
     @logUICall
     @pyqtSlot()
@@ -171,8 +169,14 @@ class WidgetResult(Ui_widgetResult, QWidget):
     @pyqtSlot()
     def mapZoomFull(self):
         """ event handler for btn_zoom_full - zoom to full map """
-        self.canvas.zoomToFullExtent()    
+        self.canvas.zoomToFullExtent()
 
+    @logUICall
+    @pyqtSlot()
+    def mapZoomLayer(self):
+        cur_layer_name = self.ui.cb_layer_selector.currentText()                
+        self.zoomToLayer(self.map_layers[self.LAYER_NAMES.index(cur_layer_name)])
+        
     @logUICall
     @pyqtSlot()
     def mapEditTheme(self):
@@ -182,16 +186,14 @@ class WidgetResult(Ui_widgetResult, QWidget):
             cur_layer_idx = self.LAYER_NAMES.index(cur_layer)            
 
             # create property dialog box for current layer
-            # this dialog changing color single symbol
-            p_dialog = QgsSymbolV2SelectorDialog(self.map_layers[cur_layer_idx].rendererV2().symbol(), QgsStyleV2())
-            p_dialog.setWindowTitle(get_ui_string("widget.result.layers.theme.title") % self.LAYER_NAMES[cur_layer_idx])                 
-            answer = p_dialog.exec_()
+            dlg_render = QgsRendererV2PropertiesDialog(self.map_layers[cur_layer_idx], self.style)            
+            answer = dlg_render.exec_()
             if answer == QMessageBox.Accepted:
                 self.canvas.refresh()
-            p_dialog.destroy()
+            dlg_render.destroy()            
         except Exception as err:
-            print err            
-    
+            print err
+            
     @logUICall
     @pyqtSlot()
     def mapIdentify(self):
@@ -206,16 +208,13 @@ class WidgetResult(Ui_widgetResult, QWidget):
     @pyqtSlot()
     def selectExportFile(self):
         """
-        event handler for btn_export_select_file 
+        event handler for btn_export_select_path 
         - open save file dialog box to select file name for export 
-        """
-        filename = QFileDialog.getSaveFileName(self,
-                                               get_ui_string("widget.result.export.file.open"),
-                                               get_app_dir(),
-                                               self.ui.cb_export_format.currentText())
-        if not filename.isNull():
-            self.ui.txt_export_select_file.setText(filename)            
-    
+        """     
+        folder = QFileDialog.getExistingDirectory(self, get_ui_string("widget.result.export.path.dialog"))            
+        if not folder.isNull():
+            self.ui.txt_export_select_path.setText(folder)
+        
     @logUICall
     @pyqtSlot(str)
     def exportFormatChanged(self, selected_val):
@@ -224,20 +223,7 @@ class WidgetResult(Ui_widgetResult, QWidget):
         - update selected file after format change
         """
         self.export_format = self.EXPORT_FORMATS[str(selected_val)]
-        export_extension = self.EXPORT_EXTENSIONS[str(selected_val)]
         
-        # get base name and change extension based on format 
-        export_file = str(self.ui.txt_export_select_file.text())
-        if export_file != "":
-            # replace extension
-            if export_file.find('.') != -1:                
-                export_file = export_file[:export_file.find('.')] + export_extension
-            else:                
-                export_file = export_file + export_extension            
-            self.ui.txt_export_select_file.setText(export_file)
-        #else
-        #   file not specified, do nothing 
-    
     @logUICall
     @pyqtSlot()
     def exportData(self):
@@ -245,13 +231,13 @@ class WidgetResult(Ui_widgetResult, QWidget):
         event handler for btn_export
         - do export data 
         """
-        export_file = str(self.ui.txt_export_select_file.text())
-        if export_file == "":
+        export_path = str(self.ui.txt_export_select_path.text())
+        if export_path == "":
             QMessageBox.critical(self, 
                                  get_ui_string("app.warning.title"), 
                                  get_ui_string("app.error.path.is.null"))
             return
-        self._project.set_export(self.export_format, export_file)
+        self._project.set_export(self.export_format, export_path)
         self._project.export_data()
         
     @logUICall
@@ -328,6 +314,8 @@ class WidgetResult(Ui_widgetResult, QWidget):
     project = property(get_project, set_project)
     
     def refreshView(self):
+        if self._project is None:
+            return
         # display layers if exists                
         if self._project.fp_file is not None and exists(self._project.fp_file):
             self.map_layers[self.FOOTPRINT] = load_shapefile(self._project.fp_file, 'footprint')
@@ -351,18 +339,58 @@ class WidgetResult(Ui_widgetResult, QWidget):
             self.map_layers[self.SURVEY] = None
             self.removeDataLayer(self.SURVEY)
         
-    
-    def refreshResult(self):
-        self.refreshView()
+        # set export options
+        for idx, export_format in enumerate(self.EXPORT_FORMATS.values()):
+            if export_format == self._project.export_type:
+                self.ui.cb_export_format.setCurrentIndex(idx)
+        self.ui.txt_export_select_path.setText(self._project.export_path)
+        self.refreshResult()
+        
+    def refreshResult(self):        
         exposure = getattr(self._project, 'exposure', None)
         if exposure is not None:
+            # display exposure layer
             self.map_layers[self.EXPOSURE] = exposure 
             self.showDataLayer(self.map_layers[self.EXPOSURE])
-            self.ui.btn_export.setEnabled(True)
+            
+            # build quality report 
+            report_lines = []
+            if self._project.operator_options.has_key("proc.extrapolation"):
+                proc_option = self._project.operator_options["proc.extrapolation"]
+                if proc_option == ExtrapolateOptions.RandomWalk:
+                    proc_method = get_ui_string("widget.result.dq.method") % get_ui_string("dlg.options.ep.random")
+                elif proc_option == ExtrapolateOptions.Fraction:
+                    proc_method = get_ui_string("widget.result.dq.method") % get_ui_string("dlg.options.ep.fraction")
+                elif proc_option == ExtrapolateOptions.FractionRounded:
+                    proc_method = get_ui_string("widget.result.dq.method") % get_ui_string("dlg.options.ep.fraction.rounded")
+            else:
+                proc_method = get_ui_string("widget.result.dq.method") % get_ui_string("dlg.options.ep.random")
+            report_lines.append(proc_method)
+            report_lines.append('')
+            
+            # total tests
+            report_lines.append(get_ui_string('widget.result.dq.total_tests') % len(self._project.quality_reports.keys()))
+            report_lines.append('')
+            
+            # detail for each test
+            for key, report in self._project.quality_reports.iteritems():
+                report_lines.append(get_ui_string('widget.result.dq.tests.%s' % key))
+                for title, value in report.iteritems():
+                    report_lines.append( get_ui_string('widget.result.dq.tests.%s.%s' % (key, title)) % value )
+                report_lines.append('')                    
+            
+            self.ui.txt_dq_test_details.setText("\n".join(report_lines))
+            has_result = True
         else:
             self.map_layers[self.EXPOSURE] = None 
             self.removeDataLayer(self.EXPOSURE)
-            self.ui.btn_export.setEnabled(False)
+            has_result = False
+            
+        self.ui.btn_export.setEnabled(has_result)
+        self.ui.widget_dq_test.setVisible(has_result)
+        self.ui.txt_export_select_path.setEnabled(has_result)
+        self.ui.btn_export_select_path.setEnabled(has_result)
+        self.ui.cb_export_format.setEnabled(has_result)        
             
     @logUICall
     def closeResult(self):
@@ -393,7 +421,7 @@ class WidgetResult(Ui_widgetResult, QWidget):
                     self.ui.cb_layer_selector.addItem(self.LAYER_NAMES[idx])
             self.canvas.setLayerSet(layerSet)
             if (zoom_to):
-                self.canvas.setExtent(layer.extent())            
+                self.zoomToLayer(layer)
         except:
             return None
 
@@ -408,6 +436,19 @@ class WidgetResult(Ui_widgetResult, QWidget):
                 pass # do nothing if it fails. probably already deleted        
         self.map_layers[index] = None
 
+    def zoomToLayer(self, layer):
+        try:
+            lyr_extent = layer.extent()            
+            if layer.crs() != self.canvas.mapRenderer().destinationCrs():
+                transform = QgsCoordinateTransform(layer.crs(), self.canvas.mapRenderer().destinationCrs())
+                lyr_extent = transform.transform(lyr_extent)
+                            
+            self.canvas.setExtent(lyr_extent)
+            self.canvas.zoomByFactor(1.1)
+            self.canvas.refresh()
+        except:
+            self.mapZoomFull()
+
     def retranslateUi(self, ui):
         """ set constant strings """
         ui.lb_panel_title.setText(get_ui_string("widget.result.title"))
@@ -416,15 +457,13 @@ class WidgetResult(Ui_widgetResult, QWidget):
         
         ui.lb_export_title.setText(get_ui_string("widget.result.export.title"))
         ui.lb_export_format.setText(get_ui_string("widget.result.export.format"))
-        ui.lb_export_select_file.setText(get_ui_string("app.file.select"))
-        ui.btn_export_select_file.setText(get_ui_string("app.file.button"))
+        ui.lb_export_select_path.setText(get_ui_string("app.folder.select"))
+        ui.btn_export_select_path.setText(get_ui_string("app.file.button"))
         ui.btn_export.setText(get_ui_string("widget.result.export.button"))
-
+        
         ui.lbl_dq_test_title.setText(get_ui_string("widget.result.dq.title"))
-        ui.lb_dq_test_warning.setText(get_ui_string("widget.result.dq.warning"))
    
         # populate export list
         ui.cb_export_format.clear()
-        ui.cb_export_format.addItem(get_ui_string("app.extension.shapefile"))
-        ui.cb_export_format.addItem(get_ui_string("app.extension.kml"))
-        #ui.cb_export_format.addItem(get_ui_string("app.extension.nrml"))
+        for export_format in self.EXPORT_FORMATS.keys():
+            ui.cb_export_format.addItem(export_format)

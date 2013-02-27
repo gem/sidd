@@ -68,8 +68,15 @@
     <addaction name="actionMapping_Schemes"/>
     <addaction name="actionResult"/>
    </widget>
+   <widget class="QMenu" name="menuProcessing">
+    <property name="title">
+     <string>Processing</string>
+    </property>
+    <addaction name="actionProcessing_Options"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
+   <addaction name="menuProcessing"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -111,6 +118,11 @@
   <action name="actionSave">
    <property name="text">
     <string>Save</string>
+   </property>
+  </action>
+  <action name="actionProcessing_Options">
+   <property name="text">
+    <string>Processing Options</string>
    </property>
   </action>
  </widget>

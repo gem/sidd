@@ -30,14 +30,14 @@ logAPICall = SIDDLogging('core')
 ###########################
 SIDD_COMPANY = "GEM"
 SIDD_APP_NAME = "SIDD"
-SIDD_VERSION = '0.1'
+SIDD_VERSION = 'Beta 2'
 
 # maximum number of items before swithcing from in-memory algorithms
 # to file-based algorithms
 MAX_FEATURES_IN_MEMORY = 10000
 
 # 30 arc second
-DEFAULT_GRID_SIZE = 1 / 60. / 2.  
+DEFAULT_GRID_SIZE = 1 / 60. / 2.
 
 # field names for GIS shapefiles
 GID_FIELD_NAME = "GID"
@@ -59,11 +59,13 @@ FootprintTypes = Enum("None", "FootprintHt", "Footprint")
 ZonesTypes = Enum("None", "Landuse", "LanduseCount")
 SurveyTypes = Enum("None", "CompleteSurvey", "SampledSurvey")
 OutputTypes = Enum("Zone", "Grid")
-ExportTypes = Enum("Shapefile", "KML", "NRML")
+ExportTypes = Enum("Shapefile", "KML", "NRML", "CSV")
 SyncModes = Enum("Read", "Write")
 
 # project related
 ProjectStatus = Enum('NotVerified', 'ReadyForExposure', 'ReadyForMS')
+# processing options
+ExtrapolateOptions = Enum('RandomWalk', 'Fraction', 'FractionRounded')
 
 # workflow related
-WorkflowErrors = Enum("NeedsCount", "NeedsZone", "NeedsMS", "NeedSurvey", "NoActionDefined")
+WorkflowErrors = Enum("NeedsCount", "NeedsZone", "NeedsMS", "NeedSurvey", "NeedExposure", "NoActionDefined")

@@ -123,7 +123,13 @@ class MSTestCase(unittest.TestCase):
                 
     def test_StatsLeaves(self):
         stats = self.test_LoadMS(skipTest=True, statsOnly=True)
-        leaves =  stats.get_leaves(True)
+        leaves =  stats.get_leaves(refresh=True, with_modifier=True)
+        total = 0
+        for l in leaves:
+            total += l[1]
+        self.assertAlmostEqual(total, 1)
+
+        leaves =  stats.get_leaves(refresh=True, with_modifier=False)
         total = 0
         for l in leaves:
             total += l[1]

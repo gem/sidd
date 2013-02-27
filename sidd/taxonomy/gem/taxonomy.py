@@ -113,6 +113,8 @@ class GemTaxonomy(Taxonomy):
                 # multiple codes, split and search each
                 _levels = _attr.split('+')
                 for _i, _lvl in enumerate(_levels):
+                    if not self.__codes.has_key(_lvl):
+                        raise TaxonomyParseError('%s is not a valid taxonomy code' %(_lvl))
                     _attr_idx =  _order.index(self.__codes[_lvl].attribute.name)
                     _attr_val = _attributes[_attr_idx]
                     #_attr_val = _attributes[self.__codes[_lvl].order-1]
@@ -120,9 +122,11 @@ class GemTaxonomy(Taxonomy):
                         _attr_val.add_value(_lvl)
                     else:
                         raise TaxonomyParseError('incorrect value type for %s' %(_attr))
-            elif re.match('\w+\:\d+', _attr):
+            elif re.match('\w+\:\d*', _attr):
                 # code:value format
                 (_type_id, _val) = _attr.split(':')
+                if not self.__codes.has_key(_type_id):
+                    raise TaxonomyParseError('%s is not a valid taxonomy code' %(_type_id))
                 _attr_idx =  _order.index(self.__codes[_type_id].attribute.name)
                 _attr_val = _attributes[_attr_idx]
                 #_attr_val = _attributes[self.__codes[_type_id].order-1]
@@ -133,6 +137,8 @@ class GemTaxonomy(Taxonomy):
                 
             elif re.match('\w+', _attr):
                 # code only, search code table
+                if not self.__codes.has_key(_attr):
+                    raise TaxonomyParseError('%s is not a valid taxonomy code' %(_attr))
                 _attr_idx =  _order.index(self.__codes[_attr].attribute.name)
                 _attr_val = _attributes[_attr_idx]
                 #_attr_val = _attributes[self.__codes[_attr].order-1]

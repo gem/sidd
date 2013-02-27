@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qt\dlg_mod_input.ui'
 #
-# Created: Tue Feb 05 15:44:36 2013
+# Created: Tue Feb 19 17:03:10 2013
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -17,7 +17,7 @@ except AttributeError:
 class Ui_modifierInputDialog(object):
     def setupUi(self, modifierInputDialog):
         modifierInputDialog.setObjectName(_fromUtf8("modifierInputDialog"))
-        modifierInputDialog.resize(449, 380)
+        modifierInputDialog.resize(444, 378)
         self.lb_ms_tree = QtGui.QLabel(modifierInputDialog)
         self.lb_ms_tree.setGeometry(QtCore.QRect(10, 50, 181, 16))
         font = QtGui.QFont()
@@ -26,14 +26,14 @@ class Ui_modifierInputDialog(object):
         self.lb_ms_tree.setFont(font)
         self.lb_ms_tree.setObjectName(_fromUtf8("lb_ms_tree"))
         self.lb_mod_values = QtGui.QLabel(modifierInputDialog)
-        self.lb_mod_values.setGeometry(QtCore.QRect(200, 50, 201, 16))
+        self.lb_mod_values.setGeometry(QtCore.QRect(200, 100, 111, 16))
         font = QtGui.QFont()
         font.setWeight(75)
         font.setBold(True)
         self.lb_mod_values.setFont(font)
         self.lb_mod_values.setObjectName(_fromUtf8("lb_mod_values"))
         self.table_mod_values = QtGui.QTableView(modifierInputDialog)
-        self.table_mod_values.setGeometry(QtCore.QRect(200, 70, 231, 231))
+        self.table_mod_values.setGeometry(QtCore.QRect(200, 130, 231, 171))
         self.table_mod_values.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.table_mod_values.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.table_mod_values.setObjectName(_fromUtf8("table_mod_values"))
@@ -67,7 +67,7 @@ class Ui_modifierInputDialog(object):
         self.tree_ms.setGeometry(QtCore.QRect(10, 70, 181, 261))
         self.tree_ms.setObjectName(_fromUtf8("tree_ms"))
         self.widget_mod_values_menu_r = QtGui.QWidget(modifierInputDialog)
-        self.widget_mod_values_menu_r.setGeometry(QtCore.QRect(310, 40, 121, 31))
+        self.widget_mod_values_menu_r.setGeometry(QtCore.QRect(310, 100, 121, 31))
         self.widget_mod_values_menu_r.setObjectName(_fromUtf8("widget_mod_values_menu_r"))
         self.btn_add = QtGui.QPushButton(self.widget_mod_values_menu_r)
         self.btn_add.setGeometry(QtCore.QRect(60, 0, 31, 23))
@@ -83,13 +83,16 @@ class Ui_modifierInputDialog(object):
         icon1.addPixmap(QtGui.QPixmap(_fromUtf8(":/imgs/icons/minus.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.btn_delete.setIcon(icon1)
         self.btn_delete.setObjectName(_fromUtf8("btn_delete"))
-        self.btn_mod_build = QtGui.QPushButton(self.widget_mod_values_menu_r)
-        self.btn_mod_build.setGeometry(QtCore.QRect(0, 0, 31, 23))
-        self.btn_mod_build.setText(_fromUtf8(""))
-        icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap(_fromUtf8(":/imgs/icons/cog.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.btn_mod_build.setIcon(icon2)
-        self.btn_mod_build.setObjectName(_fromUtf8("btn_mod_build"))
+        self.cb_attributes = QtGui.QComboBox(modifierInputDialog)
+        self.cb_attributes.setGeometry(QtCore.QRect(200, 70, 231, 22))
+        self.cb_attributes.setObjectName(_fromUtf8("cb_attributes"))
+        self.lb_attribute = QtGui.QLabel(modifierInputDialog)
+        self.lb_attribute.setGeometry(QtCore.QRect(200, 50, 111, 16))
+        font = QtGui.QFont()
+        font.setWeight(75)
+        font.setBold(True)
+        self.lb_attribute.setFont(font)
+        self.lb_attribute.setObjectName(_fromUtf8("lb_attribute"))
 
         self.retranslateUi(modifierInputDialog)
         QtCore.QMetaObject.connectSlotsByName(modifierInputDialog)
@@ -103,5 +106,6 @@ class Ui_modifierInputDialog(object):
         self.lb_title.setText(QtGui.QApplication.translate("modifierInputDialog", "Edit Modifier", None, QtGui.QApplication.UnicodeUTF8))
         self.lb_percent.setText(QtGui.QApplication.translate("modifierInputDialog", "%", None, QtGui.QApplication.UnicodeUTF8))
         self.lb_total_weights.setText(QtGui.QApplication.translate("modifierInputDialog", "Some of Weights", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_attribute.setText(QtGui.QApplication.translate("modifierInputDialog", "Attrbitue", None, QtGui.QApplication.UnicodeUTF8))
 
 import SIDDResource_rc

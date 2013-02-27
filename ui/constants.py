@@ -43,7 +43,7 @@ SIDD_UI_STRINGS = {
     'app.error.ui':'Error Processing Request',
     'app.error.file.does.not.exist':'File %s cannot be found',
     'app.error.path.is.null':'Path cannot be null',
-    'app.warning.title':'Warning',
+    'app.warning.title':'Warning',    
     # project errors
     ######################
     "project.error.NeedsCount":'Building count must be set either through footprint or Zone with count',
@@ -64,12 +64,27 @@ SIDD_UI_STRINGS = {
     # common UI messages
     ######################    
     "app.file.select":'Select file',
+    "app.folder.select":'Select folder',
     "app.file.button":'...',
     "app.dialog.button.ok":"OK",
     "app.dialog.button.cancel":"Cancel",
     "app.dialog.button.close":"Close",
     "app.dialog.button.apply":"Apply",
     "app.popup.delete.confirm":"",
+    # status messages
+    ######################
+    "app.status.ready":'Application ready',
+    "app.status.project.created":'Project Created',  
+    "app.status.project.loaded":'Project Loaded',
+    "app.status.project.saved":'Project Saved',
+    "app.status.project.closed":'Project Closed',
+    "app.status.input.verified":'Input Verification Completed',
+    "app.status.ms.created":'Mapping Scheme Created',
+    "app.status.ms.modified":'Mapping Scheme Modified',
+    "app.status.ms.exported":'Building Distribution Exported',
+    "app.status.exposure.created":'Exposure Created',    
+    "app.status.cancelled":'Process Cancelled',
+    "app.status.processing":'Processing ...',
     # common UI messages
     ######################        
     "app.mslibrary.default":"PAGER",
@@ -78,7 +93,6 @@ SIDD_UI_STRINGS = {
     # main application window
     ######################
     "app.window.title":'SIDD',
-    "app.window.status.ready":'Application ready',    
     # menu
     "app.window.menu.file":'File',
     "app.window.menu.view":'View',
@@ -89,13 +103,13 @@ SIDD_UI_STRINGS = {
     "app.window.menu.file.exit":'Exit',
     "app.window.menu.view.input":'Data Input',
     "app.window.menu.view.ms":'Mapping Schemes',
-    "app.window.menu.view.result":'Results',
+    "app.window.menu.view.result":'Preview',
     "app.window.menu.help.about":'About',
     # tabs
     "app.window.tab.input":'Data Input',
     "app.window.tab.ms":'Mapping Scheme',
     "app.window.tab.mod":'Modifiers',
-    "app.window.tab.result":'Results',
+    "app.window.tab.result":'Preview',
     # messages
     "app.window.msg.project.create":'Create New Project',
     "app.window.msg.project.open":'Open Project File',
@@ -128,7 +142,7 @@ SIDD_UI_STRINGS = {
     "widget.input.zone.description":'What type of data do you have for zones?',
     "widget.input.zone.file.open":'Open Homogenous Zone File',
     "widget.input.zone.projection":'Verify projection',
-    "widget.input.zone.zonefield":'Select field containing zone classification identifier',
+    "widget.input.zone.zonefield":'Select field containing zone identifier',
     "widget.input.zone.countfield":'Select field containing building count',
     "widget.input.zone.op1":'No Data',
     "widget.input.zone.op2":'Homogenous zones',
@@ -144,7 +158,7 @@ SIDD_UI_STRINGS = {
     "widget.input.agg.op2":'GED Compatible 30 arc-second grid',
     # data verification
     "widget.input.verify.title":'You have supplied the following types of data',
-    "widget.input.verify.button":'Verify data',
+    "widget.input.verify.button":'Verify input data',
     "widget.input.verify.footprint":'Footprint',
     "widget.input.verify.survey":'Survey',
     "widget.input.verify.zones":'Zone',
@@ -155,11 +169,13 @@ SIDD_UI_STRINGS = {
     "widget.input.verify.sucess":'Datasets complete\nProceed to create exposure',
     "widget.input.verify.datarequired":'Following dataset required for building exposure',
     "widget.input.verify.noaction":'No action is defined for type of data provided',
-    "widget.input.verify.unknownerror":'Unknown error while verifying input data',
+    "widget.input.verify.unknownerror":'Unknown error while verifying input data',    
     # main application window / ms tab
     ######################
     "widget.ms.title":'Manage Mapping Schemes',
     "widget.ms.tree.title":'Mapping Scheme',
+    "widget.ms.distribution.title":'Building Distribution',
+    "widget.ms.distribution.zones":'Select zone',
     "widget.ms.library.title":'Mapping Scheme Library',
     "widget.ms.library.regions":'Region',
     "widget.ms.library.types":'Source',    
@@ -181,9 +197,7 @@ SIDD_UI_STRINGS = {
     "widget.mod.build":'Build Exposure',
     "widget.mod.warning.delete":'Deleting modifier cannot be undone.\nAre you sure that you want to continue?',
     "widget.mod.tableheader.zone":'Zone',
-    "widget.mod.tableheader.level1":'',
-    "widget.mod.tableheader.level2":'',
-    "widget.mod.tableheader.level3":'',
+    "widget.mod.tableheader.path":'Building Type',
     "widget.mod.tableheader.value":'Value',
     "widget.mod.tableheader.weight":'Percentage',
     # main application window / result tab
@@ -196,34 +210,34 @@ SIDD_UI_STRINGS = {
     "widget.result.layer.zones":"Zones",
     "widget.result.layers.theme.title":"Change Thematic for %s",
     "widget.result.info.notfound":'Nothing not found at location',
-    "widget.result.export.title":'Export Results',
+    "widget.result.export.title":'Export Exposure',
     "widget.result.export.format":'Select Export Data Format',
-    "widget.result.export.file.open":'Open Export File',
+    "widget.result.export.path.dialog":'Select Export Destination Folder',
     "widget.result.export.button":'Export',
+    # data quality messages
     "widget.result.dq.title":'Data Quality Tests',
     "widget.result.dq.warning":'Warning',
-    "widget.result.dq.description":'Exposure generated using Monte-Carlo simulation',
+    "widget.result.dq.total_tests":'%s tests run on result',
+    "widget.result.dq.method":'Exposure generated using %s method',
+    "widget.result.dq.tests.count":'Verifying Building Count',
+    "widget.result.dq.tests.count.total_source":'Total Buildings in Source Data: %.0f',
+    "widget.result.dq.tests.count.total_exposure":'Total Buildings in Generated Exposure: %.0f',
+    "widget.result.dq.tests.fragmentation":'Number of Fractional Records',
+    "widget.result.dq.tests.fragmentation.record_count":'Total Records in Generated Exposure: %.0f',
+    "widget.result.dq.tests.fragmentation.fraction_count":'Total Records with Fractional Building Count: %.0f',
     # about dialog
     ######################
     'dlg.about.window.title': 'About SIDD',
-    'dlg.about.message': '''
-        <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
-        <html>
-        <head><style type="text/css">
-        p { font-family:"MS Shell Dlg 2"; font-weight:400; font-style:normal; font-size:8.25pt; }
-        </style></head>
-        <body>
-        <p align="center">SIDD Version %s</p>
-        <p align="center">Last updated %s</p>
-        <p align="center"></p>
-        <p align="center">Copyright &reg; ImageCat Inc. %s</p>
-        </body>
-        </html>
-        ''',
     # build progress dialog
     ######################
     "dlg.apply.window.title": 'Building Exposure',
     "dlg.apply.message": 'SIDD is applying mapping schemes and generating exposure.\nThis may takes some time. Plese check the console below to see what is being processed.',
+    # build ms dialog
+    ######################
+    "dlg.buildms.title": 'Create Mapping Scheme',
+    "dlg.buildms.attributes": 'Taxonomy Attributes',
+    "dlg.buildms.option.empty": 'Create Empty Mapping Scheme',
+    "dlg.buildms.option.survey": 'Build from Survey Data',
     # edit mapping scheme branch dialog
     ######################
     "dlg.msbranch.edit.window.title":'Edit Mapping Scheme Branch',
@@ -263,7 +277,58 @@ SIDD_UI_STRINGS = {
     "dlg.attr.min_value":'Minimum Values',
     "dlg.attr.max_value":'Maximum Values',
     "dlg.attr.value.error":'Only numeric value is accepted',
+    # processing options dialog    
+    ######################
+    "dlg.options.ep.window.title":'Processing Options',
+    "dlg.options.ep.title":'Extrapolation Options',
+    "dlg.options.ep.random":'Monte-Carlo Simulation',
+    "dlg.options.ep.fraction":'Building Distribution Fraction',
+    "dlg.options.ep.fraction.rounded":'Building Distribution Fraction Rounded',
+    "dlg.options.param.window.title":'Additional Parameters',    
+    "dlg.options.param.title":'Additional Parameters',
+    "dlg.options.param.apply":'Generate additional parameters',
+    "dlg.options.param.pop":'Average number of people per building',
+    "dlg.options.param.sqft":'Average Size of building',
+    "dlg.options.param.repval":'Average replacemnet cost per Sqft',
+    # main application window / mod tab
+    ######################
+    "help.input.footprint":"""Footprint data""",
+    "help.input.survey":"""Survey data""",
+    "help.input.zones":"""Zones data""",
+    "help.input.output":"""Output Aggregation""",
+    # operator processing messages
+    ######################
+    "message.sidd.operator.loaders.footprint.FootprintLoader":'Loading Building Footprints ...',
+    "message.sidd.operator.loaders.footprint.FootprintHtLoader":'Loading Building Footprints with Heights  ...',
+    "message.sidd.operator.loaders.ms.MappingSchemeLoader":'Loading Mapping Scheme  ...',
+    "message.sidd.operator.loaders.survey.GEMDBSurveyLoader":'Loading Survey from GEMDB ...',
+    "message.sidd.operator.loaders.survey.CSVSurveyLoader":'Loading Survey from CSV ...',
+    "message.sidd.operator.loaders.zones.ZoneLoader":'Loading Zones ...',
+    "message.sidd.operator.loaders.zones.ZoneCountLoader":'Loading Zones with Building Counts ...',
+    "message.sidd.operator.processors.aggregate.FootprintAggregator":'Counting Footprints for GEM grids ...',
+    "message.sidd.operator.processors.exposure.GridMSApplier":'Applying Mapping Scheme ...',
+    "message.sidd.operator.processors.exposure.ZoneMSApplier":'Applying Mapping Scheme ...',
+    "message.sidd.operator.processors.exposure.SurveyAggregator":'Aggregating Survey ...',    
+    "message.sidd.operator.processors.grid.GridWriter":'Generating GEM grid ...',
+    "message.sidd.operator.processors.grid.GridFromRegionWriter":'Generating GEM grid ...',
+    "message.sidd.operator.processors.grid.GridGeometryWriter":'Generating GEM grid Geometry ...',
+    "message.sidd.operator.processors.join.ZoneGridMerger":'Assigning GEM Grids to Zones ...',
+    "message.sidd.operator.processors.join.ZoneFootprintMerger":'Assigning Footprints to Zones ...',
+    "message.sidd.operator.processors.join.ZoneFootprintCounter":'Counting Footprints to in Zones ...',
+    "message.sidd.operator.processors.ms_create.EmptyMSCreator":'Creating Empty Mapping Scheme ...',
+    "message.sidd.operator.processors.ms_create.EmptyZonesMSCreator":'Creating Empty Mapping Scheme ...',
+    "message.sidd.operator.processors.ms_create.SurveyZonesMSCreator":'Creating Mapping Scheme from Survey ...',
+    "message.sidd.operator.processors.ms_create.SurveyOnlyMSCreator":'Creating Mapping Scheme from Survey ...',
+    "message.sidd.operator.verify.exposure.ExposureFragmentationAnalyzer":'Performing Building Count Fragmentation Analysis ...',
+    "message.sidd.operator.verify.exposure.ExposureZoneCountAnalyzer":'Performing Total Building Count Analysis ...',
+    "message.sidd.operator.verify.exposure.ExposureFootprintCountAnalyzer":'Performing Total Building Count Analysis ...',
+    "message.sidd.operator.writers.exposure.ExposureSHPWriter":'Writings Exposure to Shapefile ...',
+    "message.sidd.operator.writers.exposure.ExposureCSVWriter":'Writings Exposure to CSV ...',
+    "message.sidd.operator.writers.exposure.ExposureKMLWriter":'Writings Exposure to KML ...',
+    "message.sidd.operator.writers.exposure.ExposureNRMLWriter":'Writings Exposure to NRML ...',    
+    "message.sidd.operator.writers.ms.MSLeavesCSVWriter":'Writings Mapping Scheme to CSV ...',
 }
 
 def get_ui_string(key):
     return SIDD_UI_STRINGS[key] if SIDD_UI_STRINGS.has_key(key) else  ""
+

@@ -22,7 +22,7 @@ dialog for editing secondary modifiers
 from PyQt4.QtGui import QDialog, QMessageBox, QAbstractItemView, QItemSelectionModel
 from PyQt4.QtCore import pyqtSlot, Qt, QObject, QSize
 
-from sidd.ms import MappingSchemeZone, StatisticNode
+from sidd.ms import StatisticNode
 
 from ui.constants import logUICall, get_ui_string, UI_PADDING 
 from ui.qt.dlg_mod_input_ui import Ui_modifierInputDialog
@@ -46,14 +46,12 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
         self.ui.table_mod_values.verticalHeader().hide()
                 
         # connect slots (ui events)
-        self.ui.btn_mod_build.clicked.connect(self.buildFromSurvey)
         self.ui.btn_add.clicked.connect(self.addValue)
         self.ui.btn_delete.clicked.connect(self.deleteValue)
         self.ui.btn_apply.clicked.connect(self.setModifier)
         self.ui.btn_cancel.clicked.connect(self.reject)
         
-        # hide mod_build button
-        self.ui.btn_mod_build.setVisible(False)
+        self.ui.cb_attributes.currentIndexChanged[str].connect(self.setModifierName)
         
     # ui event handler
     ###############################
@@ -75,6 +73,12 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
                               ui.lb_mod_values.y())        
         ui.widget_mod_values_menu_r.move(self.width()-ui.widget_mod_values_menu_r.width()-UI_PADDING,
                                          ui.widget_mod_values_menu_r.y())        
+        # adjust attributes label and combobox
+        ui.lb_attribute.move(ui.lb_mod_values.x(),
+                             ui.lb_attribute.y())
+        ui.cb_attributes.setGeometry(ui.lb_mod_values.x(), ui.cb_attributes.y(),
+                                     w * 0.5, ui.cb_attributes.height())
+                
         # adjust label/txtbox at topp of the table
         ui.lb_percent.move(self.width()-ui.lb_percent.width()-UI_PADDING, 
                            ui.btn_cancel.y()-ui.lb_percent.height()-UI_PADDING)
@@ -85,7 +89,7 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
         ui.table_mod_values.setGeometry(ui.lb_mod_values.x(), ui.table_mod_values.y(),
                                         w * 0.5, ui.lb_percent.y()-ui.table_mod_values.y()-UI_PADDING)           
         ui.table_mod_values.horizontalHeader().resizeSection(0, ui.table_mod_values.width() * 0.6)
-        ui.table_mod_values.horizontalHeader().resizeSection(1, ui.table_mod_values.width() * 0.4)               
+        ui.table_mod_values.horizontalHeader().resizeSection(1, ui.table_mod_values.width() * 0.4)              
         
     @logUICall
     @pyqtSlot()
@@ -117,16 +121,28 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
         event handler for btn_delete
         - delete currently selected row of value/weights from table_mod_values          
         """
-        selected = self.getSelectedCell()
+        selected = self.getSelectedCell()        
         if selected is not None:
-            self.modModel.deleteValue(selected)
-    
+            self.modModel.deleteValue(selected.row())
+
     @logUICall
     @pyqtSlot()
-    def buildFromSurvey(self):
-        """ event handler for btn_mod_build """
-        # TODO: delete btn_mod_build and this method 
-        pass    
+    def nodeSelected(self):
+        """ 
+        event handler for tree_ms
+        use tree view to set currently selected node         
+        """
+        index = self.ui.tree_ms.selectedIndexes()[0]        
+        node = index.internalPointer()
+        if isinstance(node, StatisticNode):
+            self.node = node
+        else:
+            self.node = None
+    
+    @logUICall
+    @pyqtSlot(str)
+    def setModifierName(self, selected_val):        
+        self.modifier_name = selected_val
     
     # public method
     ###############################
@@ -139,50 +155,69 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
         otherwise, values/weights are from take from given mod  
         """ 
         self.ms = ms
-        self.mod = mod
+        self.mod = mod        
         self.addNew = addNew
         self.values = []
         self.weights = []
         self.node = None
                 
-        treeUI = self.ui.tree_ms
+        # construct mapping scheme tree
         self.tree_model = MSTreeModel(ms)        
-        treeUI.setModel(self.tree_model)
-        treeUI.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.ui.tree_ms.setModel(self.tree_model)
+        self.ui.tree_ms.setSelectionMode(QAbstractItemView.SingleSelection)
         self.ui.tree_ms.setEnabled(True)
         
+        self.ui.cb_attributes.clear()
+        
         if not addNew and mod is not None:
-            #[zone_name, level1, level2, level3, startIdx, endIdx, modidx, modifier, src_node] = mod
-            [zone_name, parent_str, startIdx, endIdx, modidx, modifier, src_node] = mod
-            indices = self.tree_model.match(treeUI.rootIndex(), Qt.DisplayRole, src_node.value, 1)            
+            # see MSTableModel about data in mod variable
+            modidx, modifier, src_node = mod[4:]
+
+            # expand tree from root to node 
+            indices = self.tree_model.match(self.ui.tree_ms.rootIndex(), Qt.DisplayRole, src_node.value, 1)            
             if len(indices)==1:
                 index = indices[0]
-                while index <> treeUI.rootIndex():
-                    treeUI.setExpanded(index, True)
-                    index = self.tree_model.parent(index)            
-            treeUI.selectionModel().select(indices[0], QItemSelectionModel.ClearAndSelect | QItemSelectionModel.Rows)
+                while index <> self.ui.tree_ms.rootIndex():
+                    self.ui.tree_ms.setExpanded(index, True)
+                    index = self.tree_model.parent(index)
+            # set node as selected            
+            self.ui.tree_ms.selectionModel().select(indices[0], QItemSelectionModel.ClearAndSelect | QItemSelectionModel.Rows)
+            
+            # create reference for use once dialog box returns
             self.node = src_node
             self.modidx = modidx
+            self.modifier_name = modifier.name
+            
+            # store values in modifier 
             for k, v in modifier.iteritems():                
                 self.values.append(k)
                 self.weights.append(v)
-            self.ui.txt_total_weights.setText('%.1f' % (sum(self.weights)))
+            
+            # update additional UI elements based on given modifier 
+            self.ui.txt_total_weights.setText('%.1f' % (sum(self.weights)))            
+            self.ui.cb_attributes.addItem(modifier.name)
         else:
+            # no modfier given
+            # create event handler for selected node 
+            self.ui.tree_ms.selectionModel().selectionChanged.connect(self.nodeSelected)
+            
+            # create reference for use once dialog box returns
+            self.modifier_name = 'Custom'
+            self.modidx = -1
+            
+            # update additional UI elements based on given modifier 
             self.ui.txt_total_weights.setText('%.1f' % (0))
-            self.ui.btn_apply.setEnabled(False)
-            treeUI.selectionModel().selectionChanged.connect(self.nodeSelected)
-
+            for attr in self.ms.taxonomy.attributes:
+                self.ui.cb_attributes.addItem(attr.name)
+            
+            # cannot apply until values are set and node is selected
+            self.ui.btn_apply.setEnabled(False)            
+        
+        # initialize table of values
         self.modModel = MSLevelTableModel(self.values, self.weights)
         self.ui.table_mod_values.setModel(self.modModel)
+        # update total once table value is changed
         self.modModel.dataChanged.connect(self.verifyWeights)
-
-    def nodeSelected(self):
-        index = self.ui.tree_ms.selectedIndexes()[0]        
-        node = index.internalPointer()
-        if isinstance(node, StatisticNode):
-            self.node = node
-        else:
-            self.node = None
 
     # internal helper methods
     #############################

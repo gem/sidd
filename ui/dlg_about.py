@@ -42,5 +42,17 @@ class DialogAbout(Ui_DialogAbout, QDialog):
 
     def retranslateUi(self, ui):
         self.setWindowTitle(get_ui_string("dlg.about.window.title"))
-        self.ui.textEdit.setHtml(get_ui_string("dlg.about.message") % (SIDD_VERSION, 2012, 2012))
-        self.ui.textEdit.setReadOnly(True)
+        ui.textEdit.setHtml("""
+            <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
+            <html>
+            <head><style type="text/css">
+            p { font-family:"MS Shell Dlg 2"; font-weight:400; font-style:normal; font-size:8.25pt; }
+            </style></head>
+            <body>
+            <p align="center">SIDD Version %s</p>
+            <p align="center">Last updated: February 2013</p>
+            <p align="center"></p>
+            <p align="center">Copyright &reg; ImageCat Inc. 2013</p>
+            </body>
+            </html>""" % (SIDD_VERSION))
+        ui.textEdit.setReadOnly(True)

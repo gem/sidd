@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qt\win_main.ui'
 #
-# Created: Mon Feb 04 15:32:07 2013
+# Created: Wed Feb 20 10:48:55 2013
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -35,6 +35,8 @@ class Ui_mainWindow(object):
         self.menuHelp.setObjectName(_fromUtf8("menuHelp"))
         self.menuView = QtGui.QMenu(self.menubar)
         self.menuView.setObjectName(_fromUtf8("menuView"))
+        self.menuOptions = QtGui.QMenu(self.menubar)
+        self.menuOptions.setObjectName(_fromUtf8("menuOptions"))
         mainWindow.setMenuBar(self.menubar)
         self.statusbar = QtGui.QStatusBar(mainWindow)
         self.statusbar.setObjectName(_fromUtf8("statusbar"))
@@ -55,6 +57,8 @@ class Ui_mainWindow(object):
         self.actionAbout.setObjectName(_fromUtf8("actionAbout"))
         self.actionSave = QtGui.QAction(mainWindow)
         self.actionSave.setObjectName(_fromUtf8("actionSave"))
+        self.actionProcessing_Options = QtGui.QAction(mainWindow)
+        self.actionProcessing_Options.setObjectName(_fromUtf8("actionProcessing_Options"))
         self.menuFile.addAction(self.actionOpen_New)
         self.menuFile.addAction(self.actionOpen_Existing)
         self.menuFile.addSeparator()
@@ -65,8 +69,10 @@ class Ui_mainWindow(object):
         self.menuView.addAction(self.actionData_Input)
         self.menuView.addAction(self.actionMapping_Schemes)
         self.menuView.addAction(self.actionResult)
+        self.menuOptions.addAction(self.actionProcessing_Options)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuView.menuAction())
+        self.menubar.addAction(self.menuOptions.menuAction())
         self.menubar.addAction(self.menuHelp.menuAction())
 
         self.retranslateUi(mainWindow)
@@ -78,6 +84,7 @@ class Ui_mainWindow(object):
         self.menuFile.setTitle(QtGui.QApplication.translate("mainWindow", "File", None, QtGui.QApplication.UnicodeUTF8))
         self.menuHelp.setTitle(QtGui.QApplication.translate("mainWindow", "Help", None, QtGui.QApplication.UnicodeUTF8))
         self.menuView.setTitle(QtGui.QApplication.translate("mainWindow", "View", None, QtGui.QApplication.UnicodeUTF8))
+        self.menuOptions.setTitle(QtGui.QApplication.translate("mainWindow", "Settings", None, QtGui.QApplication.UnicodeUTF8))
         self.actionOpen_New.setText(QtGui.QApplication.translate("mainWindow", "Create New", None, QtGui.QApplication.UnicodeUTF8))
         self.actionOpen_Existing.setText(QtGui.QApplication.translate("mainWindow", "Open Existing", None, QtGui.QApplication.UnicodeUTF8))
         self.actionExit.setText(QtGui.QApplication.translate("mainWindow", "Exit", None, QtGui.QApplication.UnicodeUTF8))
@@ -86,4 +93,5 @@ class Ui_mainWindow(object):
         self.actionResult.setText(QtGui.QApplication.translate("mainWindow", "Result", None, QtGui.QApplication.UnicodeUTF8))
         self.actionAbout.setText(QtGui.QApplication.translate("mainWindow", "About", None, QtGui.QApplication.UnicodeUTF8))
         self.actionSave.setText(QtGui.QApplication.translate("mainWindow", "Save", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionProcessing_Options.setText(QtGui.QApplication.translate("mainWindow", "Processing Options", None, QtGui.QApplication.UnicodeUTF8))
 

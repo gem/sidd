@@ -29,21 +29,29 @@ from utils.system import get_unique_filename
 from utils.grid import latlon_to_grid
 
 from sidd.constants import logAPICall, \
+                           ExtrapolateOptions, \
                            GID_FIELD_NAME, LON_FIELD_NAME, LAT_FIELD_NAME, CNT_FIELD_NAME, TAX_FIELD_NAME, ZONE_FIELD_NAME, \
                            DEFAULT_GRID_SIZE, MAX_FEATURES_IN_MEMORY
-from sidd.operator import Operator, OperatorError
+from sidd.operator import Operator, OperatorError, OperatorDataError
 from sidd.operator.data import OperatorDataTypes
 
 class GridMSApplier(Operator):    
     def __init__(self, options=None, name='Grid Mapping Scheme Applier'):
         super(GridMSApplier, self).__init__(options, name)
         self._tmp_dir = options['tmp_dir']
+        if options.has_key('proc.extrapolation'):
+            self._extrapolationOption = options['proc.extrapolation']
+        else:
+            self._extrapolationOption = ExtrapolateOptions.RandomWalk
+            
         self._fields = {0: QgsField(GID_FIELD_NAME, QVariant.Int),
                         1: QgsField(LON_FIELD_NAME, QVariant.Double),
                         2: QgsField(LAT_FIELD_NAME, QVariant.Double),
                         3: QgsField(TAX_FIELD_NAME, QVariant.String),
                         4: QgsField(ZONE_FIELD_NAME, QVariant.String),
-                        5: QgsField(CNT_FIELD_NAME, QVariant.Int)}
+                        5: QgsField(CNT_FIELD_NAME, QVariant.Int)}        
+        if self._extrapolationOption != ExtrapolateOptions.RandomWalk:
+            self._fields[5]=QgsField(CNT_FIELD_NAME, QVariant.Double)
         
     # self documenting method override
     ###########################
@@ -89,6 +97,13 @@ class GridMSApplier(Operator):
         count_field = self.inputs[2].value
         ms = self.inputs[3].value
         
+        # make sure input is correct
+        # NOTE: these checks cannot be performed at set input time
+        #       because the data layer maybe is not loaded yet
+        self._test_layer_loaded(src_layer)
+        self._test_layer_field_exists(src_layer, zone_field)
+        self._test_layer_field_exists(src_layer, count_field)        
+        
         # loop through all zones and assign mapping scheme
         # outputs
         exposure_layername = 'exp_%s' % get_unique_filename()
@@ -96,6 +111,15 @@ class GridMSApplier(Operator):
 
         # loop through all input features
         provider = src_layer.dataProvider()
+        if provider is None:
+            raise OperatorError("input layer not correctly loaded", self.__class__)
+        zone_idx = layer_field_index(src_layer, zone_field)
+        if zone_idx == -1:
+            raise OperatorError("field %s not found in input layer" % zone_field, self.__class__)
+        count_idx = layer_field_index(src_layer, count_field)
+        if count_idx == -1:
+            raise OperatorError("field %s not found in input layer" % count_field, self.__class__)
+         
         provider.select(provider.attributeIndexes(), provider.extent())
         provider.rewind()
 
@@ -105,9 +129,6 @@ class GridMSApplier(Operator):
             out_feature = QgsFeature()
             
             gid = 0
-            zone_idx = layer_field_index(src_layer, zone_field)
-            count_idx = layer_field_index(src_layer, count_field)
-            
             for in_feature in layer_features(src_layer):
                 geom = in_feature.geometry()
                 centroid = geom.centroid().asPoint ()
@@ -122,7 +143,7 @@ class GridMSApplier(Operator):
                     stats = default_stats
                     
                 gid += 1
-                for _l, _c in stats.get_samples(count).iteritems():
+                for _l, _c in stats.get_samples(count, self._extrapolationOption).iteritems():
                     # write out if there are structures assigned
                     if _c > 0:
                         out_feature.setGeometry(geom)
@@ -154,7 +175,7 @@ class GridMSApplier(Operator):
     ###########################
 
     def _verify_inputs(self, inputs):
-        """ perform operator specific input validation """
+        """ perform operator specific input validation """        
         pass
 
     def _verify_outputs(self, outputs):
@@ -181,7 +202,7 @@ class ZoneMSApplier(GridMSApplier):
                 "Zone field",
                 "Building Count field"
                 "Mapping Scheme"]
-
+    
 class SurveyAggregator(GridMSApplier):
     def __init__(self, options=None, name='Complete Survey Aggregator'):
         super(SurveyAggregator, self).__init__(options, name)
@@ -209,6 +230,11 @@ class SurveyAggregator(GridMSApplier):
         # input/output verification already performed during set input/ouput
         svy_layer = self.inputs[0].value
 
+        # make sure input is correct
+        # NOTE: these checks cannot be performed at set input time
+        #       because the data layer maybe is not loaded yet
+        self._test_layer_loaded(svy_layer)
+        
         total_features = svy_layer.dataProvider().featureCount()
         if total_features > MAX_FEATURES_IN_MEMORY:
             # use bsddb to store temporary lat/lon

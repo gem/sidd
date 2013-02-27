@@ -40,6 +40,7 @@ OperatorDataTypes = Enum(
     "Grid",
     "Layer",
     "Exposure",
+    "Report",
     
     # formula
     "PopulationToBuilding",

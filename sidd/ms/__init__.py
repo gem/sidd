@@ -22,6 +22,6 @@ attributes for a building stock
 """
 
 from statistic import Statistics
-from node import StatisticNode
+from node import StatisticNode, StatisticModifier
 from exceptions import StatisticError, StatisticNodeError
 from ms import MappingScheme, MappingSchemeZone

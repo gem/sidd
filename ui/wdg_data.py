@@ -23,7 +23,7 @@ Widget (Panel) for specifying data inputs
 import os
 
 from PyQt4.QtGui import QWidget, QMessageBox, QFileDialog, QPixmap
-from PyQt4.QtCore import QSize, QPoint, pyqtSlot
+from PyQt4.QtCore import pyqtSlot
 
 from utils.shapefile import shapefile_fields, shapefile_projection
 from utils.system import get_app_dir
@@ -86,6 +86,12 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
         self.ui.radio_svy_op1.setChecked(True)
         self.ui.radio_zones_op1.setChecked(True)
         self.ui.radio_aggr_op1.setChecked(True)       
+        
+        # help labels
+        self.ui.img_lb_fp_desc_help.setToolTip(get_ui_string('help.input.footprint'))
+        self.ui.img_lb_svy_desc_help.setToolTip("get_ui_string('help.input.survey')")
+        self.ui.img_lb_zones_desc_help.setToolTip(get_ui_string('help.input.zones'))
+        self.ui.img_lb_aggr_desc_help.setToolTip(get_ui_string('help.input.output'))
 
         # connect slots (ui event)
         # footprint
@@ -116,69 +122,69 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
         self.ui.txt_aggr_grid_select_file.hide()
         self.ui.btn_aggr_grid_select_file.hide()
         
+        
     # UI event handling calls
     ###############################
     def resizeEvent(self, event):
         """ handle window resize """
-        width_panel = (self.width() - UI_PADDING) / 2
+        width_panel = (self.width() - 3*UI_PADDING )/2
         button_width = self.ui.btn_fp_select_file.width()         
         combo_width, combo_ht = width_panel * 0.3, self.ui.cb_fp_proj.height()        
-        ht_input_panels = self.height() - self.ui.widgetFootprint.y() - UI_PADDING
-        
+
+        # left panels
+        # zones panel
+        self.ui.widgetZones.resize(width_panel, self.ui.widgetZones.height())
+        self.ui.widgetZones.move(UI_PADDING, self.ui.widgetZones.y())                
+        self.ui.btn_zones_select_file.move(width_panel-button_width-UI_PADDING,
+                                           self.ui.btn_zones_select_file.y())
+        self.ui.txt_zones_select_file.resize(self.ui.btn_zones_select_file.x()-self.ui.txt_zones_select_file.x()-UI_PADDING,
+                                             self.ui.txt_zones_select_file.height())
+        self.ui.cb_zones_class_field.resize(combo_width, combo_ht)
+        self.ui.cb_zones_class_field.move(width_panel-combo_width-UI_PADDING,
+                                          self.ui.cb_zones_class_field.y())
+        self.ui.cb_zones_count_field.resize(combo_width, combo_ht)
+        self.ui.cb_zones_count_field.move(width_panel-combo_width-UI_PADDING,
+                                          self.ui.cb_zones_count_field.y())                
+        self.ui.cb_zones_proj.resize(combo_width, combo_ht)
+        self.ui.cb_zones_proj.move(width_panel-combo_width-UI_PADDING,
+                                   self.ui.cb_zones_proj.y())
         # footprint panel 
-        self.ui.widgetFootprint.resize(QSize(width_panel, ht_input_panels * 0.4))
-        self.ui.btn_fp_select_file.move(QPoint(width_panel-button_width-UI_PADDING, 
-                                               self.ui.btn_fp_select_file.y()))
-        self.ui.txt_fp_select_file.resize(QSize(self.ui.btn_fp_select_file.x()-self.ui.txt_fp_select_file.x()-UI_PADDING,
-                                                self.ui.txt_fp_select_file.height()))
-        self.ui.cb_fp_story_field.resize(QSize(combo_width, combo_ht))
-        self.ui.cb_fp_story_field.move(QPoint(width_panel-combo_width-UI_PADDING, 
-                                              self.ui.cb_fp_story_field.y()))         
-        self.ui.cb_fp_proj.resize(QSize(combo_width, combo_ht))
-        self.ui.cb_fp_proj.move(QPoint(width_panel-combo_width-UI_PADDING, 
-                                       self.ui.cb_fp_proj.y()))         
+        self.ui.widgetFootprint.resize(width_panel, self.ui.widgetFootprint.height())
+        self.ui.widgetFootprint.move(UI_PADDING, self.ui.widgetFootprint.y())
+        self.ui.btn_fp_select_file.move(width_panel-button_width-UI_PADDING,
+                                        self.ui.btn_fp_select_file.y())
+        self.ui.txt_fp_select_file.resize(self.ui.btn_fp_select_file.x()-self.ui.txt_fp_select_file.x()-UI_PADDING,
+                                          self.ui.txt_fp_select_file.height())
+        self.ui.cb_fp_story_field.resize(combo_width, combo_ht)
+        self.ui.cb_fp_story_field.move(width_panel-combo_width-UI_PADDING,
+                                       self.ui.cb_fp_story_field.y())         
+        self.ui.cb_fp_proj.resize(combo_width, combo_ht)
+        self.ui.cb_fp_proj.move(width_panel-combo_width-UI_PADDING,
+                                self.ui.cb_fp_proj.y())         
         
         # survey panel
-        self.ui.widgetSurvey.resize(QSize(width_panel, ht_input_panels * 0.3))
-        self.ui.btn_svy_select_file.move(QPoint(width_panel-button_width-UI_PADDING, 
-                                                self.ui.btn_svy_select_file.y()))
-        self.ui.txt_svy_select_file.resize(QSize(self.ui.btn_svy_select_file.x()-self.ui.txt_svy_select_file.x()-UI_PADDING,
-                                                 self.ui.txt_svy_select_file.height()))
+        self.ui.widgetSurvey.resize(width_panel, self.ui.widgetSurvey.height())
+        self.ui.widgetSurvey.move(UI_PADDING, self.ui.widgetSurvey.y())
+        self.ui.btn_svy_select_file.move(width_panel-button_width-UI_PADDING,
+                                         self.ui.btn_svy_select_file.y())
+        self.ui.txt_svy_select_file.resize(self.ui.btn_svy_select_file.x()-self.ui.txt_svy_select_file.x()-UI_PADDING,
+                                           self.ui.txt_svy_select_file.height())
         
+        # right panels
         # aggregation panel
-        self.ui.widgetAggr.resize(QSize(width_panel, ht_input_panels * 0.3))
-        self.ui.btn_aggr_grid_select_file.move(QPoint(width_panel-button_width-UI_PADDING, 
-                                                      self.ui.btn_aggr_grid_select_file.y()))
-        self.ui.txt_aggr_grid_select_file.resize(QSize(self.ui.btn_aggr_grid_select_file.x()-self.ui.txt_aggr_grid_select_file.x()-UI_PADDING,
-                                                       self.ui.txt_aggr_grid_select_file.height()))
+        self.ui.widgetAggr.resize(width_panel, self.ui.widgetAggr.height())
+        self.ui.widgetAggr.move(width_panel+2*UI_PADDING, self.ui.widgetAggr.y())                
+        self.ui.btn_aggr_grid_select_file.move(width_panel-button_width-UI_PADDING,
+                                               self.ui.btn_aggr_grid_select_file.y())
+        self.ui.txt_aggr_grid_select_file.resize(self.ui.btn_aggr_grid_select_file.x()-self.ui.txt_aggr_grid_select_file.x()-UI_PADDING,
+                                                 self.ui.txt_aggr_grid_select_file.height())
         
-        # right panel 
-        self.ui.widgetZones.resize(QSize(width_panel, ht_input_panels * 0.5))
-        self.ui.widgetZones.move(QPoint(width_panel+UI_PADDING, self.ui.widgetZones.y()))
-        self.ui.btn_zones_select_file.move(QPoint(width_panel-button_width-UI_PADDING, 
-                                                  self.ui.btn_zones_select_file.y()))
-        self.ui.txt_zones_select_file.resize(QSize(self.ui.btn_zones_select_file.x()-self.ui.txt_zones_select_file.x()-UI_PADDING,
-                                                   self.ui.txt_zones_select_file.height()))
-
-        self.ui.cb_zones_class_field.resize(QSize(combo_width, combo_ht))
-        self.ui.cb_zones_class_field.move(QPoint(width_panel-combo_width-UI_PADDING,
-                                                 self.ui.cb_zones_class_field.y()))
-        self.ui.cb_zones_count_field.resize(QSize(combo_width, combo_ht))
-        self.ui.cb_zones_count_field.move(QPoint(width_panel-combo_width-UI_PADDING,
-                                                 self.ui.cb_zones_count_field.y()))
-                
-        self.ui.cb_zones_proj.resize(QSize(combo_width, combo_ht))
-        self.ui.cb_zones_proj.move(QPoint(width_panel-combo_width-UI_PADDING,
-                                          self.ui.cb_zones_proj.y()))
-        
-        self.ui.widgetResult.resize(QSize(width_panel, ht_input_panels * 0.5))
-        self.ui.widgetResult.move(QPoint(width_panel+UI_PADDING, self.ui.widgetResult.y()))        
-        self.ui.txt_verify_text.resize(QSize(width_panel-self.ui.txt_verify_text.x()-UI_PADDING,
-                                             self.ui.txt_verify_text.height()))
-        self.ui.btn_verify.move(QPoint(width_panel-self.ui.btn_verify.width()-UI_PADDING,
-                                       self.ui.btn_verify.y()))
-
-        logUICall.log('resize done for %s' % self.__module__, logUICall.INFO)
+        self.ui.widgetResult.resize(width_panel, self.ui.widgetResult.height())
+        self.ui.widgetResult.move(width_panel+2*UI_PADDING, self.ui.widgetResult.y())        
+        self.ui.txt_verify_text.resize(width_panel-self.ui.txt_verify_text.x()-UI_PADDING,
+                                       self.ui.txt_verify_text.height())
+        self.ui.btn_verify.move(width_panel-self.ui.btn_verify.width()-UI_PADDING,
+                                self.ui.btn_verify.y())
             
     @uiCallChecker
     @pyqtSlot()

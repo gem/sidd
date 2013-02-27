@@ -17,6 +17,7 @@ from utils.system import get_random_name
 
 # import sidd packages for testing
 from sidd.appconfig import SIDDConfig, types
+from sidd.taxonomy import get_taxonomy
 from sidd.ms import MappingScheme
 from sidd.constants import logAPICall, \
                            SurveyTypes, ZonesTypes, OutputTypes, FootprintTypes, SyncModes, \
@@ -30,13 +31,14 @@ class ProjectTestCase(unittest.TestCase):
     ##################################
     
     def setUp(self):
-        from sidd.taxonomy import get_taxonomy
         self.taxonomy = get_taxonomy("gem")
         self.test_data_dir = str(os.getcwd()) +  "/tests/data/"
         self.test_tmp_dir = str(os.getcwd()) +  "/tests/tmp/"
         self.test_config = SIDDConfig(self.test_data_dir + '/test.cfg')
         
         self.proj_file = self.test_data_dir +  'test.db'
+        self.proj_file3 = self.test_data_dir +  'test3.db'
+        
         self.fp_path = self.test_data_dir +  'footprint.shp'
         self.survey_path = self.test_data_dir +  "survey.csv"
         self.zone_path = self.test_data_dir +  "zones.shp"
@@ -48,7 +50,7 @@ class ProjectTestCase(unittest.TestCase):
         
         self.operator_options = {
             'tmp_dir': self.test_tmp_dir,
-            'taxonomy':self.test_config.get('options', 'taxonomy', 'gem'),
+            'taxonomy':self.taxonomy,
             'skips': self.test_config.get('options', 'skips', [], types.ListType),     
         }
 
@@ -59,7 +61,7 @@ class ProjectTestCase(unittest.TestCase):
         logging.debug('test_CreateProject %s' % skipTest)
         
         proj_file = '%stest.db' % self.test_tmp_dir
-        proj = Project(proj_file, self.test_config)
+        proj = Project(proj_file, self.test_config, self.taxonomy)
         proj.operator_options = self.operator_options        
         if skipTest:
             return (proj, proj_file)
@@ -71,8 +73,8 @@ class ProjectTestCase(unittest.TestCase):
     def test_LoadProject(self, skipTest=False):
         logging.debug('test_LoadProject %s' % skipTest)
         
-        proj = Project(self.proj_file, self.test_config)
-        proj.operator_options = self.operator_options        
+        proj = Project(self.proj_file, self.test_config, self.taxonomy)
+        proj.sync(SyncModes.Read)
         if skipTest:
             return proj
     
@@ -161,8 +163,7 @@ class ProjectTestCase(unittest.TestCase):
         os.remove(proj_file)
 
     def test_BuildExposure(self):
-        logging.debug('test_BuildWorkflow')
-        
+        logging.debug('test_BuildWorkflow')        
         
         logAPICall.setLevel(logAPICall.DEBUG)
         
@@ -171,11 +172,14 @@ class ProjectTestCase(unittest.TestCase):
         if not os.path.exists(proj_tmp_dir):
             os.mkdir(proj_tmp_dir)  
         
-        proj = self.test_LoadProject(True)
+        proj = Project(self.proj_file3, self.test_config, self.taxonomy)
+        proj.sync(SyncModes.Read)
+        
         proj.operator_options['tmp_dir'] = proj_tmp_dir
         proj.temp_dir = proj_tmp_dir
-        
-        proj.sync(SyncModes.Read)
+        proj.fp_file = '%s%s' % (self.test_data_dir, 'footprints3.shp')
+        proj.survey_file = '%s%s' % (self.test_data_dir, 'survey3.gemdb')
+        proj.zone_file = '%s%s' % (self.test_data_dir, 'zones3.shp')
         
         proj.build_exposure()
         self.assertTrue(os.path.exists(proj.exposure_file))

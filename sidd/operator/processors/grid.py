@@ -22,7 +22,7 @@ module to support grid exposure database write out
 from math import floor, ceil
 
 from PyQt4.QtCore import QVariant
-from qgis.core import QGis, QgsVectorFileWriter, QgsFeature, QgsField, QgsGeometry, QgsPoint
+from qgis.core import QGis, QgsVectorFileWriter, QgsFeature, QgsField, QgsGeometry, QgsPoint, QgsRectangle
 from qgis.analysis import QgsOverlayAnalyzer
 
 from utils.shapefile import load_shapefile, layer_features, layer_field_index, remove_shapefile
@@ -31,7 +31,6 @@ from utils.system import get_unique_filename
 from sidd.constants import logAPICall, DEFAULT_GRID_SIZE 
 from sidd.operator import Operator, OperatorError, OperatorDataError
 from sidd.operator.data import OperatorDataTypes
-
 
 class GridWriter(Operator):
     """ class to create exposure grid according to GED spec """
@@ -131,7 +130,7 @@ class GridWriter(Operator):
         y_max = ceil(y_max / y_off) * y_off
         
         xtotal = int((x_max - x_min) / x_off)
-        ytotal = int((y_max - y_min) / y_off)        
+        ytotal = int((y_max - y_min) / y_off)
         
         logAPICall.log('x_min %f x_max %f y_min %f y_max %f x_off %f y_off %f xtotal %d, ytotal %d'
                        % (x_min, x_max, y_min, y_max, x_off, y_off, xtotal, ytotal),
@@ -142,7 +141,7 @@ class GridWriter(Operator):
         for x in range(xtotal):
             for y in range(ytotal):
                 lon = x_min + (x * x_off) + (x_off/2.0)
-                lat = y_min + (y * y_off) + (y_off/2.0)                
+                lat = y_min + (y * y_off) + (y_off/2.0)
                 f.setGeometry(QgsGeometry.fromPoint(QgsPoint(lon, lat)))
                 f.addAttribute(0, QVariant(lon))
                 f.addAttribute(1, QVariant(lat))
@@ -180,6 +179,12 @@ class GridFromRegionWriter(GridWriter):
         
         # input/output data checking already done during property set         
         zone_layer = self.inputs[0].value        
+        
+        # make sure input is correct
+        # NOTE: these checks cannot be performed at set input time
+        #       because the data layer maybe is not loaded yet
+        self._test_layer_loaded(zone_layer)
+                
         x_off = self._x_off
         y_off = self._y_off
 
@@ -248,5 +253,97 @@ class GridFromRegionWriter(GridWriter):
     # protected method override
     ###########################
     def _verify_inputs(self, inputs):
+        """ perform operator specific input validation """
+        pass
+
+
+class GridGeometryWriter(Operator):
+    """ class to create exposure grid according to GED spec """
+    
+    def __init__(self, options=None, name="Grid Geomotry Writer"):
+        """ constructor """
+        super(GridGeometryWriter, self).__init__(options, name)
+        self._tmp_dir = options['tmp_dir']
+        self._x_off = DEFAULT_GRID_SIZE
+        self._y_off = DEFAULT_GRID_SIZE 
+        
+        self._fields = {
+            0 : QgsField(self._lon_field, QVariant.Double),
+            1 : QgsField(self._lat_field, QVariant.Double),
+        }    
+    
+    # self documenting method override
+    ###########################
+
+    @property
+    def input_types(self):
+        return [OperatorDataTypes.Grid]
+        
+    @property    
+    def input_names(self):
+        return ["Grid points"]
+    
+    input_descriptions = input_names
+    
+    @property
+    def output_types(self):
+        return [OperatorDataTypes.Grid,
+                OperatorDataTypes.Shapefile]
+    @property
+    def output_names(self):
+        return ["Grid Geometry",
+                "Grid Geometry Shapefile"]
+
+    # public method override
+    ###########################
+
+    @logAPICall
+    def do_operation(self):
+        """ perform footprint load operation """
+        grid_layer = self.inputs[0].value
+        
+        # make sure input is correct
+        # NOTE: these checks cannot be performed at set input time
+        #       because the data layer maybe is not loaded yet
+        self._test_layer_loaded(grid_layer)
+                
+        grid_fields = grid_layer.dataProvider().fields()
+        
+        output_layername = 'grid_%s' % get_unique_filename()
+        output_file = self._tmp_dir + output_layername + '.shp'        
+        
+        half_grid = DEFAULT_GRID_SIZE / 2.0
+        try:            
+            writer = QgsVectorFileWriter(output_file, "utf-8", grid_fields,
+                                         QGis.WKBPolygon, grid_layer.crs(), "ESRI Shapefile")
+            out_f = QgsFeature()
+            for in_f in layer_features(grid_layer):
+                in_point = in_f.geometry().asPoint()                
+                out_geom = QgsGeometry.fromRect(QgsRectangle(in_point.x()-half_grid, in_point.y()-half_grid,
+                                                             in_point.x()+half_grid, in_point.y()+half_grid))            
+                out_f.setGeometry(out_geom)
+                out_f.setAttributeMap(in_f.attributeMap())
+                writer.addFeature(out_f)
+            del writer
+        except  Exception as err:
+            logAPICall.log(str(err), logAPICall.ERROR)
+            raise OperatorError('error writing out grid: %s' % err, self.__class__)
+
+        # load shapefile as layer        
+        output_layer = load_shapefile(output_file, output_layername)
+        if not output_layer:            
+            raise OperatorError('Error loading generated file %s' % (output_file), self.__class__)        
+
+        # store data in output
+        self.outputs[0].value = output_layer
+        self.outputs[1].value = output_file
+            
+    # protected method override
+    ###########################
+    def _verify_inputs(self, inputs):
+        """ perform operator specific input validation """
+
+
+    def _verify_outputs(self, outputs):
         """ perform operator specific input validation """
         pass

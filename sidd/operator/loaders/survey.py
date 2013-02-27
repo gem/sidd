@@ -21,6 +21,7 @@ module constains class for loading survey data in SQLite format
 """
 import csv
 import sqlite3
+import datetime
 
 from os.path import exists
 
@@ -49,10 +50,23 @@ class GEMDBSurveyLoader(Operator):
         if options.has_key('ht_translator'):   
             self._make_year_string = (options['ht_translator']).translate 
 
+        # check if height/year range is requested
+        # range is stored as dictionary {'min_values':min_values, 'max_values':max_values}
+        # where min_value and max_value are arrays of values
         if options.has_key(self.HT_ATTRIBUTE_NAME):
-            self.ht_ranges = options[self.HT_ATTRIBUTE_NAME]            
+            ht_ranges = options[self.HT_ATTRIBUTE_NAME]
+            min_values_count = len(ht_ranges['min_values'])            
+            max_values_count = len(ht_ranges['max_values'])            
+            # use range only if it is correctly set              
+            if min_values_count>0 and max_values_count>0 and min_values_count==max_values_count:
+                self.ht_ranges = options[self.HT_ATTRIBUTE_NAME]            
         if options.has_key(self.YR_ATTRIBUTE_NAME):
-            self.yr_ranges = options[self.YR_ATTRIBUTE_NAME]
+            ht_ranges = options[self.YR_ATTRIBUTE_NAME]
+            min_values_count = len(ht_ranges['min_values'])            
+            max_values_count = len(ht_ranges['max_values'])            
+            # use range only if it is correctly set              
+            if min_values_count>0 and max_values_count>0 and min_values_count==max_values_count:
+                self.yr_ranges = options[self.YR_ATTRIBUTE_NAME]
             
         self._fields = {
             0 : QgsField(GID_FIELD_NAME, QVariant.Int),
@@ -274,8 +288,12 @@ class GEMDBSurveyLoader(Operator):
         else:
             ht_range = self._find_range(story_ag_1, 
                                         self.ht_ranges['min_values'], self.ht_ranges['max_values'])
-        if ht_range is not None:
-            ht_string = "H:%s,%s"%(ht_range) 
+        if ht_range[0] is None:     # less than minimum
+            ht_string = "H:1,%s"%(ht_range[1])
+        elif ht_range[1] is None:   # larger than maximum
+            ht_string = "H:%s,"%(ht_range[0])
+        else:                       # in range
+            ht_string = "H:%s,%s"%(ht_range)
         return ht_string
 
     def _make_range_year_string(self, yr_built_q, yr_built_1, yr_built_2):
@@ -291,16 +309,25 @@ class GEMDBSurveyLoader(Operator):
         else:
             yr_range = self._find_range(yr_built_1, 
                                         self.yr_ranges['min_values'], self.yr_ranges['max_values'])
-        if yr_range is not None:
-            yr_string = "Y:%s,%s"%(yr_range)                    
+        if yr_range[0] is None:     # less than minimum
+            yr_string = "YP:%s"%(yr_range[1])
+        elif yr_range[1] is None:   # larger than maximum
+            yr_string = "YN:%s,%s"%(yr_range[1],datetime.date.today().year)
+        else:                       # in range
+            yr_string = "YN:%s,%s"%(yr_range)
         return yr_string
 
     
     def _find_range(self, value, min_values, max_values):
+        # less than minimum
+        if value < min_values[0]:
+            return None, min_values[0]
+        # test ranges
         for min_val, max_val in map(None, min_values, max_values):
             if value >= min_val and value <= max_val:
                 return min_val, max_val
-        return None
+        # larger than maximum
+        return max_values[len(max_values)-1], None
         
     def _range_year_string(self, yr_built_q, yr_built_1, yr_built_2):
         input_val = '_get_val'

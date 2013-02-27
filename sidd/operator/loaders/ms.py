@@ -26,7 +26,7 @@ from sidd.constants import logAPICall
 from sidd.operator import Operator,OperatorError, OperatorDataError
 from sidd.operator.data import OperatorDataTypes
 
-from sidd.taxonomy import get_taxonomy
+from sidd.taxonomy import get_taxonomy, Taxonomy
 from sidd.ms.ms import MappingScheme
 
 class MappingSchemeLoader(Operator):
@@ -34,7 +34,10 @@ class MappingSchemeLoader(Operator):
     def __init__(self, options=None, name='Mapping Scheme Loaded'):
         """ constructor """
         Operator.__init__(self, options,  name)
-        self._taxonomy = get_taxonomy(options['taxonomy'])
+        if isinstance(options['taxonomy'], Taxonomy):
+            self._taxonomy = options['taxonomy']
+        else:
+            self._taxonomy = get_taxonomy(options['taxonomy'])
 
     # self documenting method override
     ###########################

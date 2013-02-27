@@ -13,6 +13,7 @@ import sys
 import os
 import unittest
 import getopt
+import shutil
 
 import logging
 logging.basicConfig(level=logging.ERROR)
@@ -39,12 +40,16 @@ def suite():
     #suite.addTest(OperatorTestCase('test_CreateMSFromSurveyOnly'))
     #suite.addTest(OperatorTestCase('test_ApplyMS'))    
     #suite.addTest(OperatorTestCase('test_LoadGEMDBSurvey'))
+    #suite.addTest(OperatorTestCase('test_VerifyExposure'))
+    suite.addTest(OperatorTestCase('test_MakeGridGeometry'))
     
     #suite.addTest(TaxonomyTestCase('test_Parse'))
     
-    suite.addTest(MSDBTestCase('test_Read'))
-    suite.addTest(MSDBTestCase('test_SaveDelete'))
+    #suite.addTest(MSDBTestCase('test_Read'))
+    #suite.addTest(MSDBTestCase('test_SaveDelete'))
+    
     #suite.addTest(ProjectTestCase('test_WorkflowBuilder'))
+    #suite.addTest(ProjectTestCase('test_BuildExposure'))
         
     return suite
 
@@ -57,6 +62,11 @@ if __name__ == '__main__':
         sys.exit(2)
 
     os.environ['QGIS_DEBUG'] = '-1'
+    
+    required_dirs = ['tests/tmp']
+    for dir_path in required_dirs:
+        if not os.path.exists(dir_path):
+            os.mkdir(dir_path)
     
     # supply path to where is your qgis installed
     QgsApplication.setPrefixPath(os.environ['QGIS'], True)
@@ -78,5 +88,10 @@ if __name__ == '__main__':
         print '----------------------------------------------------------------------'
         unittest.main(verbosity=2)
 
+    for dir_path in required_dirs:
+        try:
+            shutil.rmtree(dir_path)
+        except:
+            pass
     QgsApplication.exitQgis()
     

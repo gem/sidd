@@ -22,6 +22,8 @@ module contains class for creating mapping scheme from survey data
 
 import bsddb
 import os 
+import math
+
 from PyQt4.QtCore import QVariant
 from qgis.core import QGis, QgsVectorFileWriter, QgsFeature, QgsField, QgsGeometry, QgsPoint
 
@@ -92,9 +94,11 @@ class FootprintAggregator(Operator):
         for f in layer_features(fp_layer):
             geom = f.geometry()
             zone_str = str(f.attributeMap()[zone_idx].toString())
-            centroid  = geom.centroid().asPoint()                        
-            x = round(centroid.x() / DEFAULT_GRID_SIZE)
-            y = round(centroid.y() / DEFAULT_GRID_SIZE)            
+            centroid  = geom.centroid().asPoint()
+            # use floor, this truncates all points within grid to grid's
+            # bottom-left corner                        
+            x = math.floor(centroid.x() / DEFAULT_GRID_SIZE)
+            y = math.floor(centroid.y() / DEFAULT_GRID_SIZE)
             key = '%s %d %d' % (zone_str, x,y)
             if db.has_key(key):
                 db[key] = str(int(db[key]) + 1)
@@ -116,8 +120,10 @@ class FootprintAggregator(Operator):
             f = QgsFeature()
             for key, val in db.iteritems():
                 (zone_str, x, y) = key.split(' ')
-                point = QgsPoint(int(x)*DEFAULT_GRID_SIZE, int(y)*DEFAULT_GRID_SIZE)
-                
+                # point were aggregated to grid's bottom-left corner
+                # add half grid size to place point at center of grid
+                point = QgsPoint(int(x)*DEFAULT_GRID_SIZE+(DEFAULT_GRID_SIZE/2.0), 
+                                 int(y)*DEFAULT_GRID_SIZE+(DEFAULT_GRID_SIZE/2.0))
                 f.setGeometry(QgsGeometry.fromPoint(point))
                 f.addAttribute(0, QVariant(point.x()))
                 f.addAttribute(1, QVariant(point.y()))

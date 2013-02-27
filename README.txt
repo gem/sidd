@@ -50,13 +50,13 @@ What is SIDD?
 DEPENDENCIES
 ------------
 
-Quantum GIS 1.7 or later
+Quantum GIS 1.8 
 	Internally, SIDD makes heavy use of Quantum GIS python library for GIS analysis
 
-the following should be part of the Quantum GIS 1.7 installation
-	- Python 2.7	
-	- PyQT 4.8		
-	- OSGeo GDAL/OGR '1.9.0'	 	 
+the following should be part of the Quantum GIS 1.8 installation
+	- Python 2.7.x
+	- PyQT 4.8.x
+	- OSGeo GDAL/OGR '1.9.x'
 	
 INSTALLATION
 ------------

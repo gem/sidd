@@ -32,7 +32,7 @@ from sidd.operator import Operator, OperatorError
 from sidd.operator.data import OperatorDataTypes
 
 class EmptyMSCreator(Operator):
-    def __init__(self, options=None, name='EmptyMSCreator'):
+    def __init__(self, options=None, name='Empty MS Creator'):
         super(EmptyMSCreator, self).__init__(options, name)
         self._tmp_dir = options['tmp_dir']
         self._taxonomy = options['taxonomy']
@@ -92,7 +92,7 @@ class EmptyMSCreator(Operator):
         pass
 
 class EmptyZonesMSCreator(EmptyMSCreator):
-    def __init__(self, options=None, name='SurveyZonesMSCreator'):
+    def __init__(self, options=None, name='Empty Zones MSCreator'):
         super(EmptyZonesMSCreator, self).__init__(options, name)    
     
     # self documenting method override

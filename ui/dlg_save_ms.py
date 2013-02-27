@@ -55,16 +55,19 @@ class DialogSaveMS(Ui_saveMSDialog, QDialog):
     @pyqtSlot()
     def saveMS(self):
         """ save current mapping schem into mapping scheme library database """
-        # TODO: error handling
-        self.app.msdb_dao.save_ms(
-            str(self.ui.cb_ms_region.currentText()),
-            str(self.ui.txt_ms_name.text()),
-            str(self.ui.txt_ms_type.text()),
-            str(self.ui.txt_ms_create_date.text()),
-            str(self.ui.txt_ms_source.text()),
-            str(self.ui.txt_ms_quality.text()),
-            str(self.ui.txt_ms_notes.toPlainText()),
-            self.ms_to_save.to_xml())
+        try:
+            #TODO: refactor call to main controller 
+            self.app.msdb_dao.save_ms(
+                str(self.ui.cb_ms_region.currentText()),
+                str(self.ui.txt_ms_name.text()),
+                str(self.ui.txt_ms_type.text()),
+                str(self.ui.txt_ms_create_date.text()),
+                str(self.ui.txt_ms_source.text()),
+                str(self.ui.txt_ms_quality.text()),
+                str(self.ui.txt_ms_notes.toPlainText()),
+                self.ms_to_save.to_xml())
+        except:
+            pass
         self.accept()
 
     # public method

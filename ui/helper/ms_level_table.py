@@ -55,9 +55,13 @@ class MSLevelTableModel(QAbstractTableModel):
         # required call to refresh view
         self.reset()
     
-    def deleteValue(self, index):
+    def deleteValue(self, row):
         """ remove selected row """
-        pass
+        if row < 0 or row > len(self.values):
+            return
+        self.weights.remove(self.weights[row])
+        self.values.remove(self.values[row])
+        self.dataChanged.emit(self.index(row, 0), self.index(row,1))
 
     def headerData(self, section, orientation, role):
         """ return data to diaply for header row """        
@@ -86,7 +90,7 @@ class MSLevelTableModel(QAbstractTableModel):
                     return ""
             else:
                 # second column, show weight
-                return QString('%2.1f'% self.weights[index.row()])
+                return QString('%.2f'% self.weights[index.row()])
         else:
             return QVariant()
     
@@ -126,13 +130,27 @@ class MSLevelTableModel(QAbstractTableModel):
         #   ItemIsEditable also required data() and setData() function
         return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsEditable
 
-    def _sort(self, values, weights, reverse_sort=False):
+    def sort(self, ncol, order):
+        """ sort table """
+        if ncol < 0 or ncol > len(self.headers):
+            return
+        self.layoutAboutToBeChanged.emit()
+        
+        if ncol == 0:
+            self.values, self.weights = self._sort(self.values, self.weights, reverse_sort=order==Qt.DescendingOrder)
+        else:
+            self.weights, self.values = self._sort(self.weights, self.values, reverse_sort=order==Qt.DescendingOrder)            
+                        
+        self.layoutChanged.emit()
+
+    def _sort(self, col1, col2, reverse_sort=False):
         dist = []
-        for v, w in map(None, values, weights):
+        for v, w in map(None, col1, col2):
             dist.append({v:w})
         dist.sort(reverse=reverse_sort)
-        sorted_values, sorted_weights = [], []
+        sorted_col1, sorted_col2 = [], []
         for val in dist:            
-            sorted_values.append(val.items()[0][0])
-            sorted_weights.append(val.items()[0][1])
-        return sorted_values, sorted_weights 
+            sorted_col1.append(val.items()[0][0])
+            sorted_col2.append(val.items()[0][1])
+        return sorted_col1, sorted_col2
+    

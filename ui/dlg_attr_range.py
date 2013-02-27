@@ -19,8 +19,8 @@
 """
 dialog for editing secondary modifiers
 """
-from PyQt4.QtGui import QDialog, QTableWidgetItem, QMessageBox
-from PyQt4.QtCore import pyqtSlot, Qt, QAbstractTableModel, QString, QVariant, QObject
+from PyQt4.QtGui import QDialog, QTableWidgetItem, QMessageBox, QDialogButtonBox
+from PyQt4.QtCore import pyqtSlot, Qt, QVariant, QObject
 
 from ui.constants import logUICall, get_ui_string 
 from ui.qt.dlg_attr_range_ui import Ui_attrRangesDialog
@@ -57,45 +57,50 @@ class DialogAttrRanges(Ui_attrRangesDialog, QDialog):
     
     @property
     def min_values(self):
-        return self.__values[0]
+        return self._values[0]
     
     @property
     def max_values(self):
-        return self.__values[1]
+        return self._values[1]
         
+    @logUICall
     @pyqtSlot()
     def add_range(self):
         self.ui.table_ranges.insertRow(self.ui.table_ranges.rowCount())
-        self.__values[0].append(None)
-        self.__values[1].append(None)
+        self._values[0].append(None)
+        self._values[1].append(None)
     
+    @logUICall
     @pyqtSlot()
     def remove_range(self):        
         self.ui.table_ranges.removeRow(self.ui.table_ranges.rowCount()-1)
-        self.__values[0].pop()
-        self.__values[1].pop()
+        self._values[0].pop()
+        self._values[1].pop()
     
+    @logUICall
     @pyqtSlot(QObject)
     def verifyData(self, item):
         item_val = item.data(Qt.DisplayRole)
         if item_val == QVariant('None'):
             return         
         int_val = item_val.toInt()
-        row, col = item.row(), item.column()
-        # TODO: check again min/max value
+        row, col = item.row(), item.column()        
         if int_val[1]:
             # is integer
             # set value
-            self.__values[col][row] = int_val[0]
+            self._values[col][row] = int_val[0]
+            
+            # allow set range only if is valid 
+            self.ui.buttons.button(QDialogButtonBox.Ok).setEnabled(self.is_range_valid())
         else:
             # not integer
             # restore
             QMessageBox.warning(self, "Error", get_ui_string('dlg.attr.value.error'))
-            self.ui.table_ranges.setItem(row, col, QTableWidgetItem('%s'%self.__values[col][row]))
+            self.ui.table_ranges.setItem(row, col, QTableWidgetItem('%s'%self._values[col][row]))
     
     def set_values(self, attribute, min_values, max_values):
         self.ui.lb_attribute.setText(attribute)
-        self.__values = [min_values, max_values]        
+        self._values = [min_values, max_values]        
         table = self.ui.table_ranges 
         table.clearContents()
         table.setRowCount(0)             
@@ -103,6 +108,33 @@ class DialogAttrRanges(Ui_attrRangesDialog, QDialog):
             table.insertRow(i)
             table.setItem(i, 0, QTableWidgetItem('%s'%min_val))
             table.setItem(i, 1, QTableWidgetItem('%s'%max_val))        
+    
+    def is_value_valid(self, col, row, value):
+        is_valid = True
+        # check again min/max value to make sure range is set correctly            
+        if col==0:  # input is min value
+            # must be less equal than max of its own row
+            is_valid = value <= self._values[1][row]                    
+            # and must be exactly 1 + max of previous row (if exists)
+            if (row>0):                 
+                is_valid &= (value == self._values[1][row-1]+1)                
+        else:       # input is min value
+            # must be larger equal than min of its own row
+            is_valid = value >= self._values[0][row]
+            # and must be min of next row -1 (if exists)
+            if (row<len(self._values[0])-1):
+                is_valid &= (value == self._values[0][row+1]-1)
+        return is_valid
+    
+    def is_range_valid(self):        
+        is_valid = True
+        for i in range(len(self._values[0])):
+            # min must be less than max
+            is_valid = self._values[0][i] <= self._values[1][i]
+            # and min must be exactly 1 + previous max (if not first row)
+            if (i>0):
+                is_valid &= self._values[0][i] == self._values[1][i-1]+1
+        return is_valid                
     
     def retranslateUi(self, ui):
         self.setWindowTitle(get_ui_string('dlg.attr.range.window.title'))

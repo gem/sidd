@@ -37,7 +37,9 @@ def _str_icmp(left, right):
 ###########################
 def load_shapefile(input_file, layer_name):    
     """ create a vector layer from given shapefile file """
-    _layer = QgsVectorLayer(input_file, layer_name, 'ogr')
+    _layer = False
+    if os.path.exists(input_file):
+        _layer = QgsVectorLayer(input_file, layer_name, 'ogr')
     return _layer
 
 def shapefile_fields(input_file):
@@ -65,10 +67,10 @@ def remove_shapefile(input_file):
             except:
                 pass
 
-def copy_shapefile(input_file, output_file):
+def copy_shapefile(input_file, output_file, extensions=['.shp', '.shx', '.dbf', '.prj', '.xml']):
     input_base = input_file[0:input_file.rfind('.')]
     output_base = output_file[0:output_file.rfind('.')]
-    for _ext in ['.shp', '.shx', '.dbf', '.prj', '.xml', '.qpj']:
+    for _ext in extensions:
         if (os.path.exists(input_base + _ext)):
             try:
                 shutil.copyfile(input_base+_ext, output_base+_ext)    
@@ -160,7 +162,7 @@ def load_shapefile_verify(input_file, layer_name, fields):
     """ create a vector layer from given shapefile file """
     layer = load_shapefile(input_file, layer_name)
     if not layer:
-        raise AssertionError('%s field does not exist in %s' % (fields, input_file))
+        raise AssertionError('failed to load %s' % (input_file))
     for field in fields:
         if not layer_field_exists(layer, field):
             raise AssertionError('%s field does not exist in %s' % (fields, input_file))

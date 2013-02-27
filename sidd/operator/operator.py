@@ -24,7 +24,7 @@ from qgis.core import QgsCoordinateReferenceSystem
 from sidd.constants import logAPICall, LON_FIELD_NAME, LAT_FIELD_NAME, TAX_FIELD_NAME  
 from data import OperatorData
 from exception import OperatorError, OperatorDataError
-
+from utils.shapefile import layer_field_index
 
 class Operator(object):
     """
@@ -76,7 +76,7 @@ class Operator(object):
 
     @property
     def input_types(self):
-        raise NotImplementedError("abstract method not implemented")      
+        raise NotImplementedError("abstract method not implemented")
         
     @property    
     def input_names(self):
@@ -191,5 +191,16 @@ class Operator(object):
         perform operator specific output validation.
         must be implemented in subclass
         """
-        raise NotImplementedError("abstract method not implemented")      
+        raise NotImplementedError("abstract method not implemented")     
+    
+    # common input test methods
+    ###########################
+    
+    def _test_layer_loaded(self, layer):        
+        if layer.dataProvider() is None:
+            raise OperatorDataError("layer %s not correctly loaded" % layer.name(), self.__class__)
+    
+    def _test_layer_field_exists(self, layer, field):
+        if layer_field_index(layer, field) == -1:
+            raise OperatorDataError("field %s not found in input layer" % field, self.__class__)          
     

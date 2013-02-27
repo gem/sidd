@@ -45,7 +45,7 @@ class MSTableModel(QAbstractTableModel):
         self.valid_codes = self.ms.taxonomy.codes
         self.headers = [
             get_ui_string("widget.mod.tableheader.zone"),
-            get_ui_string("widget.mod.tableheader.level1"),
+            get_ui_string("widget.mod.tableheader.path"),
             get_ui_string("widget.mod.tableheader.value"),
             get_ui_string("widget.mod.tableheader.weight"),]
         self.modifiers = []
@@ -115,7 +115,7 @@ class MSTableModel(QAbstractTableModel):
                         if (col == self.STR_INDEX):
                             return QVariant(_key)
                         else:
-                            return QVariant(_mod[self.MOD_INDEX].value(_key))
+                            return QVariant("%.2f" %_mod[self.MOD_INDEX].value(_key))
                     else:
                         _idx -=1
         elif role == Qt.ToolTipRole:

@@ -26,13 +26,14 @@ import shutil
 import types
 import json
 
+from utils.enum import makeEnum
 from utils.system import get_temp_dir, get_random_name
 from utils.shapefile import remove_shapefile
 
 from sidd.constants import logAPICall, \
                            FILE_PROJ_TEMPLATE, \
                            FootprintTypes, OutputTypes, SurveyTypes, ZonesTypes, \
-                           ProjectStatus, SyncModes
+                           ProjectStatus, ExtrapolateOptions, SyncModes, ExportTypes
 from sidd.ms import MappingScheme
 from sidd.exception import SIDDException, WorkflowException
 from sidd.workflow import Workflow, WorkflowBuilder
@@ -109,9 +110,9 @@ class Project (object):
         self.output_type = output_type
 
     @logAPICall
-    def set_export(self, export_type, export_file):
+    def set_export(self, export_type, export_path):
         self.export_type = export_type
-        self.export_file = export_file
+        self.export_path = export_path
 
     @logAPICall
     def reset(self, sync=False):
@@ -133,6 +134,9 @@ class Project (object):
         
         self.ms = None
         self.output_type = OutputTypes.Grid
+
+        self.export_type = ExportTypes.Shapefile
+        self.export_path = ''
 
         # empty workflow
         self.workflow = Workflow()
@@ -180,12 +184,10 @@ class Project (object):
     @logAPICall
     def verify_data(self):
         """ verify existing data and create workflow """
-        # persist project 
-        logAPICall.log("save project ...", logAPICall.DEBUG_L2)
+        # persist project
         self.sync(SyncModes.Write)
         
         # build workflow based on current data
-        logAPICall.log("create workflow ...", logAPICall.DEBUG_L2)
         builder = WorkflowBuilder(self.operator_options)
         self.workflow = builder.build_workflow(self)    
         
@@ -194,21 +196,20 @@ class Project (object):
         else:
             self.status = ProjectStatus.ReadyForMS
         self.errors = self.workflow.errors
+        self.exposure = None
+        logAPICall.log('input verification completed', logAPICall.INFO)
 
     @logAPICall
     def build_exposure(self):
         """ building exposure database from workflow """
         for step in self.build_exposure_steps():
             step.do_operation()
-        #self.exposure = self.workflow.operator_data['exposure'].value
-        #self.exposure_file = self.workflow.operator_data['exposure_file'].value
 
     @logAPICall
     def build_exposure_steps(self):
         """ building exposure database from workflow """
-        self.verify_data()
         if not self.workflow.ready:
-            raise SIDDException('current dataset not enough to create exposure')
+            raise SIDDException('cannot create exposure with current datasets')
         
         if getattr(self, 'exposure', None) is not None:
             del self.exposure
@@ -216,7 +217,8 @@ class Project (object):
         
         for op in self.workflow.nextstep():
             yield op
-            
+        
+        # when all steps are completed, set resulting exposure
         self.exposure = self.workflow.operator_data['exposure'].value
         self.exposure_file = self.workflow.operator_data['exposure_file'].value
         logAPICall.log('exposure data created %s' % self.exposure_file, logAPICall.INFO)        
@@ -249,6 +251,46 @@ class Project (object):
         except Exception as err:
             logAPICall.log(err, logAPICall.ERROR)
             return False
+    
+    @logAPICall
+    def export_ms_leaves(self, folder):
+        if self.ms is None:
+            raise SIDDException('Mapping Scheme is required for this action')
+        
+        builder= WorkflowBuilder(self.operator_options)
+        try:
+            export_workflow = builder.build_export_distribution_workflow(self, folder)
+            # process workflow
+            for step in export_workflow.nextstep():
+                step.do_operation()
+            logAPICall.log('data export completed', logAPICall.INFO)
+        except WorkflowException:
+            return False
+        except Exception as err:
+            logAPICall.log(err, logAPICall.ERROR)
+            return False
+    
+    @logAPICall
+    def verify_result(self):
+        builder = WorkflowBuilder(self.operator_options)
+        try:
+            verify_workflow = builder.build_verify_result_workflow(self)
+            # process workflow
+            for step in verify_workflow.nextstep():
+                step.do_operation()
+            
+            self.quality_reports={}
+            if verify_workflow.operator_data.has_key('frag_report'):
+                self.quality_reports['fragmentation'] = verify_workflow.operator_data['frag_report'].value
+            if verify_workflow.operator_data.has_key('count_report'):
+                self.quality_reports['count'] = verify_workflow.operator_data['count_report'].value
+            logAPICall.log('result verification completed', logAPICall.INFO)
+            
+        except WorkflowException:
+            return False
+        except Exception as err:
+            logAPICall.log(err, logAPICall.ERROR)
+            return False
 
     # project database access methods
     ##################################
@@ -266,7 +308,7 @@ class Project (object):
                 self.fp_file = None
                 self.fp_type = FootprintTypes.None
             else:
-                if (_fp_type == 'FootprintHt'):
+                if (_fp_type == str(FootprintTypes.FootprintHt)):
                     self.set_footprint(FootprintTypes.FootprintHt,
                                        self._get_project_data('data.footprint.file'),
                                        self._get_project_data('data.footprint.ht_field'))
@@ -294,7 +336,7 @@ class Project (object):
                 self.zone_file = None                
                 self.zone_type = ZonesTypes.None
             else:
-                if _zone_type == 'Landuse':                    
+                if _zone_type == str(ZonesTypes.Landuse):                    
                     self.set_zones(ZonesTypes.Landuse,
                                    self._get_project_data('data.zones.file'),
                                    self._get_project_data('data.zones.class_field'))
@@ -316,11 +358,27 @@ class Project (object):
                 self.ms = MappingScheme(None)
                 self.ms.from_text(_ms_str)
                 
-            # load operator attributes
+            # load taxonomy related options 
             for attr in self.operator_options['taxonomy'].attributes:
                 _attr_options = self._get_project_data(attr.name)
                 if _attr_options is not None:
                     self.operator_options[attr.name] = json.loads(_attr_options)
+               
+            extrapolation = self._get_project_data("proc.extrapolation")
+            if extrapolation is not None:
+                # NOTE: converting extrapolation to enum is required
+                #       because comparison of str vs. enum is not valid            
+                self.operator_options["proc.extrapolation"] = makeEnum(ExtrapolateOptions, extrapolation)
+            else:
+                self.operator_options["proc.extrapolation"] = ExtrapolateOptions.RandomWalk
+            
+            # load export settings 
+            export_type = self._get_project_data('export.type')
+            if export_type is not None:
+                self.export_type = makeEnum(ExportTypes, export_type)
+            export_path = self._get_project_data('export.path')
+            if export_path is not None:
+                self.export_path = export_path
             
         else:
             logAPICall.log("store existing datasets into DB", logAPICall.DEBUG)
@@ -370,23 +428,24 @@ class Project (object):
             else:
                 self._save_project_data('data.ms', self.ms.to_xml())
             
-            # load operator attributes
+            # save taxonomy order 
             for attr in self.operator_options['taxonomy'].attributes:
                 if self.operator_options.has_key(attr.name):
-                    self._save_project_data(attr.name, json.dumps(self.operator_options[attr.name]))                            
+                    self._save_project_data(attr.name, json.dumps(self.operator_options[attr.name]))
+            
+            # save processing attributes
+            if self.operator_options.has_key("proc.extrapolation"):
+                self._save_project_data("proc.extrapolation", self.operator_options["proc.extrapolation"])
+            
+            # save export settings
+            self._save_project_data('export.type', getattr(self, 'export_type', None))
+            self._save_project_data('export.path', getattr(self, 'export_path', None))
             
             # flush to disk
             self.db.sync()
 
-    def get_operator_options(self):
-        pass
-    
-    def set_operator_options(self, options):
-        pass
-
     # bsddb help functions
-    ##################################
-    
+    ##################################    
     def _get_project_data(self, attrib):        
         if self.db.has_key(attrib):
             logAPICall.log('read from db %s => %s ' % (attrib, str(self.db[attrib])[0:25]), logAPICall.DEBUG_L2)
@@ -450,13 +509,10 @@ class Project (object):
                 step.do_operation()
             self.ms = ms_workflow.operator_data['ms'].value
             for zone, stats in self.ms.assignments():
-                #print zone
                 leaves = stats.get_leaves(True)
                 total = 0
                 for l in leaves:
                     total += l[1]
-                #print leaves
-                #print len(leaves), total
                 
             logAPICall.log('mapping scheme created', logAPICall.INFO)
         except WorkflowException:
@@ -464,4 +520,3 @@ class Project (object):
         except Exception as err:
             logAPICall.log(err, logAPICall.ERROR)
             return False
-        # survey loading        

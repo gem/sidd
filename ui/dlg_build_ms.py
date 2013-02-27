@@ -99,6 +99,7 @@ class DialogMSOptions(Ui_msOptionsDialog, QDialog):
         self.attr_names.remove(value)
         self.attr_names.insert(new_index, value)
         self.refreshAttributeList(self.attr_names)
+        self.ui.lst_attributes.setCurrentRow(new_index)
     
     @logUICall
     @pyqtSlot()
@@ -111,6 +112,7 @@ class DialogMSOptions(Ui_msOptionsDialog, QDialog):
         self.attr_names.remove(value)
         self.attr_names.insert(new_index, value)
         self.refreshAttributeList(self.attr_names)
+        self.ui.lst_attributes.setCurrentRow(new_index)
     
     @logUICall
     @pyqtSlot()
@@ -123,14 +125,10 @@ class DialogMSOptions(Ui_msOptionsDialog, QDialog):
         else:
             self.dlgAttrRange.set_values(attr_value, [], [])
                     
-        if self.dlgAttrRange.exec_() == QDialog.Accepted:            
-            min_values, max_values = [], []
-            for min_val, max_val in map(None, self.dlgAttrRange.min_values, self.dlgAttrRange.max_values):
-                if min_val is not None and max_val is not None:
-                    min_values.append(min_val)
-                    max_values.append(max_val)
-            self.app.project.operator_options[attr_value] = {'min_values':min_values, 'max_values':max_values}            
-                    
+        if self.dlgAttrRange.exec_() == QDialog.Accepted:
+            self.app.project.operator_options[attr_value] = {'min_values':self.dlgAttrRange.min_values, 
+                                                             'max_values':self.dlgAttrRange.max_values}
+            
     @logUICall
     @pyqtSlot()
     def attributeMoveTop(self):
@@ -141,6 +139,7 @@ class DialogMSOptions(Ui_msOptionsDialog, QDialog):
         self.attr_names.remove(value)
         self.attr_names.insert(0, value)
         self.refreshAttributeList(self.attr_names)
+        self.ui.lst_attributes.setCurrentRow(0)
     
     @logUICall
     @pyqtSlot()
@@ -152,6 +151,7 @@ class DialogMSOptions(Ui_msOptionsDialog, QDialog):
         self.attr_names.remove(value)
         self.attr_names.append(value)
         self.refreshAttributeList(self.attr_names)
+        self.ui.lst_attributes.setCurrentRow(len(self.attr_names)-1)
     
     @logUICall
     @pyqtSlot()
@@ -183,5 +183,9 @@ class DialogMSOptions(Ui_msOptionsDialog, QDialog):
         self.ui.widget_attribute_buttons.setEnabled(False)
     
     def retranslateUi(self, ui):
-        self.setWindowTitle("Create Mapping Scheme")        
-
+        self.setWindowTitle(get_ui_string("dlg.buildms.title"))
+        ui.lb_title.setText(get_ui_string("dlg.buildms.title"))
+        ui.lb_attributes.setText(get_ui_string("dlg.buildms.attributes"))
+        ui.radioEmptyMS.setText(get_ui_string("dlg.buildms.option.empty"))
+        ui.radioBuildMS.setText(get_ui_string("dlg.buildms.option.survey"))
+        

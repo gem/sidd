@@ -28,24 +28,28 @@ class OperatorTestCase(unittest.TestCase):
         self.taxonomy = get_taxonomy("gem")
         self.test_data_dir = str(os.getcwd()) +  "/tests/data/"
         self.test_tmp_dir = str(os.getcwd()) +  "/tests/tmp/"
+        
         self.ms_file = self.test_data_dir +  "ms.xml"
         self.fp_path = self.test_data_dir +  'footprint.shp'
         self.fp_feature_count = 1475
-        self.survey_path = self.test_data_dir +  "survey.csv"
-        self.gemdb_path = self.test_data_dir +  "survey.gemdb"
-        self.zone_path = self.test_data_dir +  "zones.shp"
-        self.zone_field = 'LandUse'
-        self.zone_bldg_count = 546
-        self.bldgcount_field = 'NumBldg'
+        self.zone1_path = self.test_data_dir +  "zones1.shp"
+        self.zone1_field = "ZONE"
 
+        self.gemdb3_path = self.test_data_dir +  "survey.gemdb"
+        self.zone3_path = self.test_data_dir +  "zones3.shp"
+        self.zone3_field = "ZONE"
+        
         self.zone2_path = self.test_data_dir +  "zones2.shp"
-        self.zone2_field = "ZONE"
+        self.zone2_field = 'LandUse'
+        self.zone2_bldg_count = 546
+        self.zone2_bldgcount_field = 'NumBldg'
+
         self.grid_path = self.test_data_dir +  "grid.shp"
         self.grid2_path = self.test_data_dir +  "grid2.shp"
         
         self.operator_options = {
             'tmp_dir': self.test_tmp_dir,
-            'taxonomy':'gem',
+            'taxonomy':self.taxonomy,
             'skips':[1,2,3,4,5,6],
         }
 
@@ -86,18 +90,20 @@ class OperatorTestCase(unittest.TestCase):
     def test_LoadZone(self, skipTest=False, zone=1):
         logging.debug('test_LoadZone %s' % skipTest)
         
-        if zone== 1:
-            zone_path = self.zone_path
-            zone_field = self.zone_field
-        else:
+        if zone ==1:
+            zone_path = self.zone1_path
+            zone_field = self.zone1_field
+        elif zone ==2:
             zone_path = self.zone2_path
             zone_field = self.zone2_field
+        else:
+            zone_path = self.zone3_path
+            zone_field = self.zone3_field
         
         loader = ZoneLoader(self.operator_options)
         loader.inputs = [
             OperatorData(OperatorDataTypes.Shapefile, zone_path),
-            OperatorData(OperatorDataTypes.StringAttribute, zone_field),
-            #OperatorData(OperatorDataTypes.StringAttribute, self.bldgcount_field),
+            OperatorData(OperatorDataTypes.StringAttribute, zone_field),            
         ]
         loader.outputs = [
             OperatorData(OperatorDataTypes.Zone),
@@ -108,76 +114,46 @@ class OperatorTestCase(unittest.TestCase):
         if skipTest:
             return loader.outputs  
 
-        zones = loader.outputs[0].value
-        self.assertEquals(zones.featureCount(), self.zone_bldg_count)        
-
-        classes = layer_fields_stats(zones, self.zone_field)
-        _total = 0
-        for _k, _v in classes.iteritems():
-            _total+=_v
-        self.assertEquals(_total, self.zone_bldg_count)
-        
-        # clean up
-        del zones
         self._clean_layer(loader.outputs)  
 
     
-    def test_LoadZoneCount(self, skipTest=False):
+    def test_LoadZone2(self, skipTest=False):
         logging.debug('test_LoadZoneCount %s' % skipTest)
         
         loader = ZoneCountLoader(self.operator_options)
         loader.inputs = [
-            OperatorData(OperatorDataTypes.Shapefile, self.zone_path),
-            OperatorData(OperatorDataTypes.StringAttribute, self.zone_field),
-            OperatorData(OperatorDataTypes.StringAttribute, self.bldgcount_field),
+            OperatorData(OperatorDataTypes.Shapefile, self.zone2_path),
+            OperatorData(OperatorDataTypes.StringAttribute, self.zone2_field),
+            OperatorData(OperatorDataTypes.StringAttribute, self.zone2_bldgcount_field),
         ]
         loader.outputs = [
             OperatorData(OperatorDataTypes.Zone),
             OperatorData(OperatorDataTypes.Shapefile)
         ]        
-        loader.do_operation()        
+        loader.do_operation()
         if skipTest:
             return loader.outputs
         
         zones = loader.outputs[0].value
-        self.assertEquals(zones.featureCount(), self.zone_bldg_count)
+        self.assertEquals(zones.featureCount(), self.zone2_bldg_count)
 
-        classes = layer_fields_stats(zones, self.zone_field)
+        classes = layer_fields_stats(zones, self.zone2_field)
         _total = 0
         for _k, _v in classes.iteritems():
             _total+=_v
-        self.assertEquals(_total, self.zone_bldg_count)
+        self.assertEquals(_total, self.zone2_bldg_count)
         
         # clean up
         del zones
         self._clean_layer(loader.outputs)  
     
-    def test_LoadSurvey(self, skipTest=False):   
-        logging.debug('test_LoadSurvey %s' % skipTest)
-        
-        loader = CSVSurveyLoader(self.operator_options)
-        loader.inputs = [
-            OperatorData(OperatorDataTypes.File, self.survey_path),
-            OperatorData(OperatorDataTypes.StringAttribute, 'CSV'),            
-        ]
-        loader.outputs = [
-            OperatorData(OperatorDataTypes.Survey),
-            OperatorData(OperatorDataTypes.Shapefile),
-        ]
-        loader.do_operation()
-        if skipTest:
-            return loader.outputs
-        
-        # clean up
-        self._clean_layer(loader.outputs)  
-
     def test_LoadGEMDBSurvey(self, skipTest=False):   
         logging.debug('test_LoadSurvey %s' % skipTest)
         
         loader = GEMDBSurveyLoader(self.operator_options)
         loader.inputs = [
-            OperatorData(OperatorDataTypes.File, self.gemdb_path),
-            OperatorData(OperatorDataTypes.StringAttribute, 'CSV'),            
+            OperatorData(OperatorDataTypes.File, self.gemdb3_path),
+            OperatorData(OperatorDataTypes.StringAttribute, 'GEMDB'),            
         ]
         loader.outputs = [
             OperatorData(OperatorDataTypes.Survey),
@@ -214,7 +190,7 @@ class OperatorTestCase(unittest.TestCase):
     def test_MakeGrid(self, skipTest=False):
         logging.debug('test_MakeGrid %s' % skipTest)
         
-        zone_data = self.test_LoadZone(True)
+        zone_data = self.test_LoadZone(True, 1)
         extent = zone_data[0].value.extent()
         
         writer = GridWriter(self.operator_options)
@@ -243,7 +219,7 @@ class OperatorTestCase(unittest.TestCase):
     def test_MakeGridFromRegion(self, skipTest=False):
         logging.debug('test_MakeGridFromRegion %s' % skipTest)
         
-        zone_data = self.test_LoadZone(True)
+        zone_data = self.test_LoadZone(True, 2)
         
         writer = GridFromRegionWriter(self.operator_options)
         writer.set_inputs([
@@ -265,20 +241,35 @@ class OperatorTestCase(unittest.TestCase):
         # clean up
         self._clean_layer(writer.outputs)  
 
+    def test_MakeGridGeometry(self):        
+        logging.debug('test_MakeGridGeometry %s')
+        grid_data = self.test_MakeGrid(skipTest=True)
+        
+        writer = GridGeometryWriter(self.operator_options)
+        writer.inputs = [grid_data[0]]
+        writer.outputs = [
+            OperatorData(OperatorDataTypes.Grid),   
+            OperatorData(OperatorDataTypes.Shapefile)
+        ]
+        writer.do_operation()
+        
+        self._clean_layer(grid_data)
+        self._clean_layer(writer.outputs)
+
     # testing merging zone and grids
     ############################
     
     def test_ZoneGridJoin(self, skipTest=False):
         logging.debug('test_ZoneGridJoin %s' % skipTest)
         
-        zone_data = self.test_LoadZoneCount(True)
+        zone_data = self.test_LoadZone2(True)
         grid_data = self.test_MakeGridFromRegion(True)
         
         join = ZoneGridMerger(self.operator_options)
         join.inputs = [
             zone_data[0],
-            OperatorData(OperatorDataTypes.StringAttribute, self.zone_field),
-            OperatorData(OperatorDataTypes.StringAttribute, self.bldgcount_field),
+            OperatorData(OperatorDataTypes.StringAttribute, self.zone2_field),
+            OperatorData(OperatorDataTypes.StringAttribute, self.zone2_bldgcount_field),
             grid_data[0],
         ]
         join.outputs = [
@@ -301,13 +292,13 @@ class OperatorTestCase(unittest.TestCase):
     def test_ZoneFootprintJoin(self, skipTest=False):
         logging.debug('test_ZoneFootprintJoin %s' % skipTest)
         
-        zone_data = self.test_LoadZone(True, 2)
+        zone_data = self.test_LoadZone(True, 1)
         fp_opdata = self.test_LoadFootprint(True)
         
         merger = ZoneFootprintMerger(self.operator_options)
         merger.inputs = [
             zone_data[0],
-            OperatorData(OperatorDataTypes.StringAttribute, self.zone2_field),
+            OperatorData(OperatorDataTypes.StringAttribute, self.zone1_field),
             fp_opdata[0],
         ]
         merger.outputs = [
@@ -330,13 +321,13 @@ class OperatorTestCase(unittest.TestCase):
     def test_ZoneFootprintCount(self, skipTest=False):
         logging.debug('test_ZoneFootprintJoin %s' % skipTest)
         
-        zone_data = self.test_LoadZone(True, 2)
+        zone_data = self.test_LoadZone(True, 1)
         fp_opdata = self.test_LoadFootprint(True)
         
         merger = ZoneFootprintCounter(self.operator_options)
         merger.inputs = [
             zone_data[0],
-            OperatorData(OperatorDataTypes.StringAttribute, self.zone2_field),
+            OperatorData(OperatorDataTypes.StringAttribute, self.zone1_field),
             OperatorData(OperatorDataTypes.StringAttribute, 'BLDG_COUNT'),
             fp_opdata[0],
         ]
@@ -373,7 +364,7 @@ class OperatorTestCase(unittest.TestCase):
         if skipTest:
             return ms_creator.outputs
         
-        self.assertEquals(type(ms_creator.outputs[0].value), MappingScheme)        
+        self.assertEquals(type(ms_creator.outputs[0].value), MappingScheme)
         
         # no cleanup needed, MappingSchemeLoader does not create tmp files
 
@@ -385,7 +376,7 @@ class OperatorTestCase(unittest.TestCase):
         ms_creator = EmptyZonesMSCreator(self.operator_options)
         ms_creator.set_inputs([            
             zone_data[0],
-            OperatorData(OperatorDataTypes.StringAttribute, self.zone_field),
+            OperatorData(OperatorDataTypes.StringAttribute, self.zone1_field),
         ])
         ms_creator.set_outputs([
             OperatorData(OperatorDataTypes.MappingScheme)
@@ -403,14 +394,14 @@ class OperatorTestCase(unittest.TestCase):
     def test_CreateMSFromSurveyZone(self, skipTest=False):
         logging.debug('test_CreateMSFromSurveyZone %s' % skipTest)
         
-        zone_data = self.test_LoadZone(True)
-        svy_opdata = self.test_LoadSurvey(True)
+        zone_data = self.test_LoadZone(True, 3)
+        svy_opdata = self.test_LoadGEMDBSurvey(True)
         
         ms_creator = SurveyZonesMSCreator(self.operator_options)
         ms_creator.set_inputs([
             svy_opdata[0],
             zone_data[0],
-            OperatorData(OperatorDataTypes.StringAttribute, self.zone_field),
+            OperatorData(OperatorDataTypes.StringAttribute, self.zone1_field),
         ])
         ms_creator.set_outputs([
             OperatorData(OperatorDataTypes.MappingScheme)
@@ -424,12 +415,11 @@ class OperatorTestCase(unittest.TestCase):
         if skipTest:
             return ms_creator.outputs        
         self.assertEquals(type(ms_creator.outputs[0].value), MappingScheme)        
-        
 
     def test_CreateMSFromSurveyOnly(self, skipTest=False):
         logging.debug('test_CreateMSFromSurveyZone %s' % skipTest)
         
-        svy_opdata = self.test_LoadSurvey(True)
+        svy_opdata = self.test_LoadGEMDBSurvey(True)
         ms_creator = SurveyOnlyMSCreator(self.operator_options)
         ms_creator.set_inputs([
             svy_opdata[0],
@@ -443,8 +433,7 @@ class OperatorTestCase(unittest.TestCase):
         self._clean_layer(svy_opdata)
         if skipTest:
             return ms_creator.outputs           
-        self.assertEquals(type(ms_creator.outputs[0].value), MappingScheme)        
-        
+        self.assertEquals(type(ms_creator.outputs[0].value), MappingScheme)
 
     # testing footprint aggregator
     ############################        
@@ -457,7 +446,7 @@ class OperatorTestCase(unittest.TestCase):
         fp_agg = FootprintAggregator(self.operator_options)
         fp_agg.inputs = [
             fp_data[0],
-            OperatorData(OperatorDataTypes.StringAttribute, self.zone2_field),
+            OperatorData(OperatorDataTypes.StringAttribute, self.zone1_field),
         ]
         fp_agg.outputs = [
             OperatorData(OperatorDataTypes.Grid),
@@ -482,7 +471,7 @@ class OperatorTestCase(unittest.TestCase):
         logging.debug('test_ApplyMS')
         
         # load zone with count
-        zone_data = self.test_LoadZoneCount(True)
+        zone_data = self.test_LoadZone2(True)
         
         # load ms
         ms_opdata = self.test_LoadMS(True)
@@ -492,8 +481,8 @@ class OperatorTestCase(unittest.TestCase):
         
         ms_applier.inputs = [
             zone_data[0],
-            OperatorData(OperatorDataTypes.StringAttribute, self.zone_field),
-            OperatorData(OperatorDataTypes.StringAttribute, self.bldgcount_field),
+            OperatorData(OperatorDataTypes.StringAttribute, self.zone2_field),
+            OperatorData(OperatorDataTypes.StringAttribute, self.zone2_bldgcount_field),
             ms_opdata[0],
         ]
         ms_applier.outputs = [
@@ -514,8 +503,8 @@ class OperatorTestCase(unittest.TestCase):
         ms_applier = GridMSApplier(self.operator_options)
         ms_applier.inputs = [
             OperatorData(OperatorDataTypes.Grid, load_shapefile(self.grid2_path, 'test_input_grid')),            
-            OperatorData(OperatorDataTypes.StringAttribute, self.zone_field),
-            OperatorData(OperatorDataTypes.StringAttribute, self.bldgcount_field),
+            OperatorData(OperatorDataTypes.StringAttribute, self.zone2_field),
+            OperatorData(OperatorDataTypes.StringAttribute, self.zone2_bldgcount_field),
             ms_opdata[0],
         ]
         ms_applier.outputs = [
@@ -533,7 +522,7 @@ class OperatorTestCase(unittest.TestCase):
     def test_SurveyAggregate(self):
         logging.debug('test_SurveyAggregate')
         
-        svy_data = self.test_LoadSurvey(True)
+        svy_data = self.test_LoadGEMDBSurvey(True)
         svy_agg = SurveyAggregator(self.operator_options)
         svy_agg.inputs = [
             svy_data[0]
@@ -548,6 +537,51 @@ class OperatorTestCase(unittest.TestCase):
         self._clean_layer(svy_data)
         self._clean_layer(svy_agg.outputs)
 
+    def test_VerifyExposure(self):
+        logging.debug('test_VerifyExposure')
+
+        exposure_path = self.test_data_dir + 'exposure3.shp'
+        exposure = load_shapefile(exposure_path, 'exposure3')
+        exposure_opdata = OperatorData(OperatorDataTypes.Exposure, exposure)
+
+        fp_path = self.test_data_dir +  'footprints3.shp'
+        fp = load_shapefile(fp_path, 'fp3')
+        fp_opdata = OperatorData(OperatorDataTypes.Footprint, fp)
+
+        # check fragmentation
+        report = OperatorData(OperatorDataTypes.Report)
+        
+        frag_analyzer = ExposureFragmentationAnalyzer(self.operator_options)
+        frag_analyzer.inputs = [exposure_opdata]
+        frag_analyzer.outputs = [report]
+        frag_analyzer.do_operation()
+        #print report.value
+        self.assertEquals(report.value['fraction_count'], 0)
+        
+        fp_cnt_analyzer = ExposureFootprintCountAnalyzer(self.operator_options)
+        fp_cnt_analyzer.inputs = [exposure_opdata, fp_opdata]
+        fp_cnt_analyzer.outputs = [report]
+        fp_cnt_analyzer.do_operation()
+        #print report.value
+        self.assertEquals(report.value['total_source'], report.value['total_exposure'])
+        
+        exposure_path = self.test_data_dir + 'exposure2.shp'
+        exposure = load_shapefile(exposure_path, 'exposure2')
+        exposure_opdata = OperatorData(OperatorDataTypes.Exposure, exposure)
+                
+        zone_path = self.test_data_dir +  'zones2.shp'
+        zone = load_shapefile(zone_path, 'zones2')
+        zone_opdata = OperatorData(OperatorDataTypes.Zone, zone)
+        
+        zone_cnt_analyzer = ExposureZoneCountAnalyzer(self.operator_options)
+        zone_cnt_analyzer.inputs = [exposure_opdata,
+                                    zone_opdata,
+                                    OperatorData(OperatorDataTypes.StringAttribute, self.zone2_bldgcount_field)]
+        zone_cnt_analyzer.outputs = [report]
+        zone_cnt_analyzer.do_operation()
+        #print report.value
+        self.assertEquals(report.value['total_source'], report.value['total_exposure'])
+    
     def _clean_layer(self, output):
         del output[0].value
         remove_shapefile(output[1].value)

@@ -100,10 +100,10 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
         """ 
         event handler for btn_delete
         - delete currently selected row of value/weights from table table_ms_level  
-        """        
+        """    
         selected = self.getSelectedCell()
         if selected is not None:
-            self.levelModel.deleteValue(selected)
+            self.levelModel.deleteValue(selected.row())
 
     @logUICall
     @pyqtSlot()

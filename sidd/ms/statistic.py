@@ -21,7 +21,8 @@ Module class for statistic tree handling
 """
 from xml.etree import ElementTree
 
-from sidd.constants import logAPICall
+from sidd.constants import logAPICall, ExtrapolateOptions
+from sidd.taxonomy import TaxonomyParseError
 from sidd.ms.exceptions import StatisticError
 from sidd.ms.node import StatisticNode
 
@@ -84,6 +85,8 @@ class Statistics (object):
         try:
             bldg_attrs = self.taxonomy.parse(taxstr)
             self.root.add(bldg_attrs, 0, attribute_names, self.defaults, self.skips)
+        except TaxonomyParseError as perr:
+            logAPICall.log("error parsing case %s, %s" % (str(taxstr), str(perr)), logAPICall.WARNING)
         except Exception as err:
             logAPICall.log("error adding case %s, %s" % (str(taxstr), str(err)), logAPICall.WARNING)         
 
@@ -110,11 +113,11 @@ class Statistics (object):
         self.finalized = True        
 
     @logAPICall
-    def get_leaves(self, refresh=False):
+    def get_leaves(self, refresh=False, with_modifier=True):
         if refresh:
             self.leaves = []
             for _child in self.root.children:
-                for _val, _wt in _child.leaves(self.taxonomy.attribute_separator, ""):                    
+                for _val, _wt in _child.leaves(self.taxonomy.attribute_separator, with_modifier):                    
                     self.leaves.append([_val, _wt])
         return self.leaves
     
@@ -239,20 +242,30 @@ class Statistics (object):
         node.set_child_weights(weights)
     
     @logAPICall
-    def get_samples(self, n):
+    def get_samples(self, total, method):
         """
         create n samples using statistic tree
         pre-condition: finalize() must be called first
         """
         samples = {}
         _sample = ''
-        for i in range(n):
-            #while _sample == '':
-            _sample = self.get_sample_walk(False)
-            if samples.has_key(_sample):
-                samples[_sample]+=1
-            else:
-                samples[_sample]=1
+        
+        if method == ExtrapolateOptions.Fraction or method == ExtrapolateOptions.FractionRounded: 
+            leaves = self.get_leaves(refresh=True, with_modifier=True)
+            for leaf in leaves:
+                value = leaf[1] * total
+                if method == ExtrapolateOptions.FractionRounded:
+                    value = round(value)
+                samples[leaf[0]] = value
+                                            
+        else: # default / method=ExtrapolateOptions.RandomWalk
+            for i in range(total):
+                #while _sample == '':
+                _sample = self.get_sample_walk(False)
+                if samples.has_key(_sample):
+                    samples[_sample]+=1
+                else:
+                    samples[_sample]=1        
         return samples
     
     @logAPICall

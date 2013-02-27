@@ -27,3 +27,4 @@ from exception import OperatorError, OperatorDataError
 from loaders import *
 from processors import *
 from writers import *
+from verify import *
