@@ -358,7 +358,10 @@ class Project (object):
                 self.ms = MappingScheme(None)
                 self.ms.from_text(_ms_str)
                 
-            # load taxonomy related options 
+            # load taxonomy related options
+            attr_order = self._get_project_data('attribute.order')
+            if attr_order is not None:
+                self.operator_options['attribute.order'] = json.loads(attr_order)                
             for attr in self.operator_options['taxonomy'].attributes:
                 _attr_options = self._get_project_data(attr.name)
                 if _attr_options is not None:
@@ -429,6 +432,8 @@ class Project (object):
                 self._save_project_data('data.ms', self.ms.to_xml())
             
             # save taxonomy order 
+            if self.operator_options.has_key('attribute.order'):
+                self._save_project_data('attribute.order',  json.dumps(self.operator_options['attribute.order']))
             for attr in self.operator_options['taxonomy'].attributes:
                 if self.operator_options.has_key(attr.name):
                     self._save_project_data(attr.name, json.dumps(self.operator_options[attr.name]))

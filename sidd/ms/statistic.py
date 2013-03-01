@@ -152,19 +152,7 @@ class Statistics (object):
         parent.delete_node(node)
     
     @logAPICall
-    def add_child(self, node, child):
-        """
-        add a child to the node
-        attach default values under the child
-        """
-        # assert valid condition
-        if not self.finalized:
-            raise StatisticError('stat must be finalized before modification')
-            
-        node.add_child(child, self.defaults_collapsed)
-    
-    @logAPICall
-    def add_branch(self, node, branch):
+    def add_branch(self, node, branch, not_allow_repeat=True):
         """
         add branch to node as child
         only limitation is that the same attribute does not appear
@@ -174,28 +162,43 @@ class Statistics (object):
         if not self.finalized:
             raise StatisticError('stat must be finalized before modification')
         
-        attributes = self.get_attributes(branch)
-        # make sure attributes above node does not have the attribute
-        # already defined
-        for attr in self.attributes[0:node.level]:
-            try:
-                attributes.index(attr)
-                # if attr already in attribute list, it means repeat
-                # which in this case is an error
-                raise StatisticError('Branche attributes %s cannot be added at node, Parent attribute [%s] already exists' % (attributes, attr))
-            except ValueError:
-                # error means attr not in attributes
-                # which is the acceptable condition
-                pass
+        if not_allow_repeat:
+            #attributes = self.get_attributes(branch)
+            # make sure attributes above node does not have the attribute
+            # already defined
+            existing_attributes = node.ancestor_names
+            existing_attributes.append(node.name)
+            attributes_to_insert = branch.descendant_names
+            attributes_to_insert.insert(0, branch.name)
+                        
+            for attr in attributes_to_insert:
+                try:
+                    existing_attributes.index(attr)
+                    # if attr already in attribute list, it means repeat
+                    # which in this case is an error
+                    raise StatisticError('Cannot perform append to node, Repeating attributes\nexisting attributes %s\nnew attributes %s' % (existing_attributes, attributes_to_insert))
+                except ValueError:
+                    # error means attr not in attributes
+                    # which is the acceptable condition
+                    pass
         
-        # no exception means no repeating attributes
-        # add branch to node as child        
+        # no exception means no repeating attributes or repeating not checked
+        # add branch to node as child
         
         # clone branch
         branch_to_add = branch.clone
         branch_to_add.set_level_recursive(node.level+1)
         branch_to_add.parent = node
         node.children.append(branch_to_add)
+        # adjust weights proportionally
+        sum_weights = sum([child.weight for child in node.children])
+        total_children = len(node.children)                
+        adj_factor = sum_weights / 100
+        for child in node.children:
+            if adj_factor == 0:
+                child.weight = 100.0 / total_children
+            else:
+                child.weight = child.weight / adj_factor
     
     @logAPICall
     def delete_branch(self, node):
@@ -208,7 +211,7 @@ class Statistics (object):
             raise StatisticError('stat must be finalized before modification')
         
         parent = node.parent
-        parent.children.remove(node)        
+        parent.children.remove(node)
         children_count = len(parent.children)
         if  children_count > 1:
             weight_to_distribute = node.weight / float(children_count)
@@ -220,14 +223,18 @@ class Statistics (object):
         """ get name of all attributes in the tree"""
         names = []
         node = rootnode
-        while not node.is_leaf:            
+        found_leaf = False
+        while not found_leaf:
             if (node.level > 0):
                 attr_values = self.taxonomy.parse(node.value)                
                 for attr_val, attr in map(None, attr_values, self.taxonomy.attributes):                    
                     if not attr_val.is_empty:
                         names.append(attr.name)
-                        break            
-            node = node.children[0]
+                        break                        
+            if node.is_leaf:
+                found_leaf=True
+            else:
+                node = node.children[0]
         return names
     
     @logAPICall

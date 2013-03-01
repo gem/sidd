@@ -187,6 +187,11 @@ class WidgetSecondaryModifier(Ui_widgetSecondaryModifier, QWidget):
             return None, None
 
     def retranslateUi(self, ui):
+        # ui elements
         ui.lb_panel_title.setText(get_ui_string("widget.mod.title"))        
         ui.btn_build_exposure.setText(get_ui_string("widget.mod.build"))
+        # tooltips for icon buttons
+        self.ui.btn_add_mod.setToolTip(get_ui_string("widget.mod.button.add"))
+        self.ui.btn_del_mod.setToolTip(get_ui_string("widget.mod.button.delete"))
+        self.ui.btn_edit_mod.setToolTip(get_ui_string("widget.mod.button.edit"))
         

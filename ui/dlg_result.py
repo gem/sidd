@@ -25,7 +25,7 @@ from operator import itemgetter
 
 from sidd.constants import logAPICall, CNT_FIELD_NAME
 
-from ui.constants import logUICall, UI_PADDING
+from ui.constants import logUICall, UI_PADDING, get_ui_string
 from ui.qt.dlg_res_detail_ui import Ui_tablePreviewDialog
 
 class DialogResult(Ui_tablePreviewDialog, QDialog):
@@ -36,11 +36,12 @@ class DialogResult(Ui_tablePreviewDialog, QDialog):
     ###############################     
     def __init__(self):
         super(DialogResult, self).__init__()
-        self.ui = Ui_tablePreviewDialog()
+        self.ui = Ui_tablePreviewDialog()        
         self.ui.setupUi(self)
+        self.retranslateUi(self.ui)
+        
         self.ui.table_result.setSelectionMode(QAbstractItemView.SingleSelection)
         self.ui.table_result.setSortingEnabled(True)
-        self.resize(600, 425)
         
         # connect slots (ui event)
         self.ui.btn_ok.clicked.connect(self.accept)
@@ -82,7 +83,7 @@ class DialogResult(Ui_tablePreviewDialog, QDialog):
         self.resultDetailModel = ResultDetailTableModel(header.values(), selected)        
         self.ui.table_result.setModel(self.resultDetailModel)
         self.ui.table_result.sortByColumn(3, Qt.AscendingOrder)        
-        # following only visible for exposure layers        
+        # display exposure specific ui elements         
         self.ui.txt_bldgcount.setVisible(True) 
         self.ui.lb_bldgcount.setVisible(True)
         self.ui.txt_bldgcount.setText('%d'% cnt_sum)
@@ -92,12 +93,19 @@ class DialogResult(Ui_tablePreviewDialog, QDialog):
     def showInfoData(self, header, selected):
         # sync UI 
         self.resultDetailModel = ResultDetailTableModel(header.values(), selected)        
-        self.ui.table_result.setModel(self.resultDetailModel)
-        self.ui.table_result.sortByColumn(3, Qt.AscendingOrder)
-        # following not visible for other layers
+        self.ui.table_result.setModel(self.resultDetailModel)                
+        # hide exposure specific ui elements 
         self.ui.txt_bldgcount.setVisible(False) 
         self.ui.lb_bldgcount.setVisible(False)
 
+    def retranslateUi(self, ui):
+        """ set text for ui elements """
+        # dialog title
+        self.setWindowTitle(get_ui_string('dlg.result.window.title'))
+        # ui elements        
+        ui.lb_title.setText(get_ui_string('dlg.result.title'))
+        ui.lb_bldgcount.setText(get_ui_string('dlg.result.bldgcount'))
+        ui.btn_ok.setText(get_ui_string('app.dialog.button.ok'))
 
 class ResultDetailTableModel(QAbstractTableModel):
     """
@@ -146,8 +154,6 @@ class ResultDetailTableModel(QAbstractTableModel):
             else:
                 # no vertical header
                 return QVariant()
-        elif role == Qt.ToolTipRole:            
-            return QString('tool tip for %s' % self.headers[section].name())
         else:            
             return QVariant()
     
@@ -175,5 +181,5 @@ class ResultDetailTableModel(QAbstractTableModel):
         """ cell condition flag """
         # NOTE: 
         #   ItemIsEditable flag requires data() and setData() function
-        return Qt.ItemIsEnabled | Qt.ItemIsSelectable
+        return Qt.ItemIsEnabled 
     

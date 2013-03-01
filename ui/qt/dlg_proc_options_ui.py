@@ -45,11 +45,5 @@ class Ui_procOptionsDialog(object):
         QtCore.QMetaObject.connectSlotsByName(procOptionsDialog)
 
     def retranslateUi(self, procOptionsDialog):
-        procOptionsDialog.setWindowTitle(QtGui.QApplication.translate("procOptionsDialog", "Dialog", None, QtGui.QApplication.UnicodeUTF8))
-        self.box_extrapolate_options.setTitle(QtGui.QApplication.translate("procOptionsDialog", "Extrapolation Options", None, QtGui.QApplication.UnicodeUTF8))
-        self.radio_random.setText(QtGui.QApplication.translate("procOptionsDialog", "Random Walk", None, QtGui.QApplication.UnicodeUTF8))
-        self.radio_actual.setText(QtGui.QApplication.translate("procOptionsDialog", "Actual Ratio ", None, QtGui.QApplication.UnicodeUTF8))
-        self.radio_actual_rounded.setText(QtGui.QApplication.translate("procOptionsDialog", "Actual Ratio (Rounded)", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_ok.setText(QtGui.QApplication.translate("procOptionsDialog", "OK", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_close.setText(QtGui.QApplication.translate("procOptionsDialog", "Close", None, QtGui.QApplication.UnicodeUTF8))
+        pass
 

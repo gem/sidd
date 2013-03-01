@@ -98,14 +98,6 @@ class Ui_modifierInputDialog(object):
         QtCore.QMetaObject.connectSlotsByName(modifierInputDialog)
 
     def retranslateUi(self, modifierInputDialog):
-        modifierInputDialog.setWindowTitle(QtGui.QApplication.translate("modifierInputDialog", "Secondary Modifier Input", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_ms_tree.setText(QtGui.QApplication.translate("modifierInputDialog", "Zone", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_mod_values.setText(QtGui.QApplication.translate("modifierInputDialog", "Values", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_apply.setText(QtGui.QApplication.translate("modifierInputDialog", "OK", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_cancel.setText(QtGui.QApplication.translate("modifierInputDialog", "Cancel", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_title.setText(QtGui.QApplication.translate("modifierInputDialog", "Edit Modifier", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_percent.setText(QtGui.QApplication.translate("modifierInputDialog", "%", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_total_weights.setText(QtGui.QApplication.translate("modifierInputDialog", "Some of Weights", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_attribute.setText(QtGui.QApplication.translate("modifierInputDialog", "Attrbitue", None, QtGui.QApplication.UnicodeUTF8))
+        pass
 
 import SIDDResource_rc

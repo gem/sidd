@@ -25,11 +25,11 @@ from PyQt4.QtCore import QVariant
 from qgis.core import QGis, QgsCoordinateReferenceSystem, QgsCoordinateTransform, \
                       QgsVectorFileWriter, QgsFeature, QgsField, QgsGeometry
 
-from utils.shapefile import load_shapefile, remove_shapefile, layer_features, layer_field_exists
+from utils.shapefile import load_shapefile, remove_shapefile, layer_features, layer_field_exists, layer_field_index
 from utils.system import get_unique_filename
 
 from sidd.constants import logAPICall, \
-                           GID_FIELD_NAME, LON_FIELD_NAME, LAT_FIELD_NAME, AREA_FIELD_NAME                           
+                           GID_FIELD_NAME, LON_FIELD_NAME, LAT_FIELD_NAME, AREA_FIELD_NAME, HT_FIELD_NAME                         
 from sidd.operator import Operator,OperatorError, OperatorDataError
 from sidd.operator.data import OperatorDataTypes
 
@@ -39,7 +39,8 @@ class FootprintLoader(Operator):
     def __init__(self, options=None, name='Footprint Loader'):
         """ constructor """
         super(FootprintLoader, self).__init__(options, name)        
-        self._tmp_dir = options['tmp_dir']        
+        self._tmp_dir = options['tmp_dir']
+        self._fp_ht_field = None
         
     # self documenting method override
     ###########################
@@ -78,7 +79,11 @@ class FootprintLoader(Operator):
         tmp_fp_layer = load_shapefile(infile, tmp_fp_layername)
         if not tmp_fp_layer:
             raise OperatorError('Error loading footprint file' % (infile), self.__class__)
-        
+
+        if self._fp_ht_field is not None:
+            ht_idx = layer_field_index(tmp_fp_layer, self._fp_ht_field)
+        else:
+            ht_idx = -1
         logAPICall.log('tmp_fp_layer.crs().epsg() %s ' % tmp_fp_layer.crs().epsg(),
                        logAPICall.DEBUG)
         if tmp_fp_layer.crs().epsg() != self._crs.epsg():
@@ -97,7 +102,8 @@ class FootprintLoader(Operator):
             1 : QgsField(LON_FIELD_NAME, QVariant.Double),
             2 : QgsField(LAT_FIELD_NAME, QVariant.Double),
             3 : QgsField(AREA_FIELD_NAME, QVariant.Double),
-        }     
+            4 : QgsField(HT_FIELD_NAME, QVariant.Int),
+        }
         output_file = '%sfpc_%s.shp' % (self._tmp_dir, get_unique_filename())
         logAPICall.log('create outputfile %s ... ' % output_file, logAPICall.DEBUG)        
         try:
@@ -126,9 +132,12 @@ class FootprintLoader(Operator):
                 f.addAttribute(0, QVariant(gid))
                 f.addAttribute(1, QVariant(t_centroid.x()))
                 f.addAttribute(2, QVariant(t_centroid.y()))
-                f.addAttribute(3, QVariant(area))            
-                writer.addFeature(f)
-            
+                f.addAttribute(3, QVariant(area))    
+                if ht_idx != -1:
+                    f.addAttribute(4, QVariant(f.attributeMap()[ht_idx]))
+                else:
+                    f.addAttribute(4, QVariant(0))
+                writer.addFeature(f)            
             del writer, f
         except Exception as err:
             remove_shapefile(output_file)
@@ -185,13 +194,13 @@ class FootprintHtLoader(FootprintLoader):
     @logAPICall
     def do_operation(self):
         """ perform footprint loading operation """
+        self._fp_ht_field = self.inputs[1].value
         # reuse super class load operation
         super(FootprintHtLoader, self).do_operation()
 
         # make sure height field exists
-        ht_field = self.inputs[1].value
-        if not layer_field_exists(self.outputs[0].value, ht_field):            
-            raise OperatorError('%s field does not exist in %s' % (ht_field, self.inputs[0].value),
+        if not layer_field_exists(self.outputs[0].value, HT_FIELD_NAME):            
+            print 'exception here'
+            raise OperatorError('failed to load %s with height field %s' % (self.inputs[0].value, self._fp_ht_field),
                                 self.__class__)
-        
         

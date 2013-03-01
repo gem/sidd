@@ -21,12 +21,13 @@ dialog for editing mapping scheme branches
 """
 from PyQt4.QtCore import Qt, QVariant, QString, QAbstractTableModel
 from ui.constants import logUICall, get_ui_string
+from ui.helper.common import build_multivalue_attribute_tooltip
 
 class MSLevelTableModel(QAbstractTableModel):
     """
     table model supporting visualization of node in mapping scheme tree
     """
-    def __init__(self, values, weights):
+    def __init__(self, values, weights, parser, valid_codes):
         """ constructor """
         super(MSLevelTableModel, self).__init__()
 
@@ -35,9 +36,9 @@ class MSLevelTableModel(QAbstractTableModel):
             get_ui_string('dlg.msbranch.edit.tableheader.value'),
             get_ui_string('dlg.msbranch.edit.tableheader.weight'),
             'Value', 'Weight (%)'
-        ]
-        #self.weights = weights
-        #self.values = values
+        ]        
+        self.parser=parser
+        self.valid_codes=valid_codes
         self.values, self.weights = self._sort(values, weights)
     
     def columnCount(self, parent):
@@ -91,6 +92,15 @@ class MSLevelTableModel(QAbstractTableModel):
             else:
                 # second column, show weight
                 return QString('%.2f'% self.weights[index.row()])
+        elif role == Qt.ToolTipRole:
+            # construct data for display in tooltip            
+            if (index.column() == 0):
+                value = self.values[index.row()]            
+                if value is not None:
+                    return build_multivalue_attribute_tooltip(self.valid_codes, self.parser.parse(value))
+            else:
+                return QVariant("")            
+        
         else:
             return QVariant()
     

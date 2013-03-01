@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qt\dlg_build_ms.ui'
 #
-# Created: Wed Feb 13 18:54:01 2013
+# Created: Wed Feb 27 17:26:26 2013
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -17,9 +17,9 @@ except AttributeError:
 class Ui_msOptionsDialog(object):
     def setupUi(self, msOptionsDialog):
         msOptionsDialog.setObjectName(_fromUtf8("msOptionsDialog"))
-        msOptionsDialog.resize(343, 342)
+        msOptionsDialog.resize(343, 359)
         self.buttons = QtGui.QDialogButtonBox(msOptionsDialog)
-        self.buttons.setGeometry(QtCore.QRect(150, 300, 171, 32))
+        self.buttons.setGeometry(QtCore.QRect(150, 320, 171, 32))
         self.buttons.setOrientation(QtCore.Qt.Horizontal)
         self.buttons.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Ok)
         self.buttons.setObjectName(_fromUtf8("buttons"))
@@ -84,15 +84,15 @@ class Ui_msOptionsDialog(object):
         icon4.addPixmap(QtGui.QPixmap(_fromUtf8(":/imgs/icons/arrow_top.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.btn_move_top.setIcon(icon4)
         self.btn_move_top.setObjectName(_fromUtf8("btn_move_top"))
+        self.lb_notes = QtGui.QLabel(msOptionsDialog)
+        self.lb_notes.setGeometry(QtCore.QRect(30, 300, 291, 16))
+        self.lb_notes.setText(_fromUtf8(""))
+        self.lb_notes.setObjectName(_fromUtf8("lb_notes"))
 
         self.retranslateUi(msOptionsDialog)
         QtCore.QMetaObject.connectSlotsByName(msOptionsDialog)
 
     def retranslateUi(self, msOptionsDialog):
-        msOptionsDialog.setWindowTitle(QtGui.QApplication.translate("msOptionsDialog", "Dialog", None, QtGui.QApplication.UnicodeUTF8))
-        self.radioEmptyMS.setText(QtGui.QApplication.translate("msOptionsDialog", "Empty Mapping Scheme", None, QtGui.QApplication.UnicodeUTF8))
-        self.radioBuildMS.setText(QtGui.QApplication.translate("msOptionsDialog", "Using Survey Data", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_title.setText(QtGui.QApplication.translate("msOptionsDialog", "Create Mapping Scheme", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_attributes.setText(QtGui.QApplication.translate("msOptionsDialog", "Attributes", None, QtGui.QApplication.UnicodeUTF8))
+        pass
 
 import SIDDResource_rc

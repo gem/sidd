@@ -102,7 +102,7 @@ class GridMSApplier(Operator):
         #       because the data layer maybe is not loaded yet
         self._test_layer_loaded(src_layer)
         self._test_layer_field_exists(src_layer, zone_field)
-        self._test_layer_field_exists(src_layer, count_field)        
+        self._test_layer_field_exists(src_layer, count_field)
         
         # loop through all zones and assign mapping scheme
         # outputs

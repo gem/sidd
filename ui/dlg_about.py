@@ -19,7 +19,7 @@
 """
 dialog showing about message
 """
-from PyQt4.QtGui import QDialog
+from PyQt4.QtGui import QDialog, QDialogButtonBox
 from sidd.constants import SIDD_VERSION
 
 from ui.constants import get_ui_string
@@ -28,31 +28,23 @@ from ui.qt.dlg_about_ui import Ui_DialogAbout
 class DialogAbout(Ui_DialogAbout, QDialog):
     """
     dialog showing about message
-    """
-    
+    """    
     def __init__(self, mainWin):
         """ constructor """
         super(DialogAbout, self).__init__()
         self.ui = Ui_DialogAbout()
         self.ui.setupUi(self)
-        self.retranslateUi(self.ui)
-        
+        self.retranslateUi(self.ui)        
+        # fixed dialog size
+        self.setFixedSize(self.size())        
         # connect slot (ui event)
         self.ui.buttonBox.accepted.connect(self.accept)        
 
     def retranslateUi(self, ui):
+        """ set text for ui elements """
+        # dialog title
         self.setWindowTitle(get_ui_string("dlg.about.window.title"))
-        ui.textEdit.setHtml("""
-            <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
-            <html>
-            <head><style type="text/css">
-            p { font-family:"MS Shell Dlg 2"; font-weight:400; font-style:normal; font-size:8.25pt; }
-            </style></head>
-            <body>
-            <p align="center">SIDD Version %s</p>
-            <p align="center">Last updated: February 2013</p>
-            <p align="center"></p>
-            <p align="center">Copyright &reg; ImageCat Inc. 2013</p>
-            </body>
-            </html>""" % (SIDD_VERSION))
-        ui.textEdit.setReadOnly(True)
+        # ui elements
+        ui.lb_description.setText(get_ui_string("dlg.about.message", SIDD_VERSION))
+        ui.lb_copyright.setText(get_ui_string("dlg.about.copyright"))
+        ui.buttonBox.button(QDialogButtonBox.Ok).setText(get_ui_string("app.dialog.button.ok"))

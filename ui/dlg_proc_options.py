@@ -71,13 +71,13 @@ class DialogProcessingOptions(Ui_procOptionsDialog, QDialog):
             self.ui.radio_random.setChecked(True)
     
     def retranslateUi(self, ui):
-        self.setWindowTitle(get_ui_string('dlg.options.window.title'))
+        """ set text for ui elements """
+        # dialog title
+        self.setWindowTitle(get_ui_string('dlg.options.ep.window.title'))
+        # ui elements
         ui.box_extrapolate_options.setTitle(get_ui_string('dlg.options.ep.title'))
         ui.radio_random.setText(get_ui_string('dlg.options.ep.random'))
         ui.radio_actual.setText(get_ui_string('dlg.options.ep.fraction'))
-        ui.radio_actual_rounded.setText(get_ui_string('dlg.options.ep.fraction.rounded'))
-        
+        ui.radio_actual_rounded.setText(get_ui_string('dlg.options.ep.fraction.rounded'))        
         ui.btn_ok.setText(get_ui_string('app.dialog.button.ok'))
         ui.btn_close.setText(get_ui_string('app.dialog.button.close'))        
-
-

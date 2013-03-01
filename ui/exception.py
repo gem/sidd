@@ -26,4 +26,3 @@ class SIDDUIException(Exception):
     """ SIDD application UI exceptions """
     def __init__(self, msg):
         super(SIDDUIException, self).__init__(msg)
-        

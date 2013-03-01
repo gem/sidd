@@ -185,6 +185,24 @@ class StatisticNode (object):
         """ get a cloned copy of the node and all its children """
         return deepcopy(self)
 
+    @property
+    def ancestor_names(self):
+        if self.parent is not None:
+            names = self.parent.ancestor_names            
+            names.append(self.parent.name)
+            return names
+        else:
+            return []
+    
+    @property 
+    def descendant_names(self):
+        if self.is_leaf:
+            return []
+        else:
+            names = self.children[0].descendant_names
+            names.insert(0, self.children[0].name)
+            return names
+        
     # serialize / deserialize 
     ###########################
 
@@ -604,24 +622,6 @@ class StatisticNode (object):
                 child.weight =  child.weight + (weight / total_children)
         except:
             raise StatisticNodeError('unknown error while deleting node')
-
-
-    @logAPICall
-    def add_child(self, child, defaults):
-        """
-        attach default values under the child
-        and add the child node to children list        
-        """
-        level = child.level
-        parent = child
-        for i in range(len(defaults)-1):
-            if i < level:
-                continue
-            node = StatisticNode(parent, defaults[i], level+1, True, False)
-            node.weight = 100
-            parent.children.append(node)
-            level+=1
-        self.children.append(child)
 
     @logAPICall
     def add_modifier(self, val, mod_idx=0):

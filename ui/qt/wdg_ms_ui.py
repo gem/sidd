@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qt\wdg_ms.ui'
 #
-# Created: Mon Feb 25 10:57:54 2013
+# Created: Mon Mar 04 10:52:49 2013
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -17,7 +17,7 @@ except AttributeError:
 class Ui_widgetMappingSchemes(object):
     def setupUi(self, widgetMappingSchemes):
         widgetMappingSchemes.setObjectName(_fromUtf8("widgetMappingSchemes"))
-        widgetMappingSchemes.resize(988, 855)
+        widgetMappingSchemes.resize(988, 678)
         self.btn_secondary_mod = QtGui.QPushButton(widgetMappingSchemes)
         self.btn_secondary_mod.setGeometry(QtCore.QRect(630, 630, 131, 31))
         self.btn_secondary_mod.setObjectName(_fromUtf8("btn_secondary_mod"))
@@ -210,7 +210,7 @@ class Ui_widgetMappingSchemes(object):
         self.table_ms_leaves.setGeometry(QtCore.QRect(40, 50, 521, 441))
         self.table_ms_leaves.setObjectName(_fromUtf8("table_ms_leaves"))
         self.cb_ms_zones = QtGui.QComboBox(self.widget_ms_leaves)
-        self.cb_ms_zones.setGeometry(QtCore.QRect(140, 0, 151, 22))
+        self.cb_ms_zones.setGeometry(QtCore.QRect(110, 0, 151, 22))
         self.cb_ms_zones.setObjectName(_fromUtf8("cb_ms_zones"))
         self.lb_ms_zones = QtGui.QLabel(self.widget_ms_leaves)
         self.lb_ms_zones.setGeometry(QtCore.QRect(40, 0, 91, 16))
@@ -232,26 +232,14 @@ class Ui_widgetMappingSchemes(object):
         self.btn_save_bldg_distribution.setText(_fromUtf8(""))
         self.btn_save_bldg_distribution.setIcon(icon5)
         self.btn_save_bldg_distribution.setObjectName(_fromUtf8("btn_save_bldg_distribution"))
+        self.ck_use_modifier = QtGui.QCheckBox(self.widget_ms_leaves)
+        self.ck_use_modifier.setGeometry(QtCore.QRect(300, 0, 131, 17))
+        self.ck_use_modifier.setObjectName(_fromUtf8("ck_use_modifier"))
 
         self.retranslateUi(widgetMappingSchemes)
         QtCore.QMetaObject.connectSlotsByName(widgetMappingSchemes)
 
     def retranslateUi(self, widgetMappingSchemes):
-        widgetMappingSchemes.setWindowTitle(QtGui.QApplication.translate("widgetMappingSchemes", "Form", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_secondary_mod.setText(QtGui.QApplication.translate("widgetMappingSchemes", "Secondary Modifiers", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_build_exposure.setText(QtGui.QApplication.translate("widgetMappingSchemes", "Apply Mapping Scheme", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_panel_title.setText(QtGui.QApplication.translate("widgetMappingSchemes", "Assign Mapping Schemes", None, QtGui.QApplication.UnicodeUTF8))
-        self.box_ms_library.setTitle(QtGui.QApplication.translate("widgetMappingSchemes", "Mapping Schemes", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_ms_library_regions.setText(QtGui.QApplication.translate("widgetMappingSchemes", "Regions", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_ms_library_types.setText(QtGui.QApplication.translate("widgetMappingSchemes", "Types", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_ms_library_msnames.setText(QtGui.QApplication.translate("widgetMappingSchemes", "Available Mapping Schemes", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_ms_library_date.setText(QtGui.QApplication.translate("widgetMappingSchemes", "Date Created", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_ms_library_notes.setText(QtGui.QApplication.translate("widgetMappingSchemes", "Use Notes", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_ms_library_datasource.setText(QtGui.QApplication.translate("widgetMappingSchemes", "Data Source", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_ms_library_quality.setText(QtGui.QApplication.translate("widgetMappingSchemes", "Percentage of", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_ms_library_ms.setText(QtGui.QApplication.translate("widgetMappingSchemes", "Use Notes", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_ms_zones.setText(QtGui.QApplication.translate("widgetMappingSchemes", "Zone", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_leaves_total.setText(QtGui.QApplication.translate("widgetMappingSchemes", "Total", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_ms_leaves.setText(QtGui.QApplication.translate("widgetMappingSchemes", "Building Distribution", None, QtGui.QApplication.UnicodeUTF8))
+        pass
 
 import SIDDResource_rc
