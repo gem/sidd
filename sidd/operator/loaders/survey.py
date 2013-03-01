@@ -32,7 +32,7 @@ from utils.shapefile import load_shapefile_verify, remove_shapefile
 from utils.system import get_unique_filename
 
 from sidd.constants import logAPICall, \
-                           GID_FIELD_NAME, LON_FIELD_NAME, LAT_FIELD_NAME, TAX_FIELD_NAME
+                           GID_FIELD_NAME, LON_FIELD_NAME, LAT_FIELD_NAME, TAX_FIELD_NAME, GRP_FIELD_NAME, AREA_FIELD_NAME
 from sidd.operator import Operator,OperatorError, OperatorDataError
 from sidd.operator.data import OperatorDataTypes
 
@@ -73,6 +73,8 @@ class GEMDBSurveyLoader(Operator):
             1 : QgsField(LON_FIELD_NAME, QVariant.Double),
             2 : QgsField(LAT_FIELD_NAME, QVariant.Double),
             3 : QgsField(TAX_FIELD_NAME, QVariant.String),
+            4 : QgsField(GRP_FIELD_NAME, QVariant.String),
+            5 : QgsField(AREA_FIELD_NAME, QVariant.String),
         }
     # self documenting method override
     ###########################
@@ -142,7 +144,7 @@ class GEMDBSurveyLoader(Operator):
     ####################################
     def _loadSurvey(self, sqlitepath, shapefilepath):
         # load data
-        sql = """select X, Y, 
+        sql = """select X, Y, SAMPLE_GRP, PLAN_AREA,
                 MAT_TYPE_L, MAT_TECH_L, MAS_REIN_L, MAS_MORT_L, STEEL_CON_L, 
                 LLRS_L, LLRS_DUCT_L,  
                 ROOFSYSMAT, ROOFSYSTYP,  
@@ -151,7 +153,7 @@ class GEMDBSurveyLoader(Operator):
                 YR_BUILT_Q, YR_BUILT_1, YR_BUILT_2,                
                 STR_IRREG, STR_HZIR_P, STR_HZIR_S, STR_VEIR_P, STR_VEIR_S, 
                 OCCUPCY, OCCUPCY_DT
-                from GEM_OBJECT"""
+                from GEM_OBJECT o LEFT JOIN GED g on o.OBJ_UID=g.GEMOBJ_UID"""
         conn = sqlite3.connect(sqlitepath)
         c = conn.cursor()
         c.execute(sql)        
@@ -164,9 +166,11 @@ class GEMDBSurveyLoader(Operator):
         f = QgsFeature()
         gid = 0
         for row in data:
-            lon = float(row[0])
-            lat = float(row[1])
-            tax_string = self._make_gem_taxstring(row[2:])
+            lon = self._tofloat(row[0])
+            lat = self._tofloat(row[1])
+            sample_grp = str(row[2])
+            plan_area = self._tofloat(row[3])
+            tax_string = self._make_gem_taxstring(row[4:])
             
             f.setGeometry(QgsGeometry.fromPoint(QgsPoint(lon, lat)))
             gid+=1
@@ -174,6 +178,8 @@ class GEMDBSurveyLoader(Operator):
             f.addAttribute(1, QVariant(lon))
             f.addAttribute(2, QVariant(lat))
             f.addAttribute(3, QVariant(tax_string))
+            f.addAttribute(4, QVariant(sample_grp))
+            f.addAttribute(5, QVariant(plan_area))
             writer.addFeature(f)
         del writer, f
         
@@ -243,6 +249,11 @@ class GEMDBSurveyLoader(Operator):
             return int(val) 
         except:
             return 0
+    def _tofloat(self, val):
+        try:
+            return float(val) 
+        except:
+            return 0.0        
      
     def _append_not_null(self, val, separator):        
         if (val is None or val == ""):

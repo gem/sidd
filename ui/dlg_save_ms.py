@@ -100,7 +100,10 @@ class DialogSaveMS(Ui_saveMSDialog, QDialog):
     ###############################
             
     def retranslateUi(self, ui):
+        """ set text for ui elements """
+        # dialog title
         self.setWindowTitle(get_ui_string("dlg.savems.window.title"))
+        # ui elements        
         ui.lb_ms_create_date.setText(get_ui_string("dlg.savems.date"))
         ui.lb_ms_source.setText(get_ui_string("dlg.savems.source"))
         ui.lb_ms_quality.setText(get_ui_string("dlg.savems.quality"))
@@ -108,6 +111,7 @@ class DialogSaveMS(Ui_saveMSDialog, QDialog):
         ui.lb_ms_name.setText(get_ui_string("dlg.savems.name"))
         ui.lb_ms_type.setText(get_ui_string("dlg.savems.type"))
         ui.lb_ms_region.setText(get_ui_string("dlg.savems.region"))
-
         ui.btn_save.setText(get_ui_string("app.dialog.button.ok"))
         ui.btn_close.setText(get_ui_string("app.dialog.button.close"))
+
+        

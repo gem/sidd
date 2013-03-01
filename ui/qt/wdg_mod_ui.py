@@ -63,8 +63,6 @@ class Ui_widgetSecondaryModifier(object):
         QtCore.QMetaObject.connectSlotsByName(widgetSecondaryModifier)
 
     def retranslateUi(self, widgetSecondaryModifier):
-        widgetSecondaryModifier.setWindowTitle(QtGui.QApplication.translate("widgetSecondaryModifier", "Form", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_build_exposure.setText(QtGui.QApplication.translate("widgetSecondaryModifier", "Apply Mapping Scheme", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_panel_title.setText(QtGui.QApplication.translate("widgetSecondaryModifier", "Assign Secondary Modifiers", None, QtGui.QApplication.UnicodeUTF8))
+        pass
 
 import SIDDResource_rc

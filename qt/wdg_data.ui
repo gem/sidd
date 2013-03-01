@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>965</width>
-    <height>799</height>
+    <width>884</width>
+    <height>694</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,17 +16,17 @@
   <widget class="QWidget" name="widgetSurvey" native="true">
    <property name="geometry">
     <rect>
-     <x>0</x>
-     <y>550</y>
-     <width>401</width>
-     <height>181</height>
+     <x>10</x>
+     <y>520</y>
+     <width>411</width>
+     <height>161</height>
     </rect>
    </property>
    <widget class="QLabel" name="lb_svy_select_file">
     <property name="geometry">
      <rect>
       <x>13</x>
-      <y>125</y>
+      <y>121</y>
       <width>71</width>
       <height>21</height>
      </rect>
@@ -83,7 +83,7 @@
     <property name="geometry">
      <rect>
       <x>360</x>
-      <y>125</y>
+      <y>121</y>
       <width>41</width>
       <height>19</height>
      </rect>
@@ -144,7 +144,7 @@
     <property name="geometry">
      <rect>
       <x>93</x>
-      <y>125</y>
+      <y>121</y>
       <width>261</width>
       <height>20</height>
      </rect>
@@ -175,9 +175,9 @@
    <property name="geometry">
     <rect>
      <x>430</x>
-     <y>250</y>
-     <width>411</width>
-     <height>301</height>
+     <y>200</y>
+     <width>401</width>
+     <height>341</height>
     </rect>
    </property>
    <widget class="QLabel" name="lb_verify_title">
@@ -389,9 +389,9 @@ p, li { white-space: pre-wrap; }
    <property name="geometry">
     <rect>
      <x>430</x>
-     <y>90</y>
+     <y>80</y>
      <width>401</width>
-     <height>151</height>
+     <height>111</height>
     </rect>
    </property>
    <widget class="QRadioButton" name="radio_aggr_op2">
@@ -475,65 +475,20 @@ p, li { white-space: pre-wrap; }
      <pixmap resource="resources/SIDDResource.qrc">:/imgs/icons/help.png</pixmap>
     </property>
    </widget>
-   <widget class="QToolButton" name="btn_aggr_grid_select_file">
-    <property name="enabled">
-     <bool>false</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>360</x>
-      <y>100</y>
-      <width>41</width>
-      <height>19</height>
-     </rect>
-    </property>
-    <property name="cursor">
-     <cursorShape>ArrowCursor</cursorShape>
-    </property>
-    <property name="text">
-     <string>...</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="txt_aggr_grid_select_file">
-    <property name="enabled">
-     <bool>false</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>80</x>
-      <y>100</y>
-      <width>271</width>
-      <height>20</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLabel" name="lb_aggr_grid_select_file">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>100</y>
-      <width>71</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <weight>75</weight>
-      <bold>true</bold>
-     </font>
-    </property>
-    <property name="text">
-     <string>Select file:</string>
-    </property>
-   </widget>
+   <zorder>radio_aggr_op2</zorder>
+   <zorder>lb_aggr_desc</zorder>
+   <zorder>lb_aggr_title</zorder>
+   <zorder>radio_aggr_op1</zorder>
+   <zorder>img_lb_aggr_desc_help</zorder>
+   <zorder>widgetResult</zorder>
   </widget>
   <widget class="QWidget" name="widgetFootprint" native="true">
    <property name="geometry">
     <rect>
-     <x>0</x>
-     <y>330</y>
+     <x>10</x>
+     <y>310</y>
      <width>411</width>
-     <height>221</height>
+     <height>211</height>
     </rect>
    </property>
    <widget class="QComboBox" name="cb_fp_story_field">
@@ -543,7 +498,7 @@ p, li { white-space: pre-wrap; }
     <property name="geometry">
      <rect>
       <x>280</x>
-      <y>152</y>
+      <y>146</y>
       <width>121</width>
       <height>22</height>
      </rect>
@@ -569,7 +524,7 @@ p, li { white-space: pre-wrap; }
     <property name="geometry">
      <rect>
       <x>80</x>
-      <y>125</y>
+      <y>121</y>
       <width>271</width>
       <height>20</height>
      </rect>
@@ -579,7 +534,7 @@ p, li { white-space: pre-wrap; }
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>125</y>
+      <y>121</y>
       <width>71</width>
       <height>21</height>
      </rect>
@@ -653,7 +608,7 @@ p, li { white-space: pre-wrap; }
     <property name="geometry">
      <rect>
       <x>280</x>
-      <y>175</y>
+      <y>171</y>
       <width>121</width>
       <height>22</height>
      </rect>
@@ -663,7 +618,7 @@ p, li { white-space: pre-wrap; }
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>175</y>
+      <y>171</y>
       <width>151</width>
       <height>21</height>
      </rect>
@@ -685,7 +640,7 @@ p, li { white-space: pre-wrap; }
     <property name="geometry">
      <rect>
       <x>360</x>
-      <y>125</y>
+      <y>121</y>
       <width>41</width>
       <height>19</height>
      </rect>
@@ -717,7 +672,7 @@ p, li { white-space: pre-wrap; }
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>152</y>
+      <y>146</y>
       <width>241</width>
       <height>21</height>
      </rect>
@@ -755,7 +710,7 @@ p, li { white-space: pre-wrap; }
      <x>0</x>
      <y>0</y>
      <width>831</width>
-     <height>91</height>
+     <height>81</height>
     </rect>
    </property>
    <widget class="QLabel" name="lb_panel_title">
@@ -784,7 +739,7 @@ p, li { white-space: pre-wrap; }
       <x>10</x>
       <y>30</y>
       <width>761</width>
-      <height>51</height>
+      <height>41</height>
      </rect>
     </property>
     <property name="html">
@@ -799,10 +754,10 @@ p, li { white-space: pre-wrap; }
   <widget class="QWidget" name="widgetZones" native="true">
    <property name="geometry">
     <rect>
-     <x>0</x>
-     <y>90</y>
+     <x>10</x>
+     <y>80</y>
      <width>411</width>
-     <height>241</height>
+     <height>231</height>
     </rect>
    </property>
    <widget class="QRadioButton" name="radio_zones_op3">
@@ -835,7 +790,7 @@ p, li { white-space: pre-wrap; }
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>200</y>
+      <y>196</y>
       <width>151</width>
       <height>21</height>
      </rect>
@@ -854,7 +809,7 @@ p, li { white-space: pre-wrap; }
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>125</y>
+      <y>121</y>
       <width>71</width>
       <height>21</height>
      </rect>
@@ -892,7 +847,7 @@ p, li { white-space: pre-wrap; }
     <property name="geometry">
      <rect>
       <x>280</x>
-      <y>150</y>
+      <y>146</y>
       <width>121</width>
       <height>22</height>
      </rect>
@@ -902,7 +857,7 @@ p, li { white-space: pre-wrap; }
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>151</y>
+      <y>146</y>
       <width>281</width>
       <height>21</height>
      </rect>
@@ -944,7 +899,7 @@ p, li { white-space: pre-wrap; }
     <property name="geometry">
      <rect>
       <x>360</x>
-      <y>125</y>
+      <y>121</y>
       <width>41</width>
       <height>19</height>
      </rect>
@@ -963,7 +918,7 @@ p, li { white-space: pre-wrap; }
     <property name="geometry">
      <rect>
       <x>280</x>
-      <y>200</y>
+      <y>196</y>
       <width>121</width>
       <height>22</height>
      </rect>
@@ -976,7 +931,7 @@ p, li { white-space: pre-wrap; }
     <property name="geometry">
      <rect>
       <x>80</x>
-      <y>125</y>
+      <y>121</y>
       <width>271</width>
       <height>20</height>
      </rect>
@@ -1021,7 +976,7 @@ p, li { white-space: pre-wrap; }
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>175</y>
+      <y>171</y>
       <width>271</width>
       <height>21</height>
      </rect>
@@ -1043,7 +998,7 @@ p, li { white-space: pre-wrap; }
     <property name="geometry">
      <rect>
       <x>280</x>
-      <y>175</y>
+      <y>171</y>
       <width>121</width>
       <height>22</height>
      </rect>

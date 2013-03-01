@@ -62,7 +62,7 @@ class Ui_editMSDialog(object):
         self.lb_attribute.setGeometry(QtCore.QRect(10, 42, 291, 21))
         self.lb_attribute.setObjectName(_fromUtf8("lb_attribute"))
         self.cb_attributes = QtGui.QComboBox(editMSDialog)
-        self.cb_attributes.setGeometry(QtCore.QRect(10, 70, 121, 22))
+        self.cb_attributes.setGeometry(QtCore.QRect(10, 70, 181, 22))
         self.cb_attributes.setObjectName(_fromUtf8("cb_attributes"))
         self.lb_total_weights = QtGui.QLabel(editMSDialog)
         self.lb_total_weights.setGeometry(QtCore.QRect(15, 310, 171, 20))
@@ -81,12 +81,6 @@ class Ui_editMSDialog(object):
         QtCore.QMetaObject.connectSlotsByName(editMSDialog)
 
     def retranslateUi(self, editMSDialog):
-        editMSDialog.setWindowTitle(QtGui.QApplication.translate("editMSDialog", "Dialog", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_title.setText(QtGui.QApplication.translate("editMSDialog", "Edit Mapping Scheme Branch", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_apply.setText(QtGui.QApplication.translate("editMSDialog", "Apply", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_close.setText(QtGui.QApplication.translate("editMSDialog", "Close", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_attribute.setText(QtGui.QApplication.translate("editMSDialog", "Attribute", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_total_weights.setText(QtGui.QApplication.translate("editMSDialog", "Some of Weights", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_percent.setText(QtGui.QApplication.translate("editMSDialog", "%", None, QtGui.QApplication.UnicodeUTF8))
+        pass
 
 import SIDDResource_rc

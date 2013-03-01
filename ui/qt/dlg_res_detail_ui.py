@@ -44,8 +44,5 @@ class Ui_tablePreviewDialog(object):
         QtCore.QMetaObject.connectSlotsByName(tablePreviewDialog)
 
     def retranslateUi(self, tablePreviewDialog):
-        tablePreviewDialog.setWindowTitle(QtGui.QApplication.translate("tablePreviewDialog", "Feature Details", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_title.setText(QtGui.QApplication.translate("tablePreviewDialog", "Exposure Distribution for Selected Region", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_bldgcount.setText(QtGui.QApplication.translate("tablePreviewDialog", "Total Building Count", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_ok.setText(QtGui.QApplication.translate("tablePreviewDialog", "OK", None, QtGui.QApplication.UnicodeUTF8))
+        pass
 

@@ -27,6 +27,7 @@ from sidd.constants import logAPICall
 from sidd.exception import SIDDException
 from sidd.taxonomy import get_taxonomy
 from sidd.ms.statistic import Statistics
+from sidd.ms.node import StatisticNode
 
 class MappingSchemeZone (object):
     """
@@ -94,7 +95,7 @@ class MappingScheme (object):
             stats.from_xml(zone.find('node'))
             stats.finalized = True
             #stats.finalize()
-            stats.attributes = stats.get_attributes(stats.get_tree())            
+            stats.attributes = stats.get_attributes(stats.get_tree())
 
             #self.ms[zone.attrib['name']] = stats
             ms_zone = MappingSchemeZone(get_node_attrib(zone, 'name'))
@@ -133,7 +134,8 @@ class MappingScheme (object):
             node_to_attach = node.stats.get_tree()
         else:
             node_to_attach = node
-            for zone, stat in self.assignments():
+            for assignment in self.assignments():
+                stat = assignment[1]
                 if stat.has_node(node):
                     stat_tree = stat
                     break
@@ -157,11 +159,25 @@ class MappingScheme (object):
 
     @logAPICall
     def delete_branch(self, node):
-        """ delete branch from mapping scheme tree """
-        for zone, stat in self.assignments():
-            if stat.has_node(node):
-                stat.delete_branch(node)
-                return 
+        """ delete branch from mapping scheme tree """        
+        # for MappingSchemeZone delete entire stats tree
+        # for StaticticNode delete node 
+        if isinstance(node, MappingSchemeZone):
+            for zone in self.zones:
+                if zone == node:    # found
+                    taxonomy = zone.stats.taxonomy 
+                    del zone.stats
+                    # create new empty tree 
+                    zone.stats = Statistics(taxonomy)
+                    zone.stats.finalize()
+                    zone.stats.name = zone.name
+                    return                
+        elif isinstance(node, StatisticNode):
+            for zone in self.zones: # found                
+                if zone.stats.has_node(node):
+                    zone.stats.delete_branch(node)
+                    return 
+        # node not correct type or not found in tree        
         raise SIDDException('given node does not belong to mapping scheme')
         
 

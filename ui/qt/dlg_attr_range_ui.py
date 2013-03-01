@@ -62,10 +62,6 @@ class Ui_attrRangesDialog(object):
         QtCore.QMetaObject.connectSlotsByName(attrRangesDialog)
 
     def retranslateUi(self, attrRangesDialog):
-        attrRangesDialog.setWindowTitle(QtGui.QApplication.translate("attrRangesDialog", "Dialog", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_title.setText(QtGui.QApplication.translate("attrRangesDialog", "Attribute Range", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_attribute.setText(QtGui.QApplication.translate("attrRangesDialog", "Attribute", None, QtGui.QApplication.UnicodeUTF8))
-        self.table_ranges.horizontalHeaderItem(0).setText(QtGui.QApplication.translate("attrRangesDialog", "Minimum Value", None, QtGui.QApplication.UnicodeUTF8))
-        self.table_ranges.horizontalHeaderItem(1).setText(QtGui.QApplication.translate("attrRangesDialog", "Maximum Value", None, QtGui.QApplication.UnicodeUTF8))
+        pass
 
 import SIDDResource_rc

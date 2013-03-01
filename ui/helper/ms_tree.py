@@ -119,7 +119,7 @@ class MSTreeModel(QAbstractItemModel):
             # lookup data to show in tool tip
             item = index.internalPointer()
             if isinstance(item, MappingSchemeZone):
-                return "Mapping Scheme Zone %s" % item.name
+                return "Mapping Scheme Zone - %s" % item.name
             elif isinstance(item, StatisticNode):
                 return build_attribute_tooltip(self.valid_codes, item.value)
             else:
@@ -139,7 +139,8 @@ class MSTreeModel(QAbstractItemModel):
         else:                       # get parent node
             parentItem = parent.internalPointer()
         
-        # find child for given parent and row 
+        # find child for given parent and row
+        childItem = False 
         if parentItem == self.rootNode:
             # root node
             # get zone
@@ -147,16 +148,18 @@ class MSTreeModel(QAbstractItemModel):
             childItem = self.zones[row] 
         elif isinstance(parentItem, MappingSchemeZone):
             # zone node
-            # get top level from zone's statistical tree
+            # get top level from zone's statistical tree            
             logUICall.log("\tparent is zone %s, child is node"%(parentItem.name), logUICall.DEBUG_L2)
-            stats = self.ms.get_assignment(parentItem)            
-            childItem = stats.get_tree().children[row]
+            stats = self.ms.get_assignment(parentItem) 
+            if row>=0 and row<len(stats.get_tree().children):           
+                childItem = stats.get_tree().children[row]
         else:
             # statistic node
-            # get appropriate children
+            # get appropriate children            
             logUICall.log("\tparent is node %s, child is node"%(parentItem.value), logUICall.DEBUG_L2)
-            childItem = parentItem.children[row]
-        
+            if row>=0 and row<len(parentItem.children):            
+                childItem = parentItem.children[row]            
+                
         if childItem:
             return self.createIndex(row, column, childItem)
         else:

@@ -31,7 +31,6 @@ from qgis.core import QGis, QgsMapLayerRegistry, QgsStyleV2, \
                       QgsFeature, QgsRectangle
 
 from utils.shapefile import load_shapefile
-from utils.system import get_app_dir
 from sidd.constants import ExportTypes, ExtrapolateOptions
 
 from ui.constants import logUICall, get_ui_string, UI_PADDING
@@ -86,8 +85,13 @@ class WidgetResult(Ui_widgetResult, QWidget):
         self.canvas.mapRenderer().setProjectionsEnabled(True)
         self.canvas.mapRenderer().setDestinationCrs(QgsCoordinateReferenceSystem(4326, QgsCoordinateReferenceSystem.PostgisCrsId))
         self.map_layers = [None] * 4
-        
-        # style object
+
+        # populate export list
+        self.ui.cb_export_format.clear()
+        for export_format in self.EXPORT_FORMATS.keys():
+            self.ui.cb_export_format.addItem(export_format)
+                    
+        # style object required for QgsRendererV2PropertiesDialog
         self.style = QgsStyleV2()
         
         # create the map tools
@@ -109,8 +113,7 @@ class WidgetResult(Ui_widgetResult, QWidget):
         
         # default export setting
         self.export_format = ExportTypes.Shapefile
-        self.ui.btn_export.setEnabled(False)   # disable export until there is result shown
-
+        
         # connect slots (ui event)
         self.ui.btn_zoom_full.clicked.connect(self.mapZoomFull)
         self.ui.btn_zoom_in.clicked.connect(self.mapZoomIn)
@@ -318,25 +321,25 @@ class WidgetResult(Ui_widgetResult, QWidget):
             return
         # display layers if exists                
         if self._project.fp_file is not None and exists(self._project.fp_file):
-            self.map_layers[self.FOOTPRINT] = load_shapefile(self._project.fp_file, 'footprint')
-            self.showDataLayer(self.map_layers[self.FOOTPRINT])
-        else:
-            self.map_layers[self.FOOTPRINT] = None
+            if self.map_layers[self.FOOTPRINT] is None or self.map_layers[self.FOOTPRINT].source() != self._project.fp_file:                            
+                self.map_layers[self.FOOTPRINT] = load_shapefile(self._project.fp_file, 'footprint')
+                self.showDataLayer(self.map_layers[self.FOOTPRINT])
+        else:            
             self.removeDataLayer(self.FOOTPRINT)
         
         if self._project.zone_file is not None and exists(self._project.zone_file):
-            self.map_layers[self.ZONES] = load_shapefile(self._project.zone_file, 'zones')
-            self.showDataLayer(self.map_layers[self.ZONES])
-        else:
-            self.map_layers[self.ZONES] = None
+            if self.map_layers[self.ZONES] is None or self.map_layers[self.ZONES].source() != self._project.zone_file:
+                self.map_layers[self.ZONES] = load_shapefile(self._project.zone_file, 'zones')
+                self.showDataLayer(self.map_layers[self.ZONES])
+        else:            
             self.removeDataLayer(self.ZONES)
             
         if self._project.survey_file is not None and exists(self._project.survey_file):
-            self._project.load_survey()
-            self.map_layers[self.SURVEY] = self._project.survey 
-            self.showDataLayer(self.map_layers[self.SURVEY])
-        else:
-            self.map_layers[self.SURVEY] = None
+            if getattr(self._project, 'survey', None) is None:
+                self._project.load_survey()
+                self.map_layers[self.SURVEY] = self._project.survey 
+                self.showDataLayer(self.map_layers[self.SURVEY])
+        else:            
             self.removeDataLayer(self.SURVEY)
         
         # set export options
@@ -345,7 +348,7 @@ class WidgetResult(Ui_widgetResult, QWidget):
                 self.ui.cb_export_format.setCurrentIndex(idx)
         self.ui.txt_export_select_path.setText(self._project.export_path)
         self.refreshResult()
-        
+
     def refreshResult(self):        
         exposure = getattr(self._project, 'exposure', None)
         if exposure is not None:
@@ -358,25 +361,25 @@ class WidgetResult(Ui_widgetResult, QWidget):
             if self._project.operator_options.has_key("proc.extrapolation"):
                 proc_option = self._project.operator_options["proc.extrapolation"]
                 if proc_option == ExtrapolateOptions.RandomWalk:
-                    proc_method = get_ui_string("widget.result.dq.method") % get_ui_string("dlg.options.ep.random")
+                    proc_method = get_ui_string("widget.result.dq.method", get_ui_string("dlg.options.ep.random"))
                 elif proc_option == ExtrapolateOptions.Fraction:
-                    proc_method = get_ui_string("widget.result.dq.method") % get_ui_string("dlg.options.ep.fraction")
+                    proc_method = get_ui_string("widget.result.dq.method", get_ui_string("dlg.options.ep.fraction"))
                 elif proc_option == ExtrapolateOptions.FractionRounded:
-                    proc_method = get_ui_string("widget.result.dq.method") % get_ui_string("dlg.options.ep.fraction.rounded")
+                    proc_method = get_ui_string("widget.result.dq.method", get_ui_string("dlg.options.ep.fraction.rounded"))
             else:
-                proc_method = get_ui_string("widget.result.dq.method") % get_ui_string("dlg.options.ep.random")
+                proc_method = get_ui_string("widget.result.dq.method", get_ui_string("dlg.options.ep.random")) 
             report_lines.append(proc_method)
             report_lines.append('')
             
             # total tests
-            report_lines.append(get_ui_string('widget.result.dq.total_tests') % len(self._project.quality_reports.keys()))
+            report_lines.append(get_ui_string('widget.result.dq.total_tests', len(self._project.quality_reports.keys())))
             report_lines.append('')
             
             # detail for each test
             for key, report in self._project.quality_reports.iteritems():
                 report_lines.append(get_ui_string('widget.result.dq.tests.%s' % key))
                 for title, value in report.iteritems():
-                    report_lines.append( get_ui_string('widget.result.dq.tests.%s.%s' % (key, title)) % value )
+                    report_lines.append( get_ui_string('widget.result.dq.tests.%s.%s' % (key, title), value) )
                 report_lines.append('')                    
             
             self.ui.txt_dq_test_details.setText("\n".join(report_lines))
@@ -395,12 +398,21 @@ class WidgetResult(Ui_widgetResult, QWidget):
     @logUICall
     def closeResult(self):
         self.removeDataLayer(self.EXPOSURE)
-        #self._project = None
 
     def closeAll(self):
-        for i in range(4):
-            self.removeDataLayer(i)
-    
+        self.ui.cb_layer_selector.clear()
+        if getattr(self, 'registry', None) is None:
+            self.registry = QgsMapLayerRegistry.instance()
+        try:
+            for i in range(4):
+                self.removeDataLayer(i)
+            self.registry.removeAllMapLayers ()
+        except:            
+            pass    # exception will is thrown when registry is empty
+        finally:
+            self.canvas.setLayerSet([])
+            self.canvas.refresh()
+                
     # internal helper methods
     ###############################
     @logUICall    
@@ -409,17 +421,9 @@ class WidgetResult(Ui_widgetResult, QWidget):
         if getattr(self, 'registry', None) is None:
             self.registry = QgsMapLayerRegistry.instance()
         try:
-            # add to QGIS registry 
+            # add to QGIS registry and refresh view
             self.registry.addMapLayer(layer)
-            
-            # add each layer according to order
-            layerSet = []
-            self.ui.cb_layer_selector.clear()
-            for idx, lyr in enumerate(self.map_layers):
-                if lyr is not None:
-                    layerSet.append(QgsMapCanvasLayer(lyr))
-                    self.ui.cb_layer_selector.addItem(self.LAYER_NAMES[idx])
-            self.canvas.setLayerSet(layerSet)
+            self.refreshLayers()
             if (zoom_to):
                 self.zoomToLayer(layer)
         except:
@@ -428,15 +432,19 @@ class WidgetResult(Ui_widgetResult, QWidget):
     def removeDataLayer(self, index):
         if getattr(self, 'registry', None) is None:
             self.registry = QgsMapLayerRegistry.instance()
-        layer = self.map_layers[index]        
+        layer = self.map_layers[index]
+        self.map_layers[index] = None        
         if layer is not None:                
             try:    
-                self.registry.removeMapLayer(layer.getLayerID(), False)                        
+                self.canvas.clear()
+                self.canvas.setLayerSet([])
+                self.registry.removeMapLayer(layer.getLayerID(), False)            
             except:
-                pass # do nothing if it fails. probably already deleted        
-        self.map_layers[index] = None
+                pass # do nothing if it fails. probably already deleted
+            self.refreshLayers()        
 
     def zoomToLayer(self, layer):
+        """ zoom canvas to extent of given layer """
         try:
             lyr_extent = layer.extent()            
             if layer.crs() != self.canvas.mapRenderer().destinationCrs():
@@ -448,22 +456,36 @@ class WidgetResult(Ui_widgetResult, QWidget):
             self.canvas.refresh()
         except:
             self.mapZoomFull()
+            
+    def refreshLayers(self):
+        """ refresh all layers """
+        # add each layer according to order
+        layerSet = []
+        self.ui.cb_layer_selector.clear()
+        for idx, lyr in enumerate(self.map_layers):
+            if lyr is not None:
+                layerSet.append(QgsMapCanvasLayer(lyr))
+                self.ui.cb_layer_selector.addItem(self.LAYER_NAMES[idx])
+        self.canvas.setLayerSet(layerSet)
+        self.canvas.refresh()
 
     def retranslateUi(self, ui):
-        """ set constant strings """
+        """ set text for ui elements """
+        # ui elements    
         ui.lb_panel_title.setText(get_ui_string("widget.result.title"))
-
         ui.lb_layer_selector.setText(get_ui_string("widget.result.layers.selector"))
-        
         ui.lb_export_title.setText(get_ui_string("widget.result.export.title"))
         ui.lb_export_format.setText(get_ui_string("widget.result.export.format"))
         ui.lb_export_select_path.setText(get_ui_string("app.folder.select"))
+        ui.lbl_dq_test_title.setText(get_ui_string("widget.result.dq.title"))
         ui.btn_export_select_path.setText(get_ui_string("app.file.button"))
         ui.btn_export.setText(get_ui_string("widget.result.export.button"))
+        # tooltip for icon buttons
+        ui.btn_zoom_in.setToolTip(get_ui_string("widget.result.button.zoomin"))
+        ui.btn_zoom_out.setToolTip(get_ui_string("widget.result.button.zoomout"))
+        ui.btn_zoom_layer.setToolTip(get_ui_string("widget.result.button.zoomlayer"))
+        ui.btn_pan.setToolTip(get_ui_string("widget.result.button.pan"))
+        ui.btn_zoom_full.setToolTip(get_ui_string("widget.result.button.zoomfull"))
+        ui.btn_theme.setToolTip(get_ui_string("widget.result.button.theme"))
+        ui.btn_info.setToolTip(get_ui_string("widget.result.button.info"))
         
-        ui.lbl_dq_test_title.setText(get_ui_string("widget.result.dq.title"))
-   
-        # populate export list
-        ui.cb_export_format.clear()
-        for export_format in self.EXPORT_FORMATS.keys():
-            ui.cb_export_format.addItem(export_format)

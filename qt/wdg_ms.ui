@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>988</width>
-    <height>855</height>
+    <height>678</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -560,7 +560,7 @@
    <widget class="QComboBox" name="cb_ms_zones">
     <property name="geometry">
      <rect>
-      <x>140</x>
+      <x>110</x>
       <y>0</y>
       <width>151</width>
       <height>22</height>
@@ -640,6 +640,19 @@
     <property name="icon">
      <iconset resource="resources/SIDDResource.qrc">
       <normaloff>:/imgs/icons/save.png</normaloff>:/imgs/icons/save.png</iconset>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="ck_use_modifier">
+    <property name="geometry">
+     <rect>
+      <x>300</x>
+      <y>0</y>
+      <width>131</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Use Modifier</string>
     </property>
    </widget>
   </widget>

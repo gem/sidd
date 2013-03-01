@@ -355,7 +355,7 @@ class WorkflowBuilder(object):
         # check count
         # building count from fp or zone vs. exposure
         cnt_analyzer = None
-        if project.fp_type == FootprintTypes.Footprint:
+        if project.fp_type == FootprintTypes.Footprint or project.fp_type == FootprintTypes.FootprintHt:
             self.load_footprint(project, workflow, withHt=False)
             cnt_analyzer = ExposureFootprintCountAnalyzer(self._operator_options)
             cnt_analyzer.inputs = [workflow.operator_data['exposure'],

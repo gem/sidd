@@ -214,7 +214,7 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
             self.ui.btn_apply.setEnabled(False)            
         
         # initialize table of values
-        self.modModel = MSLevelTableModel(self.values, self.weights)
+        self.modModel = MSLevelTableModel(self.values, self.weights, self.ms.taxonomy, self.ms.taxonomy.codes)
         self.ui.table_mod_values.setModel(self.modModel)
         # update total once table value is changed
         self.modModel.dataChanged.connect(self.verifyWeights)
@@ -243,12 +243,18 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
         return selectedIndexes[0]
         
     def retranslateUi(self, ui):
+        """ set text for ui elements """
+        # dialog title
         self.setWindowTitle(get_ui_string("dlg.mod.window.title"))
+        # ui elements
         ui.lb_title.setText(get_ui_string("dlg.mod.title"))
-
         ui.lb_mod_values.setText(get_ui_string("dlg.mod.mod_values"))
-        ui.lb_ms_tree.setText('Mapping Scheme Tree')
-        ui.lb_total_weights.setText('Values')
-        
+        ui.lb_ms_tree.setText(get_ui_string("dlg.mod.ms_tree"))
+        ui.lb_attribute.setText(get_ui_string("dlg.mod.attributes"))
+        ui.lb_total_weights.setText(get_ui_string("dlg.mod.totalweights"))
+        ui.lb_percent.setText("%")
         ui.btn_apply.setText(get_ui_string("app.dialog.button.apply"))
         ui.btn_cancel.setText(get_ui_string("app.dialog.button.close"))
+        # tooltip
+        ui.btn_add.setToolTip(get_ui_string("dlg.mod.button.add"))
+        ui.btn_delete.setToolTip(get_ui_string("dlg.mod.button.delete"))

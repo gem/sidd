@@ -35,6 +35,5 @@ class Ui_DialogApply(object):
         QtCore.QMetaObject.connectSlotsByName(DialogApply)
 
     def retranslateUi(self, DialogApply):
-        DialogApply.setWindowTitle(QtGui.QApplication.translate("DialogApply", "Dialog", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_description.setText(QtGui.QApplication.translate("DialogApply", "We are now applying the selected mapping schemes... This may takes some time. Check the console below to see what is being processed.", None, QtGui.QApplication.UnicodeUTF8))
+        pass
 

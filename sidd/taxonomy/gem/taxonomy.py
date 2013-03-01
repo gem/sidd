@@ -117,7 +117,6 @@ class GemTaxonomy(Taxonomy):
                         raise TaxonomyParseError('%s is not a valid taxonomy code' %(_lvl))
                     _attr_idx =  _order.index(self.__codes[_lvl].attribute.name)
                     _attr_val = _attributes[_attr_idx]
-                    #_attr_val = _attributes[self.__codes[_lvl].order-1]
                     if isinstance(_attr_val, GemTaxonomyAttributeMulticodeValue):
                         _attr_val.add_value(_lvl)
                     else:
@@ -129,11 +128,10 @@ class GemTaxonomy(Taxonomy):
                     raise TaxonomyParseError('%s is not a valid taxonomy code' %(_type_id))
                 _attr_idx =  _order.index(self.__codes[_type_id].attribute.name)
                 _attr_val = _attributes[_attr_idx]
-                #_attr_val = _attributes[self.__codes[_type_id].order-1]
                 if isinstance(_attr_val, GemTaxonomyAttributePairValue):
                     _attr_val.add_value(_type_id, _val)
-                else:
-                    raise TaxonomyParseError('additional value is not needed for code %s' % (_type_id))
+                else:                    
+                    raise TaxonomyParseError('additional value is not needed for code %s, found(%s)' % (_type_id, _attr))
                 
             elif re.match('\w+', _attr):
                 # code only, search code table
@@ -141,7 +139,6 @@ class GemTaxonomy(Taxonomy):
                     raise TaxonomyParseError('%s is not a valid taxonomy code' %(_attr))
                 _attr_idx =  _order.index(self.__codes[_attr].attribute.name)
                 _attr_val = _attributes[_attr_idx]
-                #_attr_val = _attributes[self.__codes[_attr].order-1]
                 if isinstance(_attr_val, GemTaxonomyAttributePairValue) and _attr_val.is_empty:
                     _attr_val.add_value(_attr, '')
                 elif (isinstance(_attr_val, GemTaxonomyAttributeSinglecodeValue)
@@ -160,10 +157,17 @@ class GemTaxonomy(Taxonomy):
             outstr = outstr + str(_attr_val) + "/"
         return outstr
     
-    def set_parse_order(self, order):
-        self.parse_order = order
-        for attr in GemTaxonomy.__attrs:
-            attr.order = order.index(attr.name)+1
+    def set_parse_order(self, order):        
+        # order must be list of all names in taxonomy attribute
+        # set to default if there is an error
+        try:
+            for attr in GemTaxonomy.__attrs:
+                attr.order = order.index(attr.name)+1
+            self.parse_order = order
+        except:
+            for attr in GemTaxonomy.__attrs:
+                attr.order = GemTaxonomy.__attr_orders.index(attr.name)+1
+            self.parse_order = None     # will use default
     
     def __initialize(self, db_path):
         """
@@ -197,7 +201,7 @@ class GemTaxonomy(Taxonomy):
                 self.__empty.append(GemTaxonomyAttributeSinglecodeValue(_attr))
             else:
                 raise TaxonomyParseError("attribute format not recognized for %s" % _attr)
-        
+        GemTaxonomy.__attr_orders = [attr.name for attr in GemTaxonomy.__attrs]
         # load codes
         sql = "select c.type_id, c.description, a.gem_attribute_id, a.level from attribute a inner join code_lookup c on a.id=c.attribute_id"
         c.execute(sql)

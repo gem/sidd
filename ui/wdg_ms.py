@@ -112,7 +112,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         self.dlgEditMS.setModal(True)
         self.dlgSaveMS = DialogSaveMS(self.app)        
         self.dlgSaveMS.setModal(True)        
-        self.dlgMSOptions = DialogMSOptions(self.app)
+        self.dlgMSOptions = DialogMSOptions(self.app.taxonomy.attributes, {})
         self.dlgMSOptions.setModal(True)
 
         # connect slots (ui event)
@@ -126,6 +126,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         self.ui.btn_edit_level.clicked.connect(self.editBranch)
 
         self.ui.cb_ms_zones.currentIndexChanged[str].connect(self.refreshLeaves)
+        self.ui.ck_use_modifier.toggled.connect(self.refreshLeaves)
         self.ui.btn_save_bldg_distribution.clicked.connect(self.saveMSLeaves)
 
         self.ui.list_ms_library_regions.clicked.connect(self.regionSelected)
@@ -177,18 +178,26 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
     @pyqtSlot()
     def createMS(self):
         """ create new mapping scheme """
-        self.dlgMSOptions.resetList()
+        #self.dlgMSOptions.resetList()
+        # load existing options
+        options = self.app.project.operator_options
+        for attr in self.dlgMSOptions.attribute_order:
+            if options.has_key(attr):                
+                self.dlgMSOptions.attribute_ranges[attr] = options[attr]
+        if options.has_key('attribute.order'):
+            self.dlgMSOptions.attribute_order = options['attribute.order']
         if self.dlgMSOptions.exec_() == QDialog.Accepted:
-            try:
-                attribute_order = self.dlgMSOptions.attributes                
-                self.app.taxonomy.set_parse_order(attribute_order)
-            except Exception as err:
-                print err            
-                pass
+            # set options
+            options['attribute.order'] = self.dlgMSOptions.attribute_order
+            self.app.taxonomy.set_parse_order(self.dlgMSOptions.attribute_order)
+            for attr, attr_range in self.dlgMSOptions.attribute_ranges.iteritems():
+                options[attr] = attr_range
+            # process
             if self.dlgMSOptions.build_option == self.dlgMSOptions.BUILD_EMPTY:
                 self.app.createEmptyMS()
             else:
                 self.app.buildMappingScheme()
+            self.app.taxonomy.set_parse_order(None)
         
     @uiCallChecker
     @pyqtSlot()
@@ -206,7 +215,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         if len(selectedIndexes) == 0:
             self.ui.tree_ms.expandAll()
         else:
-            self.recursive_expand(self.ui.tree_ms, selectedIndexes[0], True)
+            self.recursiveExpand(self.ui.tree_ms, selectedIndexes[0], True)
     
     @uiCallChecker
     @pyqtSlot()
@@ -215,13 +224,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         if len(selectedIndexes) == 0:
             self.ui.tree_ms.collapseAll()            
         else:
-            self.recursive_expand(self.ui.tree_ms, selectedIndexes[0], False)
-
-    def recursive_expand(self, tree, index, expand):
-        tree.setExpanded(index, expand)
-        for i in range(index.model().rowCount(index)):
-            child = index.child(i, 0)
-            self.recursive_expand(tree, child, expand)
+            self.recursiveExpand(self.ui.tree_ms, selectedIndexes[0], False)
         
     @uiCallChecker
     @pyqtSlot()
@@ -335,7 +338,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
 
     @logUICall
     @pyqtSlot()
-    def showBuildingDistribution(self):        
+    def showBuildingDistribution(self):
         self.setMSLibraryVisible(False)
             
     @uiCallChecker
@@ -346,7 +349,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         according to selected region
         """
         # get selected region
-        region = self.ui.list_ms_library_regions.currentItem ().text()
+        region = str(self.ui.list_ms_library_regions.currentItem().text())
         
         # adjust UI to display results
         self.resetMSLibrary()
@@ -360,8 +363,8 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         update available mapping schemes list according to selected type
         """
         # get selected region/type
-        region = self.ui.list_ms_library_regions.currentItem ().text()
-        mstype = self.ui.list_ms_library_types.currentItem ().text()
+        region = str(self.ui.list_ms_library_regions.currentItem ().text())
+        mstype = str(self.ui.list_ms_library_types.currentItem ().text())
         
         # adjust UI to display results
         #self.ui.list_ms_library_msnames.clear()
@@ -375,9 +378,9 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         """ visualize selected mapping scheme from available list """
 
         # get selected region/type/ms
-        region = self.ui.list_ms_library_regions.currentItem ().text()
-        ms_type = self.ui.list_ms_library_types.currentItem ().text()
-        ms_name = self.ui.list_ms_library_msnames.currentItem().text()        
+        region = str(self.ui.list_ms_library_regions.currentItem ().text())
+        ms_type = str(self.ui.list_ms_library_types.currentItem ().text())
+        ms_name = str(self.ui.list_ms_library_msnames.currentItem().text())       
         
         # deserialize mapping scheme object from XML in DB
         [date_created, data_source, quality, use_notes, ms_xml] = self.msdb_dao.get_ms(region, ms_type, ms_name)
@@ -401,9 +404,9 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
     @pyqtSlot()    
     def deleteLibraryMS(self):
         # get selected region/type/ms
-        region = self.ui.list_ms_library_regions.currentItem ().text()
-        ms_type = self.ui.list_ms_library_types.currentItem ().text()
-        ms_name = self.ui.list_ms_library_msnames.currentItem().text()        
+        region = str(self.ui.list_ms_library_regions.currentItem ().text())
+        ms_type = str(self.ui.list_ms_library_types.currentItem ().text())
+        ms_name = str(self.ui.list_ms_library_msnames.currentItem().text())        
         
         if (ms_type != get_ui_string('app.mslibrary.user.multilevel') and
             ms_type != get_ui_string('app.mslibrary.user.singlelevel')):
@@ -420,16 +423,18 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
     def refreshLeaves(self, value):
         values, weights = [], []
         total_weights = 0
+        use_modifier = self.ui.ck_use_modifier.isChecked()
+        zone_selected = str(self.ui.cb_ms_zones.currentText())
         try:
-            stats = self.ms.get_assignment_by_name(value)            
-            for leaf in stats.get_leaves(True, False):
+            stats = self.ms.get_assignment_by_name(zone_selected)            
+            for leaf in stats.get_leaves(True, use_modifier):
                 values.append(leaf[0])
                 weight = leaf[1]*100.0
                 weights.append(weight)
                 total_weights += weight
         except:
             pass
-        self.ui.table_ms_leaves.setModel(MSLevelTableModel(values, weights))
+        self.ui.table_ms_leaves.setModel(MSLevelTableModel(values, weights, self.ms.taxonomy, self.ms.taxonomy.codes))
         self.ui.table_ms_leaves.horizontalHeader().resizeSection(0, self.ui.table_ms_leaves.width() * 0.75)
         self.ui.table_ms_leaves.horizontalHeader().resizeSection(1, self.ui.table_ms_leaves.width() * 0.25)  
         self.ui.txt_leaves_total.setText('%.1f' % total_weights)
@@ -511,6 +516,12 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         self.ui.txt_ms_library_notes.setText("")   
         self.ui.btn_del_lib_ms.setEnabled(False)      
 
+    def recursiveExpand(self, tree, index, expand):
+        tree.setExpanded(index, expand)
+        for i in range(index.model().rowCount(index)):
+            child = index.child(i, 0)
+            self.recursiveExpand(tree, child, expand)
+
     def retranslateUi(self, ui):
         """ set labels from constant module """
         ui.lb_panel_title.setText(get_ui_string("widget.ms.title"))
@@ -521,6 +532,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         ui.btn_secondary_mod.setText(get_ui_string("widget.ms.modifier"))
         ui.btn_build_exposure.setText(get_ui_string("widget.ms.build"))
         ui.lb_ms_zones.setText(get_ui_string('widget.ms.distribution.zones'))
+        ui.ck_use_modifier.setText(get_ui_string('widget.ms.distribution.mod'))
         ui.lb_ms_leaves.setText(get_ui_string('widget.ms.distribution.title'))    
         ui.lb_ms_library_date.setText(get_ui_string("widget.ms.library.date"))
         ui.lb_ms_library_datasource.setText(get_ui_string("widget.ms.library.datasource"))
@@ -528,4 +540,4 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         ui.lb_ms_library_notes.setText(get_ui_string("widget.ms.library.notes"))
         
         self.ms_library_vlabel.setText(get_ui_string('widget.ms.library.title'))
-        self.bldg_dist_vlabel.setText(get_ui_string('widget.ms.distribution.title'))        
+        self.bldg_dist_vlabel.setText(get_ui_string('widget.ms.distribution.title'))

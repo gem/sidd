@@ -37,5 +37,8 @@ class DialogApply(Ui_DialogApply, QDialog):
         self.retranslateUi(self.ui)
 
     def retranslateUi(self, ui):
+        """ set text for ui elements """
+        # dialog title
         self.setWindowTitle(get_ui_string("dlg.apply.window.title"))
+        # ui elements
         ui.lb_description.setText(get_ui_string("dlg.apply.message"))

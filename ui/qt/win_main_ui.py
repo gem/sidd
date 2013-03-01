@@ -80,18 +80,5 @@ class Ui_mainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(mainWindow)
 
     def retranslateUi(self, mainWindow):
-        mainWindow.setWindowTitle(QtGui.QApplication.translate("mainWindow", "MainWindow", None, QtGui.QApplication.UnicodeUTF8))
-        self.menuFile.setTitle(QtGui.QApplication.translate("mainWindow", "File", None, QtGui.QApplication.UnicodeUTF8))
-        self.menuHelp.setTitle(QtGui.QApplication.translate("mainWindow", "Help", None, QtGui.QApplication.UnicodeUTF8))
-        self.menuView.setTitle(QtGui.QApplication.translate("mainWindow", "View", None, QtGui.QApplication.UnicodeUTF8))
-        self.menuOptions.setTitle(QtGui.QApplication.translate("mainWindow", "Settings", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionOpen_New.setText(QtGui.QApplication.translate("mainWindow", "Create New", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionOpen_Existing.setText(QtGui.QApplication.translate("mainWindow", "Open Existing", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionExit.setText(QtGui.QApplication.translate("mainWindow", "Exit", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionData_Input.setText(QtGui.QApplication.translate("mainWindow", "Data Input", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionMapping_Schemes.setText(QtGui.QApplication.translate("mainWindow", "Mapping Schemes", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionResult.setText(QtGui.QApplication.translate("mainWindow", "Result", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionAbout.setText(QtGui.QApplication.translate("mainWindow", "About", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionSave.setText(QtGui.QApplication.translate("mainWindow", "Save", None, QtGui.QApplication.UnicodeUTF8))
-        self.actionProcessing_Options.setText(QtGui.QApplication.translate("mainWindow", "Processing Options", None, QtGui.QApplication.UnicodeUTF8))
+        pass
 

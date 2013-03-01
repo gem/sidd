@@ -32,19 +32,21 @@ class DialogMSOptions(Ui_msOptionsDialog, QDialog):
     """
     BUILD_EMPTY, BUILD_FROM_SURVEY=range(2)
     
-    def __init__(self, app):
+    def __init__(self, attributes, ranges):
         """ constructor """
         super(DialogMSOptions, self).__init__()
         self.ui = Ui_msOptionsDialog()
         self.ui.setupUi(self)
         self.retranslateUi(self.ui)
 
-        self.dlgAttrRange = DialogAttrRanges(app)        
-        self.app = app
+        self.dlgAttrRange = DialogAttrRanges()        
         
-        # set attribute list
-        self.resetList()        
-        self.refreshAttributeList(self.attr_names)
+        # get attribute list from app.taxonomy and set to UI
+        self._attr_names = []
+        self._ranges ={}
+        self._attribute_has_range={}
+        self.attributes = attributes
+        self.attribute_ranges = ranges
         
         # connect slot (ui event)
         self.ui.buttons.accepted.connect(self.accept)
@@ -66,10 +68,45 @@ class DialogMSOptions(Ui_msOptionsDialog, QDialog):
         self.ui.lst_attributes.setSelectionMode(QAbstractItemView.SingleSelection) # allow select only one attribute
         self.ui.radioEmptyMS.click()    # default to empty MS
 
+
+    def exec_(self):
+        self.refreshAttributeList(self._attr_names)
+        return super(DialogMSOptions, self).exec_()
+        
+    # property accessor/mutators
+    ###############################
     @property
     def attributes(self):
-        return self.attr_names
+        return self._attributes
+    
+    @attributes.setter
+    def attributes(self, attributes):
+        self._attributes = attributes
+        self.attribute_order = [attr.name for attr in self.attributes]
+        self._attribute_has_range = {}
+        for att in attributes:
+            if att.type == 2:
+                self._attribute_has_range[att.name]=1
 
+    @property
+    def attribute_order(self):
+        return self._attr_names
+
+    @attribute_order.setter
+    def attribute_order(self, order):
+        self._attr_names = order
+        self.refreshAttributeList(self._attr_names)
+
+    @property
+    def attribute_ranges(self):
+        return self._ranges
+
+    @attribute_ranges.setter
+    def attribute_ranges(self, ranges):
+        self._ranges = ranges
+        
+    # ui event handler
+    ###############################
     @logUICall
     @pyqtSlot()
     def setMSOption(self):
@@ -95,39 +132,39 @@ class DialogMSOptions(Ui_msOptionsDialog, QDialog):
         if index == 0:
             return
         new_index = index-1
-        value = self.attr_names[index]
-        self.attr_names.remove(value)
-        self.attr_names.insert(new_index, value)
-        self.refreshAttributeList(self.attr_names)
+        value = self._attr_names[index]
+        self._attr_names.remove(value)
+        self._attr_names.insert(new_index, value)
+        self.refreshAttributeList(self._attr_names)
         self.ui.lst_attributes.setCurrentRow(new_index)
     
     @logUICall
     @pyqtSlot()
     def attributeMoveDown(self):
         index = self.ui.lst_attributes.currentRow()
-        if index == len(self.attr_names)-1:
+        if index == len(self._attr_names)-1:
             return
         new_index = index+1
-        value = self.attr_names[index]
-        self.attr_names.remove(value)
-        self.attr_names.insert(new_index, value)
-        self.refreshAttributeList(self.attr_names)
+        value = self._attr_names[index]
+        self._attr_names.remove(value)
+        self._attr_names.insert(new_index, value)
+        self.refreshAttributeList(self._attr_names)
         self.ui.lst_attributes.setCurrentRow(new_index)
     
     @logUICall
     @pyqtSlot()
     def setAttributeRanges(self):
         index = self.ui.lst_attributes.currentRow()            
-        attr_value = self.attr_names[index]
-        if self.app.project.operator_options.has_key(attr_value):            
-            ranges = self.app.project.operator_options[attr_value]
+        attr_value = self._attr_names[index]
+        if self._ranges.has_key(attr_value):
+            ranges = self._ranges[attr_value]
             self.dlgAttrRange.set_values(attr_value, ranges['min_values'], ranges['max_values'])
         else:
             self.dlgAttrRange.set_values(attr_value, [], [])
                     
         if self.dlgAttrRange.exec_() == QDialog.Accepted:
-            self.app.project.operator_options[attr_value] = {'min_values':self.dlgAttrRange.min_values, 
-                                                             'max_values':self.dlgAttrRange.max_values}
+            self._ranges[attr_value] = {'min_values':self.dlgAttrRange.min_values,
+                                        'max_values':self.dlgAttrRange.max_values}
             
     @logUICall
     @pyqtSlot()
@@ -135,57 +172,77 @@ class DialogMSOptions(Ui_msOptionsDialog, QDialog):
         index = self.ui.lst_attributes.currentRow()
         if index == 0:
             return
-        value = self.attr_names[index]
-        self.attr_names.remove(value)
-        self.attr_names.insert(0, value)
-        self.refreshAttributeList(self.attr_names)
+        value = self._attr_names[index]
+        self._attr_names.remove(value)
+        self._attr_names.insert(0, value)
+        self.refreshAttributeList(self._attr_names)
         self.ui.lst_attributes.setCurrentRow(0)
     
     @logUICall
     @pyqtSlot()
     def attributeMoveBottom(self):
         index = self.ui.lst_attributes.currentRow()
-        if index == len(self.attr_names)-1:
+        if index == len(self._attr_names)-1:
             return
-        value = self.attr_names[index]
-        self.attr_names.remove(value)
-        self.attr_names.append(value)
-        self.refreshAttributeList(self.attr_names)
-        self.ui.lst_attributes.setCurrentRow(len(self.attr_names)-1)
+        value = self._attr_names[index]
+        self._attr_names.remove(value)
+        self._attr_names.append(value)
+        self.refreshAttributeList(self._attr_names)
+        self.ui.lst_attributes.setCurrentRow(len(self._attr_names)-1)
     
     @logUICall
     @pyqtSlot()
     def selectedAttributeChanged(self):
         indices = self.ui.lst_attributes.selectedIndexes()
         if len(indices) == 1:
-            self.ui.widget_attribute_buttons.setEnabled(True) 
-            for att in self.app.taxonomy.attributes:
+            self.ui.widget_attribute_buttons.setEnabled(True)            
+            if self._attribute_has_range.has_key(str(indices[0].data().toString())):
+                self.ui.btn_range.setEnabled(True)
+            """
+            for att in self._attributes:
                 if att.name == str(indices[0].data().toString()):
                     if att.type == 2:
                         self.ui.btn_range.setEnabled(True)
                     else:
                         self.ui.btn_range.setEnabled(False)
                     break
+            """
         else:
             self.ui.widget_attribute_buttons.setEnabled(False)
     
     def resetList(self):
-        self.attr_names = []
+        self._attr_names = []
         try:
             for att in self.app.taxonomy.attributes:
-                self.attr_names.append(att.name)                                
+                self._attr_names.append(att.name)                                
         except:
-            self.attr_names = []
+            self._attr_names = []
     
     def refreshAttributeList(self, attributes):
         self.ui.lst_attributes.clear()
-        self.ui.lst_attributes.addItems(attributes)
+        for attr in attributes:
+            if self._attribute_has_range.has_key(attr):
+            #    self.ui.btn_range.setEnabled(True)
+            #if self.attribute_ranges.has_key(attr):
+                attr = '%s *' % attr
+            self.ui.lst_attributes.addItem(attr)
         self.ui.widget_attribute_buttons.setEnabled(False)
     
     def retranslateUi(self, ui):
+        """ set text for ui elements """
+        # dialog title
         self.setWindowTitle(get_ui_string("dlg.buildms.title"))
+        # ui elements
         ui.lb_title.setText(get_ui_string("dlg.buildms.title"))
         ui.lb_attributes.setText(get_ui_string("dlg.buildms.attributes"))
+        ui.lb_notes.setText(get_ui_string("dlg.buildms.notes"))        
         ui.radioEmptyMS.setText(get_ui_string("dlg.buildms.option.empty"))
         ui.radioBuildMS.setText(get_ui_string("dlg.buildms.option.survey"))
+        # tooltips
+        self.ui.btn_move_up.setToolTip(get_ui_string("dlg.buildms.button.moveup"))
+        self.ui.btn_move_down.setToolTip(get_ui_string("dlg.buildms.button.movedown"))
+        self.ui.btn_move_top.setToolTip(get_ui_string("dlg.buildms.button.movetop"))
+        self.ui.btn_move_bottom.setToolTip(get_ui_string("dlg.buildms.button.movebottom"))
+        self.ui.btn_range.setToolTip(get_ui_string("dlg.buildms.button.range"))
+        
         

@@ -32,15 +32,15 @@ class MSDatabaseDAO:
     sql = {
         'GET_ALL_REGIONS':"""select name from regions order by name""",
         'GET_MS_REGIONS':"""select distinct region from mapping_scheme order by region """,
-        'GET_TYPES':"""select distinct source from mapping_scheme where region='%s' order by source""",
-        'GET_MSNAME':"""select ms_name from mapping_scheme where region='%s' and source='%s' order by ms_name""",
-        'GET_MS':"""select date_created, data_source, quality, use_notes, ms_xml from mapping_scheme where region='%s' and source='%s' and ms_name='%s'""",
+        'GET_TYPES':"""select distinct source from mapping_scheme where region=? order by source""",
+        'GET_MSNAME':"""select ms_name from mapping_scheme where region=? and source=? order by ms_name""",
+        'GET_MS':"""select date_created, data_source, quality, use_notes, ms_xml from mapping_scheme where region=? and source=? and ms_name=?""",
         'GET_MAX_MS_ID':"""select max(id) from mapping_scheme""",
         'INSERT_MS':"""
         insert into mapping_scheme (id, region, ms_name, source, date_created, data_source, quality, use_notes, ms_xml, taxonomy)
         values (?, ?, ?, ?, ?, ?, ?, ?, ?, 'GEM')
         """,
-        'DELETE_MS':"""delete from mapping_scheme where region='%s' and source='%s' and ms_name='%s'""",
+        'DELETE_MS':"""delete from mapping_scheme where region=? and source=? and ms_name=?""",
     }
     
     def __init__(self, dbpath):
@@ -62,50 +62,50 @@ class MSDatabaseDAO:
             return []
         else:
             if with_ms:
-                return self.__get_list( self.sql['GET_MS_REGIONS'] )
+                return self._get_list( self.sql['GET_MS_REGIONS'] )
             else:
-                return self.__get_list( self.sql['GET_ALL_REGIONS'] )
+                return self._get_list( self.sql['GET_ALL_REGIONS'] )
         
     def get_types_in_region(self, region):
         logUICall.log('get_types_in_region %s' % region, logUICall.DEBUG_L2)
         if not self.initialized:
             return []
         else:
-            return self.__get_list( self.sql['GET_TYPES'] % (region) )
+            return self._get_list( self.sql['GET_TYPES'], [region] )
     
     def get_ms_in_region_type(self, region, ms_type):
         logUICall.log('get_ms_in_region_type %s %s' % (region, ms_type), logUICall.DEBUG_L2)
         if not self.initialized:
             return []
         else:
-            return self.__get_list( self.sql['GET_MSNAME'] % (region, ms_type))
+            return self._get_list( self.sql['GET_MSNAME'], [region, ms_type])
     
     def get_ms(self, region, ms_type, ms_name):
         logUICall.log('get_ms %s %s %s' % (region, ms_type, ms_name), logUICall.DEBUG_L2)        
         if not self.initialized:
             return []
         else:
-            return self.__get_list( self.sql['GET_MS'] % (region, ms_type, ms_name), first_column=False)[0]
+            return self._get_list( self.sql['GET_MS'], [region, ms_type, ms_name], first_column=False)[0]
     
     def save_ms(self, region, ms_name, source, date, datasource, quality, notes, ms_xml):
         logUICall.log('get_ms %s %s %s %s %s %s %s %s' % (region, ms_name, source,
                                                           date, datasource, quality,
                                                           notes, ms_xml[0:20]), 
                       logUICall.DEBUG_L2)
-        _id = int(self.__get_list(self.sql['GET_MAX_MS_ID'])[0]) + 1
-        return self.__exec(self.sql['INSERT_MS'], [_id, region, ms_name,
+        _id = int(self._get_list(self.sql['GET_MAX_MS_ID'])[0]) + 1
+        return self._exec(self.sql['INSERT_MS'], [_id, region, ms_name,
                                                    source, date, datasource,
                                                    quality, notes, ms_xml], True)
      
     
     def delete_ms(self, region, ms_type, ms_name):
-        return self.__exec(self.sql['DELETE_MS'] % (region, ms_type, ms_name), [])
+        return self._exec(self.sql['DELETE_MS'], [region, ms_type, ms_name])
     
-    def __get_list(self, sql, first_column=True):
+    def _get_list(self, sql, param=[], first_column=True):
         results = []
         try:
             c = self.conn.cursor()                        
-            c.execute(sql)            
+            c.execute(sql, param)            
             for row in c:     
                 if first_column:
                     results.append(row[0])
@@ -116,7 +116,7 @@ class MSDatabaseDAO:
             logUICall.log(e, logUICall.ERROR)
         return results   
     
-    def __exec(self, sql, param, require_commit=False):
+    def _exec(self, sql, param, require_commit=False):
         try:
             c = self.conn.cursor()                        
             c.execute(sql, param)            

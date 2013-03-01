@@ -31,7 +31,7 @@ class DialogAttrRanges(Ui_attrRangesDialog, QDialog):
     """
     BUILD_EMPTY, BUILD_FROM_SURVEY=range(2)
     
-    def __init__(self, app, attribute='', min_values=[], max_values=[]):
+    def __init__(self, attribute='', min_values=[], max_values=[]):
         """ constructor """
         super(DialogAttrRanges, self).__init__()
         self.ui = Ui_attrRangesDialog()
@@ -39,7 +39,6 @@ class DialogAttrRanges(Ui_attrRangesDialog, QDialog):
         self.retranslateUi(self.ui)
         self.setFixedSize(self.size())
         
-        self.app = app
         self.ui.table_ranges.verticalHeader().hide()
         self.ui.table_ranges.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.ui.table_ranges.horizontalHeader().resizeSection(0, self.ui.table_ranges.width() * 0.5)
@@ -137,7 +136,15 @@ class DialogAttrRanges(Ui_attrRangesDialog, QDialog):
         return is_valid                
     
     def retranslateUi(self, ui):
+        """ set text for ui elements """
+        # dialog title
         self.setWindowTitle(get_ui_string('dlg.attr.range.window.title'))
+        # ui elements
         ui.lb_title.setText(get_ui_string('dlg.attr.title'))
-        ui.table_ranges.setHorizontalHeaderLabels([get_ui_string('dlg.attr.min_value'), get_ui_string('dlg.attr.max_value')])
-
+        ui.lb_attribute.setText(get_ui_string('dlg.attr.label.attribute'))
+        ui.table_ranges.setHorizontalHeaderLabels([get_ui_string('dlg.attr.min_value'), get_ui_string('dlg.attr.max_value')])                
+        ui.buttons.button(QDialogButtonBox.Ok).setText(get_ui_string('app.dialog.button.ok'))
+        ui.buttons.button(QDialogButtonBox.Cancel).setText(get_ui_string('app.dialog.button.cancel'))
+        # tooltips 
+        ui.btn_add.setToolTip(get_ui_string('dlg.attr.button.add'))
+        ui.btn_delete.setToolTip(get_ui_string('dlg.attr.button.delete'))

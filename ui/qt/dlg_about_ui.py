@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qt\dlg_about.ui'
 #
-# Created: Mon Feb 04 15:42:20 2013
+# Created: Thu Feb 28 11:36:16 2013
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -17,25 +17,40 @@ except AttributeError:
 class Ui_DialogAbout(object):
     def setupUi(self, DialogAbout):
         DialogAbout.setObjectName(_fromUtf8("DialogAbout"))
-        DialogAbout.resize(400, 308)
+        DialogAbout.resize(400, 461)
         self.buttonBox = QtGui.QDialogButtonBox(DialogAbout)
-        self.buttonBox.setGeometry(QtCore.QRect(160, 260, 81, 32))
+        self.buttonBox.setGeometry(QtCore.QRect(300, 410, 81, 32))
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
         self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Ok)
         self.buttonBox.setObjectName(_fromUtf8("buttonBox"))
-        self.label = QtGui.QLabel(DialogAbout)
-        self.label.setGeometry(QtCore.QRect(40, 20, 331, 101))
-        self.label.setText(_fromUtf8(""))
-        self.label.setPixmap(QtGui.QPixmap(_fromUtf8(":/imgs/logo.png")))
-        self.label.setObjectName(_fromUtf8("label"))
-        self.textEdit = QtGui.QTextEdit(DialogAbout)
-        self.textEdit.setGeometry(QtCore.QRect(90, 120, 211, 131))
-        self.textEdit.setObjectName(_fromUtf8("textEdit"))
+        self.lb_logo = QtGui.QLabel(DialogAbout)
+        self.lb_logo.setGeometry(QtCore.QRect(20, 20, 311, 101))
+        self.lb_logo.setText(_fromUtf8(""))
+        self.lb_logo.setPixmap(QtGui.QPixmap(_fromUtf8(":/imgs/logo.png")))
+        self.lb_logo.setObjectName(_fromUtf8("lb_logo"))
+        self.lb_description = QtGui.QLabel(DialogAbout)
+        self.lb_description.setGeometry(QtCore.QRect(20, 111, 360, 151))
+        self.lb_description.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
+        self.lb_description.setWordWrap(True)
+        self.lb_description.setObjectName(_fromUtf8("lb_description"))
+        self.lb_logo_gem = QtGui.QLabel(DialogAbout)
+        self.lb_logo_gem.setGeometry(QtCore.QRect(20, 270, 150, 100))
+        self.lb_logo_gem.setPixmap(QtGui.QPixmap(_fromUtf8(":/imgs/gem_logo_250X180.png")))
+        self.lb_logo_gem.setScaledContents(True)
+        self.lb_logo_gem.setObjectName(_fromUtf8("lb_logo_gem"))
+        self.lb_logo_imagecat = QtGui.QLabel(DialogAbout)
+        self.lb_logo_imagecat.setGeometry(QtCore.QRect(200, 280, 151, 51))
+        self.lb_logo_imagecat.setPixmap(QtGui.QPixmap(_fromUtf8(":/imgs/imagecat_logo.gif")))
+        self.lb_logo_imagecat.setScaledContents(True)
+        self.lb_logo_imagecat.setObjectName(_fromUtf8("lb_logo_imagecat"))
+        self.lb_copyright = QtGui.QLabel(DialogAbout)
+        self.lb_copyright.setGeometry(QtCore.QRect(20, 380, 361, 31))
+        self.lb_copyright.setObjectName(_fromUtf8("lb_copyright"))
 
         self.retranslateUi(DialogAbout)
         QtCore.QMetaObject.connectSlotsByName(DialogAbout)
 
     def retranslateUi(self, DialogAbout):
-        DialogAbout.setWindowTitle(QtGui.QApplication.translate("DialogAbout", "Dialog", None, QtGui.QApplication.UnicodeUTF8))
+        pass
 
 import SIDDResource_rc

@@ -148,26 +148,6 @@ class Ui_widgetResult(object):
         QtCore.QMetaObject.connectSlotsByName(widgetResult)
 
     def retranslateUi(self, widgetResult):
-        widgetResult.setWindowTitle(QtGui.QApplication.translate("widgetResult", "Form", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_export_select_path.setText(QtGui.QApplication.translate("widgetResult", "...", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_export_select_path.setText(QtGui.QApplication.translate("widgetResult", "Select location to save output:", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_export_title.setText(QtGui.QApplication.translate("widgetResult", "Export Results", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_export.setText(QtGui.QApplication.translate("widgetResult", "Export", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_export_format.setText(QtGui.QApplication.translate("widgetResult", "Export Data Format", None, QtGui.QApplication.UnicodeUTF8))
-        self.lbl_dq_test_title.setText(QtGui.QApplication.translate("widgetResult", "Data Quality Tests", None, QtGui.QApplication.UnicodeUTF8))
-        self.txt_dq_test_details.setHtml(QtGui.QApplication.translate("widgetResult", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-"p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:8pt;\"></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_layer_selector.setText(QtGui.QApplication.translate("widgetResult", "Selected Layer", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_theme.setToolTip(QtGui.QApplication.translate("widgetResult", "Edit Layer Thematics", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_info.setToolTip(QtGui.QApplication.translate("widgetResult", "Query Feature in Layer", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_zoom_in.setToolTip(QtGui.QApplication.translate("widgetResult", "Zoom In", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_pan.setToolTip(QtGui.QApplication.translate("widgetResult", "Pan", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_zoom_layer.setToolTip(QtGui.QApplication.translate("widgetResult", "Zoom to Layer", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_zoom_out.setToolTip(QtGui.QApplication.translate("widgetResult", "Zoom Out", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_zoom_full.setToolTip(QtGui.QApplication.translate("widgetResult", "Zoom to Full Extent", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_panel_title.setText(QtGui.QApplication.translate("widgetResult", "Preview Data", None, QtGui.QApplication.UnicodeUTF8))
+        pass
 
 import SIDDResource_rc

@@ -26,7 +26,7 @@ from PyQt4.QtCore import Qt, QVariant, QString, \
 from sidd.constants import logAPICall
 
 from ui.constants import get_ui_string
-from ui.helper.common import build_attribute_tooltip, build_multivalue_attribute_tooltip
+from ui.helper.common import build_multivalue_attribute_tooltip
 
 class MSTableModel(QAbstractTableModel):
     """
@@ -122,7 +122,7 @@ class MSTableModel(QAbstractTableModel):
             # construct data for display in tooltip
             _mod = self._get_modifier(row)
             _idx = row - _mod[self.STR_INDEX]
-            if (col==4):
+            if (col==2):
                 _key = sorted(_mod[self.MOD_INDEX].keys())[_idx]
                 if _key is not None:
                     return build_multivalue_attribute_tooltip(self.valid_codes, self.ms.taxonomy.parse(_key))
@@ -138,8 +138,6 @@ class MSTableModel(QAbstractTableModel):
                 return QString(self.headers[section])
             else:
                 return QVariant()
-        elif role == Qt.ToolTipRole:
-            return QString('tool tip for %s' % self.headers[section])
         else:
             return QVariant()
             

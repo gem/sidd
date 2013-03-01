@@ -81,24 +81,18 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
         WidgetDataInput.uiCallChecker.project_is_required = False
 
         # default input data setting
-        self.ui.radio_fp_op1.setChecked(True)
-        self.ui.radio_fp_op2.setEnabled(False)
+        self.ui.radio_fp_op1.setChecked(True)        
         self.ui.radio_svy_op1.setChecked(True)
         self.ui.radio_zones_op1.setChecked(True)
         self.ui.radio_aggr_op1.setChecked(True)       
         
-        # help labels
-        self.ui.img_lb_fp_desc_help.setToolTip(get_ui_string('help.input.footprint'))
-        self.ui.img_lb_svy_desc_help.setToolTip("get_ui_string('help.input.survey')")
-        self.ui.img_lb_zones_desc_help.setToolTip(get_ui_string('help.input.zones'))
-        self.ui.img_lb_aggr_desc_help.setToolTip(get_ui_string('help.input.output'))
-
         # connect slots (ui event)
         # footprint
         self.ui.btn_fp_select_file.clicked.connect(self.openFootprintData)
         self.ui.radio_fp_op1.toggled.connect(self.setFootprintDataType)
         self.ui.radio_fp_op2.toggled.connect(self.setFootprintDataType)
         self.ui.radio_fp_op3.toggled.connect(self.setFootprintDataType)
+        self.ui.cb_fp_story_field.currentIndexChanged[str].connect(self.setFootprintHtField)
         # survey
         self.ui.btn_svy_select_file.clicked.connect(self.openSurveyData)
         self.ui.radio_svy_op1.toggled.connect(self.setSurveyDataType)
@@ -116,12 +110,6 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
         self.ui.radio_aggr_op2.toggled.connect(self.setAggregateType)
         # verify
         self.ui.btn_verify.clicked.connect(self.verifyInput)
-        
-        # GED input grid no longer required 
-        self.ui.lb_aggr_grid_select_file.hide()
-        self.ui.txt_aggr_grid_select_file.hide()
-        self.ui.btn_aggr_grid_select_file.hide()
-        
         
     # UI event handling calls
     ###############################
@@ -173,11 +161,7 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
         # right panels
         # aggregation panel
         self.ui.widgetAggr.resize(width_panel, self.ui.widgetAggr.height())
-        self.ui.widgetAggr.move(width_panel+2*UI_PADDING, self.ui.widgetAggr.y())                
-        self.ui.btn_aggr_grid_select_file.move(width_panel-button_width-UI_PADDING,
-                                               self.ui.btn_aggr_grid_select_file.y())
-        self.ui.txt_aggr_grid_select_file.resize(self.ui.btn_aggr_grid_select_file.x()-self.ui.txt_aggr_grid_select_file.x()-UI_PADDING,
-                                                 self.ui.txt_aggr_grid_select_file.height())
+        self.ui.widgetAggr.move(width_panel+2*UI_PADDING, self.ui.widgetAggr.y())
         
         self.ui.widgetResult.resize(width_panel, self.ui.widgetResult.height())
         self.ui.widgetResult.move(width_panel+2*UI_PADDING, self.ui.widgetResult.y())        
@@ -213,6 +197,7 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
                     self.project.fp_type = FootprintTypes.None
                     self.project.fp_file = ''
                     self.project.fp_ht_field = ''
+                    self.app.refreshPreview()
             elif sender == self.ui.radio_fp_op2:
                 logUICall.log('\tfp with height', logUICall.DEBUG_L2)
                 # update UI
@@ -246,6 +231,16 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
                               logUICall.WARNING)
         #else:
         #   ignore
+
+    @uiCallChecker
+    @pyqtSlot(int)
+    def setFootprintHtField(self, ht_field):
+        # update project if project exists
+        if self.project is not None:
+            logUICall.log('\tset zone field %s ...' % ht_field, logUICall.DEBUG_L2)
+            # update project if project exists
+            if self.project is not None:
+                self.project.fp_ht_field = str(ht_field)   
     
     @uiCallChecker
     @pyqtSlot()
@@ -273,6 +268,7 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
                 if self.project is not None:
                     self.project.survey_type = SurveyTypes.None
                     self.project.survey_file = ''
+                    self.app.refreshPreview()
             elif sender == self.ui.radio_svy_op2:
                 logUICall.log('\cwith complete survey data ...', logUICall.DEBUG_L2)
                 # update UI
@@ -325,6 +321,7 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
                     self.project.zone_file = ''
                     self.project.zone_field = ''
                     self.project.zone_count_field = ''
+                    self.app.refreshPreview()
             elif sender == self.ui.radio_zones_op2:
                 logUICall.log('\tzone with class ...', logUICall.DEBUG_L2)
                 # update UI
@@ -399,10 +396,6 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
                     self.project.output_type = OutputTypes.Zone
             elif sender == self.ui.radio_aggr_op2:
                 logUICall.log('\tset output to grid ...', logUICall.DEBUG_L2)
-                # update UI
-                self.ui.txt_aggr_grid_select_file.setEnabled(True)
-                self.ui.btn_aggr_grid_select_file.setEnabled(True)
-
                 # update project if project exists
                 if self.project is not None:
                     self.project.output_type = OutputTypes.Grid
@@ -507,6 +500,7 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
         # update project if project exists
         if self.project is not None:
             self.project.fp_file = filename
+            self.app.refreshPreview()
 
     def setSurveyFile(self, filename):
         # update UI
@@ -516,6 +510,8 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
         # update project if project exists
         if self.project is not None:
             self.project.survey_file = filename
+            self.project.survey = None
+            self.app.refreshPreview()
         
     def setZonesFile(self, filename):
         # update UI
@@ -535,6 +531,7 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
         # update project if project exists
         if self.project is not None:
             self.project.zone_file = filename
+            self.app.refreshPreview()
 
     def setAggrGridFile(self, filename):
         # update UI
@@ -683,16 +680,13 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
             logUICall.log('\treset output inputs ...',logUICall.DEBUG_L2)
             self.ui.radio_aggr_op1.setChecked(False)
             self.ui.radio_aggr_op2.setChecked(False)
-            self.ui.txt_aggr_grid_select_file.setEnabled(False)
-            self.ui.txt_aggr_grid_select_file.setText('')
-            self.ui.btn_aggr_grid_select_file.setEnabled(False)
             # update project if project exists
 
     def retranslateUi(self, ui):
-        # widget header related
+        # widget header 
         ui.lb_panel_title.setText(get_ui_string("widget.input.header.title"))
         ui.txt_panel_description.setHtml(get_ui_string("widget.input.header.description"))
-
+        
         # survey related
         ui.lb_svy_title.setText(get_ui_string("widget.input.survey.title"))
         ui.lb_svy_desc.setText(get_ui_string("widget.input.survey.description"))
@@ -728,8 +722,6 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
         # data aggregation related
         ui.lb_aggr_title.setText(get_ui_string("widget.input.agg.title"))
         ui.lb_aggr_desc.setText(get_ui_string("widget.input.agg.description"))
-        ui.lb_aggr_grid_select_file.setText(get_ui_string("app.file.select"))
-        ui.btn_aggr_grid_select_file.setText(get_ui_string("app.file.button"))
         ui.radio_aggr_op1.setText(get_ui_string("widget.input.agg.op1"))
         ui.radio_aggr_op2.setText(get_ui_string("widget.input.agg.op2"))
         
@@ -742,5 +734,11 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
         ui.lb_verify_aggregation.setText(get_ui_string("widget.input.verify.aggregation"))
         ui.lb_verify_agg_zone.setText(get_ui_string("widget.input.verify.agg.zone"))
         ui.lb_verify_agg_grid.setText(get_ui_string("widget.input.verify.agg.grid"))
-        ui.txt_verify_text.setHtml("")   
+        ui.txt_verify_text.setHtml("")
+        # help labels
+        ui.img_lb_fp_desc_help.setToolTip(get_ui_string('help.input.footprint'))
+        ui.img_lb_svy_desc_help.setToolTip("get_ui_string('help.input.survey')")
+        ui.img_lb_zones_desc_help.setToolTip(get_ui_string('help.input.zones'))
+        ui.img_lb_aggr_desc_help.setToolTip(get_ui_string('help.input.output'))
+        
         

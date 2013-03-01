@@ -186,15 +186,20 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
                 self.ui.table_ms_level.setItemDelegateForColumn(0, attr_editor)
             else:
                 self.ui.table_ms_level.setItemDelegateForColumn(0, self.ui.table_ms_level.itemDelegateForColumn(1))
-        else:            
+        else:
+            existing_attributes = node.ancestor_names
+            existing_attributes.append(node.name)
             for attr in self.taxonomy.attributes:
-                self.ui.cb_attributes.addItem(attr.name)            
+                try:
+                    existing_attributes.index(attr.name)
+                except:
+                    self.ui.cb_attributes.addItem(attr.name)
             
         for _child in self.node.children:
             values.append(_child.value)
             weights.append(_child.weight)
             
-        self.levelModel = MSLevelTableModel(values, weights)
+        self.levelModel = MSLevelTableModel(values, weights, self.taxonomy, self.taxonomy.codes)
         
         # initialize table view 
         tableUI = self.ui.table_ms_level                
@@ -236,12 +241,18 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
         return selectedIndexes[0]
     
     def retranslateUi(self, ui):
+        """ set text for ui elements """
+        # dialog title
         self.setWindowTitle(get_ui_string("dlg.msbranch.edit.window.title"))
+        # ui elements
         ui.lb_title.setText(get_ui_string("dlg.msbranch.edit.title"))
-        ui.btn_apply.setText(get_ui_string("app.dialog.button.apply"))
-        ui.btn_close.setText(get_ui_string("app.dialog.button.close"))
-    
         ui.lb_attribute.setText(get_ui_string("dlg.msbranch.edit.attribute.name"))
         ui.lb_total_weights.setText(get_ui_string("dlg.msbranch.edit.weight.total"))
         ui.lb_percent.setText("%")
+        ui.btn_apply.setText(get_ui_string("app.dialog.button.apply"))
+        ui.btn_close.setText(get_ui_string("app.dialog.button.close"))    
+        # tooltip
+        ui.btn_add.setToolTip(get_ui_string("dlg.msbranch.button.add"))
+        ui.btn_delete.setToolTip(get_ui_string("dlg.msbranch.button.delete"))
+        ui.btn_save.setToolTip(get_ui_string("dlg.msbranch.button.save"))
 
