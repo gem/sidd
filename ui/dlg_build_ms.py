@@ -61,8 +61,15 @@ class DialogMSOptions(Ui_msOptionsDialog, QDialog):
         self.ui.btn_move_bottom.clicked.connect(self.attributeMoveBottom)
         self.ui.btn_range.clicked.connect(self.setAttributeRanges)
         
+        self.ui.btn_move_left.clicked.connect(self.attributeAdd)
+        self.ui.btn_move_right.clicked.connect(self.attributeDelete)
+        
         self.ui.lst_attributes.itemSelectionChanged.connect(self.selectedAttributeChanged)
+        self.ui.lst_attributes_not_included.itemSelectionChanged.connect(self.selectedNotIncludedAttributeChanged)
 
+        self.ui.btn_move_left.setEnabled(False)
+        self.ui.btn_move_right.setEnabled(False)
+             
         # additional settings
         self.setFixedSize(self.size())  # no resize
         self.ui.lst_attributes.setSelectionMode(QAbstractItemView.SingleSelection) # allow select only one attribute
@@ -82,9 +89,10 @@ class DialogMSOptions(Ui_msOptionsDialog, QDialog):
     @attributes.setter
     def attributes(self, attributes):
         self._attributes = attributes
-        self.attribute_order = [attr.name for attr in self.attributes]
+        #self.attribute_order = [attr.name for attr in self.attributes]
         self._attribute_has_range = {}
         for att in attributes:
+            # numeric attributes can have range
             if att.type == 2:
                 self._attribute_has_range[att.name]=1
 
@@ -96,6 +104,7 @@ class DialogMSOptions(Ui_msOptionsDialog, QDialog):
     def attribute_order(self, order):
         self._attr_names = order
         self.refreshAttributeList(self._attr_names)
+        self.refreshNotIncludedList()
 
     @property
     def attribute_ranges(self):
@@ -104,7 +113,7 @@ class DialogMSOptions(Ui_msOptionsDialog, QDialog):
     @attribute_ranges.setter
     def attribute_ranges(self, ranges):
         self._ranges = ranges
-        
+    
     # ui event handler
     ###############################
     @logUICall
@@ -189,26 +198,56 @@ class DialogMSOptions(Ui_msOptionsDialog, QDialog):
         self._attr_names.append(value)
         self.refreshAttributeList(self._attr_names)
         self.ui.lst_attributes.setCurrentRow(len(self._attr_names)-1)
-    
+
+    @logUICall
+    @pyqtSlot()
+    def attributeAdd(self):
+        indices = self.ui.lst_attributes_not_included.selectedIndexes()
+        if len(indices) == 1:
+            attribute = str(indices[0].data().toString())
+            for _attr in self._attribute_has_range:
+                if attribute == _attr:
+                    attribute = '%s *' % attribute                    
+            self._attr_names.append(attribute)
+        self.refreshAttributeList(self._attr_names)
+        self.refreshNotIncludedList()
+
+    @logUICall
+    @pyqtSlot()
+    def attributeDelete(self):
+        indices = self.ui.lst_attributes.selectedIndexes()
+        if len(indices) == 1:
+            attribute = str(indices[0].data().toString())
+            try:
+                self._attr_names.remove(attribute)
+            except:
+                pass
+        self.refreshAttributeList(self._attr_names)
+        self.refreshNotIncludedList()
+        
     @logUICall
     @pyqtSlot()
     def selectedAttributeChanged(self):
         indices = self.ui.lst_attributes.selectedIndexes()
         if len(indices) == 1:
-            self.ui.widget_attribute_buttons.setEnabled(True)            
-            if self._attribute_has_range.has_key(str(indices[0].data().toString())):
-                self.ui.btn_range.setEnabled(True)
-            """
-            for att in self._attributes:
-                if att.name == str(indices[0].data().toString()):
-                    if att.type == 2:
-                        self.ui.btn_range.setEnabled(True)
-                    else:
-                        self.ui.btn_range.setEnabled(False)
+            self.ui.widget_attribute_buttons.setEnabled(True)                                    
+            _can_set_range = False
+            _sel_attributes = str(indices[0].data().toString())
+            for _attr in self._attribute_has_range:
+                if _sel_attributes == '%s *' % _attr:
+                    _can_set_range = True
                     break
-            """
+            self.ui.btn_range.setEnabled(_can_set_range)
+            self.ui.btn_move_right.setEnabled(True)            
         else:
             self.ui.widget_attribute_buttons.setEnabled(False)
+            self.ui.btn_move_right.setEnabled(False)            
+    
+    @logUICall
+    @pyqtSlot()
+    def selectedNotIncludedAttributeChanged(self):
+        indices = self.ui.lst_attributes_not_included.selectedIndexes()
+        self.ui.btn_move_left.setEnabled(len(indices) == 1)
     
     def resetList(self):
         self._attr_names = []
@@ -222,11 +261,18 @@ class DialogMSOptions(Ui_msOptionsDialog, QDialog):
         self.ui.lst_attributes.clear()
         for attr in attributes:
             if self._attribute_has_range.has_key(attr):
-            #    self.ui.btn_range.setEnabled(True)
-            #if self.attribute_ranges.has_key(attr):
                 attr = '%s *' % attr
             self.ui.lst_attributes.addItem(attr)
         self.ui.widget_attribute_buttons.setEnabled(False)
+    
+    def refreshNotIncludedList(self):
+        # add to not_included if not already in attribute_order list
+        self.ui.lst_attributes_not_included.clear()
+        for _attr in self._attributes:
+            try:
+                self._attr_names.index(_attr.name)
+            except:
+                self.ui.lst_attributes_not_included.addItem(_attr.name)        
     
     def retranslateUi(self, ui):
         """ set text for ui elements """
@@ -235,6 +281,7 @@ class DialogMSOptions(Ui_msOptionsDialog, QDialog):
         # ui elements
         ui.lb_title.setText(get_ui_string("dlg.buildms.title"))
         ui.lb_attributes.setText(get_ui_string("dlg.buildms.attributes"))
+        ui.lb_attributes_not_included.setText(get_ui_string("dlg.buildms.attributes.not_included"))
         ui.lb_notes.setText(get_ui_string("dlg.buildms.notes"))        
         ui.radioEmptyMS.setText(get_ui_string("dlg.buildms.option.empty"))
         ui.radioBuildMS.setText(get_ui_string("dlg.buildms.option.survey"))

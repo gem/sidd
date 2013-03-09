@@ -225,6 +225,7 @@ SIDD_UI_STRINGS = {
     "widget.result.title":QApplication.translate('app.result', 'Preview', None, QApplication.UnicodeUTF8),
     "widget.result.layers.selector":QApplication.translate('app.result', 'Selected Layer', None, QApplication.UnicodeUTF8),    
     "widget.result.layer.exposure":QApplication.translate('app.result', 'Exposure', None, QApplication.UnicodeUTF8),
+    "widget.result.layer.exposure_grid":QApplication.translate('app.result', 'Exposure Grid', None, QApplication.UnicodeUTF8),    
     "widget.result.layer.survey":QApplication.translate('app.result', 'Surveys', None, QApplication.UnicodeUTF8),
     "widget.result.layer.footprint":QApplication.translate('app.result', 'Footprints', None, QApplication.UnicodeUTF8),
     "widget.result.layer.zones":QApplication.translate('app.result', 'Zones', None, QApplication.UnicodeUTF8),
@@ -267,7 +268,8 @@ SIDD_UI_STRINGS = {
     # build ms dialog
     ######################
     "dlg.buildms.title":QApplication.translate('app.buildms', 'Create Mapping Scheme', None, QApplication.UnicodeUTF8),
-    "dlg.buildms.attributes":QApplication.translate('app.buildms', 'Taxonomy Attributes', None, QApplication.UnicodeUTF8),
+    "dlg.buildms.attributes":QApplication.translate('app.buildms', 'Attributes to include', None, QApplication.UnicodeUTF8),
+    "dlg.buildms.attributes.not_included":QApplication.translate('app.buildms', 'Attributes not included', None, QApplication.UnicodeUTF8),
     "dlg.buildms.notes":QApplication.translate('app.buildms', 'Attribute with * symbol can be grouped into ranges', None, QApplication.UnicodeUTF8),    
     "dlg.buildms.option.empty":QApplication.translate('app.buildms', 'Create Empty Mapping Scheme', None, QApplication.UnicodeUTF8),
     "dlg.buildms.option.survey":QApplication.translate('app.buildms', 'Build from Survey Data', None, QApplication.UnicodeUTF8),
@@ -318,6 +320,8 @@ SIDD_UI_STRINGS = {
     "dlg.attr.label.attribute":QApplication.translate('app.attributes', 'Attribute', None, QApplication.UnicodeUTF8),
     "dlg.attr.min_value":QApplication.translate('app.attributes', 'Minimum Value', None, QApplication.UnicodeUTF8),
     "dlg.attr.max_value":QApplication.translate('app.attributes', 'Maximum Value', None, QApplication.UnicodeUTF8),
+    "dlg.attr.error.max":QApplication.translate('app.attributes', 'Max value %s must be larger than %s', None, QApplication.UnicodeUTF8),
+    "dlg.attr.error.range":QApplication.translate('app.attributes', 'Minimum value %s must be (%s + 1)', None, QApplication.UnicodeUTF8),
     "dlg.attr.value.error":QApplication.translate('app.attributes', 'Only integer value is accepted', None, QApplication.UnicodeUTF8),
     "dlg.attr.button.add":QApplication.translate('app.attributes', 'Add a group', None, QApplication.UnicodeUTF8),
     "dlg.attr.button.delete":QApplication.translate('app.attributes', 'Delete a group', None, QApplication.UnicodeUTF8),

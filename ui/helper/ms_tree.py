@@ -44,7 +44,7 @@ class MSTreeModel(QAbstractItemModel):
     def setMS(self, ms):
         self.ms = ms
         self.valid_codes = ms.taxonomy.codes
-        self.rootNode = object()        
+        self.rootNode = object()
         self.zones = ms.get_zones()
         for zone in self.zones:
             #print zone, type(zone.stats.root), zone.stats.root.value

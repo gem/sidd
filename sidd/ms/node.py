@@ -456,7 +456,7 @@ class StatisticNode (object):
     ###########################
 
     @logAPICall
-    def add(self, attr_vals, idx, attributes, defaults, skips):
+    def add_old(self, attr_vals, idx, attributes, defaults, skips):
         """        
         recursively update statistic @ node and @ child nodes
         using attr_val, defaults, skips at idx
@@ -496,7 +496,7 @@ class StatisticNode (object):
             # normal case
             if isinstance(attr_val, TaxonomyAttributeMulticodeValue):
                 # multiple codes for same attribute 
-                # - node determeined by first code value
+                # - node determined by first code value
                 # - all other code values aggregated as modifier
                 value = attr_val.codes[0]
                 is_default = value == defaults[idx]
@@ -504,13 +504,13 @@ class StatisticNode (object):
                     modifiers = self.separator.join(sorted( attr_val.codes[1:] ))
             elif isinstance(attr_val, TaxonomyAttributePairValue):
                 # code/value pair for attribute 
-                # - node determeined by code value
+                # - node determined by code value
                 # - no modifier
                 value = str(attr_val)
                 is_default = value == defaults[idx]
             elif isinstance(attr_val, TaxonomyAttributeSinglecodeValue):
                 # single code attribute 
-                # - node determeined by code value
+                # - node determined by code value
                 # - no modifier
                 value = attr_val.code
                 is_default = value == defaults[idx]
@@ -538,6 +538,93 @@ class StatisticNode (object):
 
             # recursive call to process next level
             child.add(attr_vals, idx+1, attributes, defaults, skips)
+        return
+
+    @logAPICall
+    def add(self, attr_vals, level, parse_order, default_attributes, parse_modifiers=True):
+        """        
+        recursively update statistic @ node and @ child nodes
+        using attr_val, defaults, skips at idx
+        """
+
+        # get attribute value
+        def _get_attr(attribute_name, values, default_attributes):
+            _attrib = None
+            # find appropriate value in attr_val
+            for _attr in values:
+                if _attr.attribute.name == attr_name:
+                    _attrib = _attr
+                    break
+            # if not found, then get default
+            if _attrib is None:
+                for _attr in default_attributes:
+                    if _attr.attribute.name == attr_name:
+                        _attrib = _attr
+                        break
+            return _attrib
+
+        # increment count of current node
+        self.count+=1
+        
+        # the ending condition for the recursive call
+        # NOTE: is_leaf is not used here, this process should work on a empty tree
+        if (len(parse_order) <= level):
+            return
+        
+        logAPICall.log('processing %d %s' %(level, parse_order[level]), logAPICall.DEBUG)
+        
+        # get value to add/update children
+        # NOTE: value for current node is already set by its parent
+        # all processing/parsing is to work on its children        
+        attr_name = parse_order[level]        
+        attr_val = _get_attr(attr_name, attr_vals, default_attributes)
+        modifiers = None
+        is_default = str(attr_val) == attr_val.attribute.default
+
+        # normal case
+        if isinstance(attr_val, TaxonomyAttributeMulticodeValue):
+            # multiple codes for same attribute 
+            # - node determined by first code value
+            # - all other code values aggregated as modifier
+            if parse_modifiers:
+                value = attr_val.codes[0]
+                if len(attr_val.codes)>1:
+                    modifiers = self.separator.join(sorted( attr_val.codes[1:] ))
+            else:
+                value = str(attr_val)
+        elif isinstance(attr_val, TaxonomyAttributePairValue):
+            # code/value pair for attribute 
+            # - node determined by code value
+            # - no modifier
+            value = str(attr_val)
+        elif isinstance(attr_val, TaxonomyAttributeSinglecodeValue):
+            # single code attribute 
+            # - node determined by code value
+            # - no modifier
+            value = str(attr_val.code)        
+        logAPICall.log('\tnode:%s, modifier:%s' %(value, modifiers), logAPICall.DEBUG_L2)
+        
+        child_found = False
+        # find children and add value/modifier
+        for child in self.children:
+            if (child.value == value):
+                logAPICall.log('found child with %s' % value, logAPICall.DEBUG_L2)
+                child_found = True                
+                child.add_modifier(modifiers)
+                
+                # recursive call to process next level
+                child.add(attr_vals, level+1, parse_order, default_attributes, parse_modifiers)
+                return 
+
+        # if no children found, then add new node for value and add modifier
+        if not child_found:
+            logAPICall.log('create new child with %s' % value, logAPICall.DEBUG_L2)
+            child = StatisticNode(self, attr_name, value, self.level+1, is_default, False)
+            self.children.append(child)
+            child.add_modifier(modifiers)
+
+            # recursive call to process next level
+            child.add(attr_vals, level+1, parse_order, default_attributes, parse_modifiers)
         return
     
     @logAPICall

@@ -60,6 +60,12 @@ def get_user_dir():
     return home
 
 def get_app_dir():
-    """ get path to application root directory """
-    """Get the path to the application's root directory."""    
+    """ get the path to the application's root directory."""    
     return str(QDir.currentPath())
+
+def get_dictionary_value(dictionary, key, default):
+    """ return value in dictionary for given key if key exists, or default if not """
+    if dictionary.has_key(key):
+        return dictionary[key]
+    else:
+        return default

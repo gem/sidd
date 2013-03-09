@@ -22,24 +22,27 @@ common functions for ui helper classes
 from sidd.taxonomy import TaxonomyAttributeSinglecodeValue, TaxonomyAttributeMulticodeValue, TaxonomyAttributePairValue
 
 def build_attribute_tooltip(codes, value):
+    lines = []
     if codes.has_key(value):
         code = codes[value]
-        return "Code: %s\nAttribute: %s\nLevel: %s\nDescription: %s\n" % (code.code, code.attribute.name, code.level, code.description)
-    else:
-        return ""
+        lines.append("Code: %s" % code.code)
+        lines.append("Attribute: %s" % code.attribute.name)
+        #lines.append("Level: %s" % code.level)
+        lines.append("Description: %s" % code.description)
+    return "\n".join(lines) 
 
 def build_multivalue_attribute_tooltip(codes, values):
-    tooltip = []
+    tooltips = []
     for attr in values:
         if attr.is_empty:
             continue
         if isinstance(attr, TaxonomyAttributeMulticodeValue):
             for code in attr.codes:
-                tooltip.append(build_attribute_tooltip(codes, code))
-                tooltip.append("\n")
+                tooltips.append(build_attribute_tooltip(codes, code))
         elif isinstance(attr, TaxonomyAttributeSinglecodeValue):
-            tooltip.append(build_attribute_tooltip(codes, attr.code))
+            tooltips.append(build_attribute_tooltip(codes, attr.code))
         elif isinstance(attr, TaxonomyAttributePairValue):
-            tooltip.append(build_attribute_tooltip(codes, attr.code))
-    return "".join(tooltip)            
+            tooltips.append(build_attribute_tooltip(codes, attr.code))
+        tooltips.append("")
+    return "\n".join(tooltips)
             

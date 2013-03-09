@@ -25,10 +25,11 @@ from PyQt4.QtGui import QItemDelegate, QComboBox
 class MSAttributeItemDelegate(QItemDelegate):
     def __init__(self, parent, valid_codes, min_editables):
         super(MSAttributeItemDelegate, self).__init__(parent)
-        self.valid_codes = []
-        for code in valid_codes:
-            self.valid_codes.append(code.code)        
-        self.valid_codes.sort()
+        self.valid_codes = valid_codes
+        self.valid_code_names = []    
+        for description, code in valid_codes.iteritems():
+            self.valid_code_names.append(description)
+        self.valid_code_names.sort()
         self.min_editables = min_editables
     
     # returns the widget used to change data from the model and can be re-implemented to customize editing behavior.
@@ -43,10 +44,10 @@ class MSAttributeItemDelegate(QItemDelegate):
     def setEditorData(self, editor, index):
         current_val = str(index.data(Qt.DisplayRole).toString())
         editor.clear()
-        for idx, code in enumerate(self.valid_codes):
-            editor.addItem(code)            
+        for idx, name in enumerate(self.valid_code_names):
+            editor.addItem(name)            
             # set current value as selected from the drop-down
-            if code == current_val:
+            if self.valid_codes[name] == current_val:
                 editor.setCurrentIndex(idx)
  
     # ensures that the editor is displayed correctly with respect to the item view.
@@ -57,7 +58,7 @@ class MSAttributeItemDelegate(QItemDelegate):
     # returns updated data to the model.
     def setModelData(self, editor, model, index):
         existing_values = index.model().values
-        code = editor.currentText()
+        code = self.valid_codes[editor.currentText()]
         try:
             existing_values.index(code)
         except:

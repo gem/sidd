@@ -26,3 +26,8 @@ class SIDDUIException(Exception):
     """ SIDD application UI exceptions """
     def __init__(self, msg):
         super(SIDDUIException, self).__init__(msg)
+
+class SIDDRangeGroupException(Exception):
+    """ exception thrown during attribute value range grouping """
+    def __init__(self, msg):
+        super(SIDDRangeGroupException, self).__init__(msg)

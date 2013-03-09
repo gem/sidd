@@ -43,8 +43,7 @@ class WidgetSecondaryModifier(Ui_widgetSecondaryModifier, QWidget):
         self.retranslateUi(self.ui)
 
         self.ui.table_mod.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.ui.table_mod.setSelectionMode(QAbstractItemView.SingleSelection)
-
+        self.ui.table_mod.setSelectionMode(QAbstractItemView.SingleSelection)        
         self.dlgEditMod = DialogModInput(app)
         self.dlgEditMod.setModal(True)
         self.app = app
@@ -52,8 +51,9 @@ class WidgetSecondaryModifier(Ui_widgetSecondaryModifier, QWidget):
         # connect slots (ui event)
         self.ui.btn_add_mod.clicked.connect(self.addModifier)
         self.ui.btn_del_mod.clicked.connect(self.deleteModifier)
-        self.ui.btn_edit_mod.clicked.connect(self.editModifier)
+        self.ui.btn_edit_mod.clicked.connect(self.editModifier)        
         self.ui.btn_build_exposure.clicked.connect(self.applyMS)
+        self.ui.table_mod.doubleClicked.connect(self.editModifier)
         
     # ui event handler
     ###############################

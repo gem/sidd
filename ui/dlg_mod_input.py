@@ -20,7 +20,7 @@
 dialog for editing secondary modifiers
 """
 from PyQt4.QtGui import QDialog, QMessageBox, QAbstractItemView, QItemSelectionModel
-from PyQt4.QtCore import pyqtSlot, Qt, QObject, QSize
+from PyQt4.QtCore import pyqtSlot, Qt, QObject, QSize, QVariant
 
 from sidd.ms import StatisticNode
 
@@ -28,6 +28,8 @@ from ui.constants import logUICall, get_ui_string, UI_PADDING
 from ui.qt.dlg_mod_input_ui import Ui_modifierInputDialog
 from ui.helper.ms_level_table import MSLevelTableModel
 from ui.helper.ms_tree import MSTreeModel
+
+from ui.dlg_edit_attributes import DialogEditAttributes
 
 class DialogModInput(Ui_modifierInputDialog, QDialog):
     """
@@ -49,9 +51,9 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
         self.ui.btn_add.clicked.connect(self.addValue)
         self.ui.btn_delete.clicked.connect(self.deleteValue)
         self.ui.btn_apply.clicked.connect(self.setModifier)
-        self.ui.btn_cancel.clicked.connect(self.reject)
-        
+        self.ui.btn_cancel.clicked.connect(self.reject)        
         self.ui.cb_attributes.currentIndexChanged[str].connect(self.setModifierName)
+        self.ui.table_mod_values.doubleClicked.connect(self.editModValue)
         
     # ui event handler
     ###############################
@@ -144,6 +146,19 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
     def setModifierName(self, selected_val):        
         self.modifier_name = selected_val
     
+    @logUICall
+    @pyqtSlot(QObject)
+    def editModValue(self, index):
+        if index.column() == 0:
+            edit_dlg = DialogEditAttributes(self.ms.taxonomy, 
+                                            str(self.ui.cb_attributes.currentText()),
+                                            str(index.data().toString()))
+            if edit_dlg.exec_() == QDialog.Accepted:                
+                try:
+                    index.model().setData(index, QVariant(edit_dlg.attribute_value()), Qt.EditRole)                    
+                except Exception as err:
+                    print err
+
     # public method
     ###############################
         
@@ -211,13 +226,14 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
                 self.ui.cb_attributes.addItem(attr.name)
             
             # cannot apply until values are set and node is selected
-            self.ui.btn_apply.setEnabled(False)            
+            self.ui.btn_apply.setEnabled(False)
         
         # initialize table of values
-        self.modModel = MSLevelTableModel(self.values, self.weights, self.ms.taxonomy, self.ms.taxonomy.codes)
+        self.modModel = MSLevelTableModel(self.values, self.weights, self.ms.taxonomy, self.ms.taxonomy.codes, 
+                                          is_editable=[False, True])
         self.ui.table_mod_values.setModel(self.modModel)
         # update total once table value is changed
-        self.modModel.dataChanged.connect(self.verifyWeights)
+        self.modModel.dataChanged.connect(self.verifyWeights)        
 
     # internal helper methods
     #############################

@@ -133,12 +133,11 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
         event handler for cb_attributes
         - update list of possible values according to attribute selected
         """
-        self.valid_codes = []
         attribute_name = new_attribute
-        for code in self.taxonomy.codes.itervalues():
+        self.valid_codes = {}
+        for code_name, code in self.taxonomy.codes.iteritems():                
             if code.attribute.name == attribute_name and code.level == 1:
-                self.valid_codes.append(code)
-                
+                self.valid_codes[code.description]=code_name                                    
         attr_editor = MSAttributeItemDelegate(self.ui.table_ms_level, self.valid_codes, len(self.node.children))
         self.ui.table_ms_level.setItemDelegateForColumn(0, attr_editor)
 
@@ -177,10 +176,10 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
                     continue
                 use_combobox = (attr.type == 1)
                 break
-            self.valid_codes = []
-            for code in self.taxonomy.codes.itervalues():                
+            self.valid_codes = {}
+            for code_name, code in self.taxonomy.codes.iteritems():                
                 if code.attribute.name == attribute_name and code.level == 1:
-                    self.valid_codes.append(code)
+                    self.valid_codes[code.description]=code_name
             if use_combobox and len(self.valid_codes) > 0:
                 attr_editor = MSAttributeItemDelegate(self.ui.table_ms_level, self.valid_codes, 0)
                 self.ui.table_ms_level.setItemDelegateForColumn(0, attr_editor)
@@ -199,14 +198,15 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
             values.append(_child.value)
             weights.append(_child.weight)
             
-        self.levelModel = MSLevelTableModel(values, weights, self.taxonomy, self.taxonomy.codes)
+        self.levelModel = MSLevelTableModel(values, weights, self.taxonomy, self.taxonomy.codes,
+                                            is_editable=[True, True])
         
         # initialize table view 
         tableUI = self.ui.table_ms_level                
         tableUI.setModel(self.levelModel)
         tableUI.setSelectionMode(QAbstractItemView.SingleSelection)
         table_width = tableUI.width()
-        value_col_width = round(table_width*0.6, 0)
+        value_col_width = round(table_width*0.7, 0)
         tableUI.setColumnWidth(0, value_col_width)
         tableUI.setColumnWidth(1, table_width-value_col_width)
         tableUI.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)

@@ -181,15 +181,14 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         #self.dlgMSOptions.resetList()
         # load existing options
         options = self.app.project.operator_options
-        for attr in self.dlgMSOptions.attribute_order:
-            if options.has_key(attr):                
-                self.dlgMSOptions.attribute_ranges[attr] = options[attr]
+        for attr in self.dlgMSOptions.attributes:
+            if options.has_key(attr.name):    
+                self.dlgMSOptions.attribute_ranges[attr.name] = options[attr.name]
         if options.has_key('attribute.order'):
             self.dlgMSOptions.attribute_order = options['attribute.order']
         if self.dlgMSOptions.exec_() == QDialog.Accepted:
             # set options
             options['attribute.order'] = self.dlgMSOptions.attribute_order
-            self.app.taxonomy.set_parse_order(self.dlgMSOptions.attribute_order)
             for attr, attr_range in self.dlgMSOptions.attribute_ranges.iteritems():
                 options[attr] = attr_range
             # process
@@ -197,7 +196,6 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
                 self.app.createEmptyMS()
             else:
                 self.app.buildMappingScheme()
-            self.app.taxonomy.set_parse_order(None)
         
     @uiCallChecker
     @pyqtSlot()
@@ -420,7 +418,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
 
     @uiCallChecker
     @pyqtSlot(str)
-    def refreshLeaves(self, value):
+    def refreshLeaves(self, value):        
         values, weights = [], []
         total_weights = 0
         use_modifier = self.ui.ck_use_modifier.isChecked()
@@ -434,7 +432,11 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
                 total_weights += weight
         except:
             pass
-        self.ui.table_ms_leaves.setModel(MSLevelTableModel(values, weights, self.ms.taxonomy, self.ms.taxonomy.codes))
+        try:
+            self.ui.table_ms_leaves.setModel(MSLevelTableModel(values, weights, self.ms.taxonomy, self.ms.taxonomy.codes, 
+                                                               is_editable=[False, False]))
+        except:
+            pass
         self.ui.table_ms_leaves.horizontalHeader().resizeSection(0, self.ui.table_ms_leaves.width() * 0.75)
         self.ui.table_ms_leaves.horizontalHeader().resizeSection(1, self.ui.table_ms_leaves.width() * 0.25)  
         self.ui.txt_leaves_total.setText('%.1f' % total_weights)
@@ -450,7 +452,6 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
     
     # public methods
     ###############################
-    
     @logUICall
     def showMappingScheme(self, ms):
         """ display mapping scheme """
@@ -460,11 +461,13 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         treeUI.setModel(self.tree_model)
         treeUI.setSelectionMode(QAbstractItemView.SingleSelection)
         self.ui.tree_ms.setEnabled(True)
+        self.ui.tree_ms.expandAll()
 
         self.ui.cb_ms_zones.clear()
         for zone in self.ms.get_zones():
             self.ui.cb_ms_zones.addItem(zone.name)
     
+    @logUICall
     def refreshTree(self):
         indices = self.tree_model.persistentIndexList()
         for index in indices:
@@ -477,7 +480,9 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         self.ms = None
         self.ui.tree_ms.setModel(None)
         self.ui.tree_ms.setEnabled(False)
-    
+        self.ui.table_ms_leaves.setModel(None)
+        self.ui.cb_ms_zones.clear()
+        
     # internal helper methods
     ###############################
     def setMSLibraryVisible(self, visible):

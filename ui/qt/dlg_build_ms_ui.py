@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qt\dlg_build_ms.ui'
 #
-# Created: Wed Feb 27 17:26:26 2013
+# Created: Fri Mar 08 14:39:55 2013
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -17,9 +17,9 @@ except AttributeError:
 class Ui_msOptionsDialog(object):
     def setupUi(self, msOptionsDialog):
         msOptionsDialog.setObjectName(_fromUtf8("msOptionsDialog"))
-        msOptionsDialog.resize(343, 359)
+        msOptionsDialog.resize(548, 339)
         self.buttons = QtGui.QDialogButtonBox(msOptionsDialog)
-        self.buttons.setGeometry(QtCore.QRect(150, 320, 171, 32))
+        self.buttons.setGeometry(QtCore.QRect(360, 300, 171, 32))
         self.buttons.setOrientation(QtCore.Qt.Horizontal)
         self.buttons.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Ok)
         self.buttons.setObjectName(_fromUtf8("buttons"))
@@ -38,16 +38,16 @@ class Ui_msOptionsDialog(object):
         self.lb_title.setFont(font)
         self.lb_title.setObjectName(_fromUtf8("lb_title"))
         self.widget_attributes = QtGui.QWidget(msOptionsDialog)
-        self.widget_attributes.setGeometry(QtCore.QRect(30, 90, 291, 201))
+        self.widget_attributes.setGeometry(QtCore.QRect(30, 90, 501, 201))
         self.widget_attributes.setObjectName(_fromUtf8("widget_attributes"))
         self.lst_attributes = QtGui.QListWidget(self.widget_attributes)
-        self.lst_attributes.setGeometry(QtCore.QRect(0, 30, 251, 171))
+        self.lst_attributes.setGeometry(QtCore.QRect(30, 30, 211, 171))
         self.lst_attributes.setObjectName(_fromUtf8("lst_attributes"))
         self.lb_attributes = QtGui.QLabel(self.widget_attributes)
-        self.lb_attributes.setGeometry(QtCore.QRect(0, 0, 141, 31))
+        self.lb_attributes.setGeometry(QtCore.QRect(30, 0, 141, 31))
         self.lb_attributes.setObjectName(_fromUtf8("lb_attributes"))
         self.widget_attribute_buttons = QtGui.QWidget(self.widget_attributes)
-        self.widget_attribute_buttons.setGeometry(QtCore.QRect(260, 30, 31, 171))
+        self.widget_attribute_buttons.setGeometry(QtCore.QRect(0, 30, 31, 171))
         self.widget_attribute_buttons.setObjectName(_fromUtf8("widget_attribute_buttons"))
         self.btn_range = QtGui.QPushButton(self.widget_attribute_buttons)
         self.btn_range.setGeometry(QtCore.QRect(0, 70, 30, 23))
@@ -84,8 +84,28 @@ class Ui_msOptionsDialog(object):
         icon4.addPixmap(QtGui.QPixmap(_fromUtf8(":/imgs/icons/arrow_top.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.btn_move_top.setIcon(icon4)
         self.btn_move_top.setObjectName(_fromUtf8("btn_move_top"))
+        self.lst_attributes_not_included = QtGui.QListWidget(self.widget_attributes)
+        self.lst_attributes_not_included.setGeometry(QtCore.QRect(290, 30, 211, 171))
+        self.lst_attributes_not_included.setObjectName(_fromUtf8("lst_attributes_not_included"))
+        self.lb_attributes_not_included = QtGui.QLabel(self.widget_attributes)
+        self.lb_attributes_not_included.setGeometry(QtCore.QRect(290, 0, 141, 31))
+        self.lb_attributes_not_included.setObjectName(_fromUtf8("lb_attributes_not_included"))
+        self.btn_move_right = QtGui.QPushButton(self.widget_attributes)
+        self.btn_move_right.setGeometry(QtCore.QRect(250, 110, 30, 23))
+        self.btn_move_right.setText(_fromUtf8(""))
+        icon5 = QtGui.QIcon()
+        icon5.addPixmap(QtGui.QPixmap(_fromUtf8(":/imgs/icons/arrow_right.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.btn_move_right.setIcon(icon5)
+        self.btn_move_right.setObjectName(_fromUtf8("btn_move_right"))
+        self.btn_move_left = QtGui.QPushButton(self.widget_attributes)
+        self.btn_move_left.setGeometry(QtCore.QRect(250, 80, 30, 23))
+        self.btn_move_left.setText(_fromUtf8(""))
+        icon6 = QtGui.QIcon()
+        icon6.addPixmap(QtGui.QPixmap(_fromUtf8(":/imgs/icons/arrow_left.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.btn_move_left.setIcon(icon6)
+        self.btn_move_left.setObjectName(_fromUtf8("btn_move_left"))
         self.lb_notes = QtGui.QLabel(msOptionsDialog)
-        self.lb_notes.setGeometry(QtCore.QRect(30, 300, 291, 16))
+        self.lb_notes.setGeometry(QtCore.QRect(30, 300, 331, 22))
         self.lb_notes.setText(_fromUtf8(""))
         self.lb_notes.setObjectName(_fromUtf8("lb_notes"))
 
@@ -93,6 +113,11 @@ class Ui_msOptionsDialog(object):
         QtCore.QMetaObject.connectSlotsByName(msOptionsDialog)
 
     def retranslateUi(self, msOptionsDialog):
-        pass
+        msOptionsDialog.setWindowTitle(QtGui.QApplication.translate("msOptionsDialog", "Dialog", None, QtGui.QApplication.UnicodeUTF8))
+        self.radioEmptyMS.setText(QtGui.QApplication.translate("msOptionsDialog", "Empty Mapping Scheme", None, QtGui.QApplication.UnicodeUTF8))
+        self.radioBuildMS.setText(QtGui.QApplication.translate("msOptionsDialog", "Using Survey Data", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_title.setText(QtGui.QApplication.translate("msOptionsDialog", "Create Mapping Scheme", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_attributes.setText(QtGui.QApplication.translate("msOptionsDialog", "Attribute to be included", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_attributes_not_included.setText(QtGui.QApplication.translate("msOptionsDialog", "Attributes not included", None, QtGui.QApplication.UnicodeUTF8))
 
 import SIDDResource_rc

@@ -73,7 +73,7 @@ class Statistics (object):
         return self.root.has_child_node(node)
 
     @logAPICall
-    def add_case(self, taxstr):
+    def add_case(self, taxstr, parse_order=None, parse_modifiers=True):
         """
         add new case of the strutural type (taxstr) to the distribution tree
         """
@@ -81,13 +81,14 @@ class Statistics (object):
         if self.finalized:
             raise StatisticError('stat is already finalized and cannot be modified')
         
-        attribute_names = [x.name for x in self.taxonomy.attributes]
+        if parse_order is None:
+            parse_order = [x.name for x in self.taxonomy.attributes]                        
         try:
             bldg_attrs = self.taxonomy.parse(taxstr)
-            self.root.add(bldg_attrs, 0, attribute_names, self.defaults, self.skips)
+            self.root.add(bldg_attrs, 0, parse_order, self.taxonomy.defaults, parse_modifiers)
         except TaxonomyParseError as perr:
             logAPICall.log("error parsing case %s, %s" % (str(taxstr), str(perr)), logAPICall.WARNING)
-        except Exception as err:
+        except Exception as err:            
             logAPICall.log("error adding case %s, %s" % (str(taxstr), str(err)), logAPICall.WARNING)         
 
     @logAPICall
@@ -221,6 +222,8 @@ class Statistics (object):
     @logAPICall
     def get_attributes(self, rootnode):
         """ get name of all attributes in the tree"""
+        return rootnode.descendant_names
+        """
         names = []
         node = rootnode
         found_leaf = False
@@ -236,6 +239,7 @@ class Statistics (object):
             else:
                 node = node.children[0]
         return names
+        """
     
     @logAPICall
     def set_child_weights(self, node, weights):

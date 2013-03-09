@@ -69,7 +69,9 @@ class DialogProcessingOptions(Ui_procOptionsDialog, QDialog):
         else:
             # default case
             self.ui.radio_random.setChecked(True)
-    
+
+    # internal helper methods
+    ###############################    
     def retranslateUi(self, ui):
         """ set text for ui elements """
         # dialog title

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>343</width>
-    <height>359</height>
+    <width>548</width>
+    <height>339</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,8 +16,8 @@
   <widget class="QDialogButtonBox" name="buttons">
    <property name="geometry">
     <rect>
-     <x>150</x>
-     <y>320</y>
+     <x>360</x>
+     <y>300</y>
      <width>171</width>
      <height>32</height>
     </rect>
@@ -80,16 +80,16 @@
     <rect>
      <x>30</x>
      <y>90</y>
-     <width>291</width>
+     <width>501</width>
      <height>201</height>
     </rect>
    </property>
    <widget class="QListWidget" name="lst_attributes">
     <property name="geometry">
      <rect>
-      <x>0</x>
+      <x>30</x>
       <y>30</y>
-      <width>251</width>
+      <width>211</width>
       <height>171</height>
      </rect>
     </property>
@@ -97,20 +97,20 @@
    <widget class="QLabel" name="lb_attributes">
     <property name="geometry">
      <rect>
-      <x>0</x>
+      <x>30</x>
       <y>0</y>
       <width>141</width>
       <height>31</height>
      </rect>
     </property>
     <property name="text">
-     <string>Attributes</string>
+     <string>Attribute to be included</string>
     </property>
    </widget>
    <widget class="QWidget" name="widget_attribute_buttons" native="true">
     <property name="geometry">
      <rect>
-      <x>260</x>
+      <x>0</x>
       <y>30</y>
       <width>31</width>
       <height>171</height>
@@ -202,14 +202,71 @@
      </property>
     </widget>
    </widget>
+   <widget class="QListWidget" name="lst_attributes_not_included">
+    <property name="geometry">
+     <rect>
+      <x>290</x>
+      <y>30</y>
+      <width>211</width>
+      <height>171</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_attributes_not_included">
+    <property name="geometry">
+     <rect>
+      <x>290</x>
+      <y>0</y>
+      <width>141</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Attributes not included</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_move_right">
+    <property name="geometry">
+     <rect>
+      <x>250</x>
+      <y>110</y>
+      <width>30</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset resource="resources/SIDDResource.qrc">
+      <normaloff>:/imgs/icons/arrow_right.png</normaloff>:/imgs/icons/arrow_right.png</iconset>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_move_left">
+    <property name="geometry">
+     <rect>
+      <x>250</x>
+      <y>80</y>
+      <width>30</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset resource="resources/SIDDResource.qrc">
+      <normaloff>:/imgs/icons/arrow_left.png</normaloff>:/imgs/icons/arrow_left.png</iconset>
+    </property>
+   </widget>
   </widget>
   <widget class="QLabel" name="lb_notes">
    <property name="geometry">
     <rect>
      <x>30</x>
      <y>300</y>
-     <width>291</width>
-     <height>16</height>
+     <width>331</width>
+     <height>22</height>
     </rect>
    </property>
    <property name="text">

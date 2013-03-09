@@ -37,7 +37,7 @@ class Taxonomy(object):
     @property
     def description(self):
         raise NotImplementedError("abstract method not implemented")
-        
+      
     @property
     def version(self):
         raise NotImplementedError("abstract method not implemented")
@@ -47,10 +47,20 @@ class Taxonomy(object):
         raise NotImplementedError("abstract method not implemented")
     
     @property
+    def defaults(self):
+        raise NotImplementedError("abstract method not implemented")
+    
+    @property
     def codes(self):
         raise NotImplementedError("abstract method not implemented")
     
+    def get_codes_for_attribute(self, attribute, level=None):
+        raise NotImplementedError("abstract method not implemented")
+    
     def parse(self, string):
+        raise NotImplementedError("abstract method not implemented")
+    
+    def separator(self, separator_type=None):
         raise NotImplementedError("abstract method not implemented")
     
     def to_string(self, attributes):

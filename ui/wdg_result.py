@@ -52,21 +52,22 @@ class WidgetResult(Ui_widgetResult, QWidget):
         get_ui_string("app.extension.csv"):ExportTypes.CSV,
     };
     ''' ennumaration of Layer to be previewed '''
-    EXPOSURE, SURVEY, FOOTPRINT, ZONES = range(4);
+    EXPOSURE, EXPOSURE_GRID, SURVEY, FOOTPRINT, ZONES = range(5);
     ''' name for Layer to be previewed '''
     LAYER_NAMES = [
         get_ui_string("widget.result.layer.exposure"),
+        get_ui_string("widget.result.layer.exposure_grid"),
         get_ui_string("widget.result.layer.survey"),
         get_ui_string("widget.result.layer.footprint"),
         get_ui_string("widget.result.layer.zones"),
-    ];
+    ];    
     
     # constructor / destructor
     ###############################
     
     def __init__(self, app):
         """ constructor """
-        QWidget.__init__(self)        
+        QWidget.__init__(self)
         self.ui = Ui_widgetResult()
         self.ui.setupUi(self)
         self.retranslateUi(self.ui)
@@ -84,7 +85,8 @@ class WidgetResult(Ui_widgetResult, QWidget):
         self.canvas.enableAntiAliasing(True)
         self.canvas.mapRenderer().setProjectionsEnabled(True)
         self.canvas.mapRenderer().setDestinationCrs(QgsCoordinateReferenceSystem(4326, QgsCoordinateReferenceSystem.PostgisCrsId))
-        self.map_layers = [None] * 4
+        self.map_layers = [None] * len(self.LAYER_NAMES)
+        self.map_layer_renderer = [None] * len(self.LAYER_NAMES)
 
         # populate export list
         self.ui.cb_export_format.clear()
@@ -192,6 +194,8 @@ class WidgetResult(Ui_widgetResult, QWidget):
             dlg_render = QgsRendererV2PropertiesDialog(self.map_layers[cur_layer_idx], self.style)            
             answer = dlg_render.exec_()
             if answer == QMessageBox.Accepted:
+                self.map_layer_renderer[cur_layer_idx] = None
+                self.map_layer_renderer[cur_layer_idx] = self.map_layers[cur_layer_idx].rendererV2().clone()             
                 self.canvas.refresh()
             dlg_render.destroy()            
         except Exception as err:
@@ -323,14 +327,14 @@ class WidgetResult(Ui_widgetResult, QWidget):
         if self._project.fp_file is not None and exists(self._project.fp_file):
             if self.map_layers[self.FOOTPRINT] is None or self.map_layers[self.FOOTPRINT].source() != self._project.fp_file:                            
                 self.map_layers[self.FOOTPRINT] = load_shapefile(self._project.fp_file, 'footprint')
-                self.showDataLayer(self.map_layers[self.FOOTPRINT])
+                self.showDataLayer(self.map_layers[self.FOOTPRINT], self.map_layer_renderer[self.FOOTPRINT])
         else:            
             self.removeDataLayer(self.FOOTPRINT)
         
         if self._project.zone_file is not None and exists(self._project.zone_file):
             if self.map_layers[self.ZONES] is None or self.map_layers[self.ZONES].source() != self._project.zone_file:
                 self.map_layers[self.ZONES] = load_shapefile(self._project.zone_file, 'zones')
-                self.showDataLayer(self.map_layers[self.ZONES])
+                self.showDataLayer(self.map_layers[self.ZONES], self.map_layer_renderer[self.ZONES])
         else:            
             self.removeDataLayer(self.ZONES)
             
@@ -338,7 +342,7 @@ class WidgetResult(Ui_widgetResult, QWidget):
             if getattr(self._project, 'survey', None) is None:
                 self._project.load_survey()
                 self.map_layers[self.SURVEY] = self._project.survey 
-                self.showDataLayer(self.map_layers[self.SURVEY])
+                self.showDataLayer(self.map_layers[self.SURVEY], self.map_layer_renderer[self.SURVEY])
         else:            
             self.removeDataLayer(self.SURVEY)
         
@@ -353,8 +357,8 @@ class WidgetResult(Ui_widgetResult, QWidget):
         exposure = getattr(self._project, 'exposure', None)
         if exposure is not None:
             # display exposure layer
-            self.map_layers[self.EXPOSURE] = exposure 
-            self.showDataLayer(self.map_layers[self.EXPOSURE])
+            #self.map_layers[self.EXPOSURE] = exposure 
+            #self.showDataLayer(self.map_layers[self.EXPOSURE], self.map_layer_renderer[self.EXPOSURE])
             
             # build quality report 
             report_lines = []
@@ -385,9 +389,17 @@ class WidgetResult(Ui_widgetResult, QWidget):
             self.ui.txt_dq_test_details.setText("\n".join(report_lines))
             has_result = True
         else:
-            self.map_layers[self.EXPOSURE] = None 
-            self.removeDataLayer(self.EXPOSURE)
+            #self.map_layers[self.EXPOSURE] = None 
+            #self.removeDataLayer(self.EXPOSURE)
             has_result = False
+
+        exposure_grid = getattr(self._project, 'exposure_grid', None)
+        if exposure_grid is not None:
+            self.map_layers[self.EXPOSURE_GRID]=exposure_grid
+            self.showDataLayer(self.map_layers[self.EXPOSURE_GRID], self.map_layer_renderer[self.EXPOSURE_GRID]) 
+        else:
+            self.map_layers[self.EXPOSURE_GRID] = None 
+            self.removeDataLayer(self.EXPOSURE_GRID)
             
         self.ui.btn_export.setEnabled(has_result)
         self.ui.widget_dq_test.setVisible(has_result)
@@ -398,13 +410,14 @@ class WidgetResult(Ui_widgetResult, QWidget):
     @logUICall
     def closeResult(self):
         self.removeDataLayer(self.EXPOSURE)
+        self.removeDataLayer(self.EXPOSURE_GRID)
 
     def closeAll(self):
         self.ui.cb_layer_selector.clear()
         if getattr(self, 'registry', None) is None:
             self.registry = QgsMapLayerRegistry.instance()
         try:
-            for i in range(4):
+            for i in range(5):
                 self.removeDataLayer(i)
             self.registry.removeAllMapLayers ()
         except:            
@@ -416,13 +429,15 @@ class WidgetResult(Ui_widgetResult, QWidget):
     # internal helper methods
     ###############################
     @logUICall    
-    def showDataLayer(self, layer, zoom_to=True):
+    def showDataLayer(self, layer, renderer=None, zoom_to=True):
         """ display result layer """
         if getattr(self, 'registry', None) is None:
             self.registry = QgsMapLayerRegistry.instance()
         try:
             # add to QGIS registry and refresh view
             self.registry.addMapLayer(layer)
+            if renderer is not None:
+                layer.setRendererV2(renderer)            
             self.refreshLayers()
             if (zoom_to):
                 self.zoomToLayer(layer)

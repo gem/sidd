@@ -24,6 +24,7 @@ from PyQt4.QtCore import pyqtSlot, Qt, QVariant, QObject
 
 from ui.constants import logUICall, get_ui_string 
 from ui.qt.dlg_attr_range_ui import Ui_attrRangesDialog
+from ui.exception import SIDDRangeGroupException
 
 class DialogAttrRanges(Ui_attrRangesDialog, QDialog):
     """
@@ -39,6 +40,7 @@ class DialogAttrRanges(Ui_attrRangesDialog, QDialog):
         self.retranslateUi(self.ui)
         self.setFixedSize(self.size())
         
+        # additional table UI adjustment
         self.ui.table_ranges.verticalHeader().hide()
         self.ui.table_ranges.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.ui.table_ranges.horizontalHeader().resizeSection(0, self.ui.table_ranges.width() * 0.5)
@@ -79,25 +81,41 @@ class DialogAttrRanges(Ui_attrRangesDialog, QDialog):
     @logUICall
     @pyqtSlot(QObject)
     def verifyData(self, item):
+        """ 
+        callback at each table value update. two checks
+        - value is integer
+        - range is valid with new value
+        """
         item_val = item.data(Qt.DisplayRole)
         if item_val == QVariant('None'):
-            return         
+            return
         int_val = item_val.toInt()
         row, col = item.row(), item.column()        
-        if int_val[1]:
-            # is integer
+        if int_val[1]:  # is integer            
             # set value
             self._values[col][row] = int_val[0]
             
             # allow set range only if is valid 
-            self.ui.buttons.button(QDialogButtonBox.Ok).setEnabled(self.is_range_valid())
+            range_is_valid = False
+            try:
+                range_is_valid = self.is_range_valid()
+            except SIDDRangeGroupException as err:
+                # error means not valid 
+                self.ui.lb_notes.setText(err.message)
+            except Exception as err:
+                # error means not valid
+                self.ui.lb_notes.setText(err.message)
+            self.ui.buttons.button(QDialogButtonBox.Ok).setEnabled(range_is_valid)
         else:
             # not integer
             # restore
             QMessageBox.warning(self, "Error", get_ui_string('dlg.attr.value.error'))
             self.ui.table_ranges.setItem(row, col, QTableWidgetItem('%s'%self._values[col][row]))
-    
+
+    # public method
+    ###############################
     def set_values(self, attribute, min_values, max_values):
+        """ set data for the table """
         self.ui.lb_attribute.setText(attribute)
         self._values = [min_values, max_values]        
         table = self.ui.table_ranges 
@@ -107,32 +125,28 @@ class DialogAttrRanges(Ui_attrRangesDialog, QDialog):
             table.insertRow(i)
             table.setItem(i, 0, QTableWidgetItem('%s'%min_val))
             table.setItem(i, 1, QTableWidgetItem('%s'%max_val))        
+
+    # internal helper methods
+    ###############################
     
-    def is_value_valid(self, col, row, value):
+    def is_range_valid(self):
         is_valid = True
-        # check again min/max value to make sure range is set correctly            
-        if col==0:  # input is min value
-            # must be less equal than max of its own row
-            is_valid = value <= self._values[1][row]                    
-            # and must be exactly 1 + max of previous row (if exists)
-            if (row>0):                 
-                is_valid &= (value == self._values[1][row-1]+1)                
-        else:       # input is min value
-            # must be larger equal than min of its own row
-            is_valid = value >= self._values[0][row]
-            # and must be min of next row -1 (if exists)
-            if (row<len(self._values[0])-1):
-                is_valid &= (value == self._values[0][row+1]-1)
-        return is_valid
-    
-    def is_range_valid(self):        
-        is_valid = True
+        self.ui.lb_notes.setText("")
         for i in range(len(self._values[0])):
-            # min must be less than max
-            is_valid = self._values[0][i] <= self._values[1][i]
-            # and min must be exactly 1 + previous max (if not first row)
-            if (i>0):
-                is_valid &= self._values[0][i] == self._values[1][i-1]+1
+            # minimum must be less than maximum in same row
+            max_val = self._values[1][i]
+            min_val = self._values[0][i]                         
+            is_valid = (min_val <= max_val)
+            if not is_valid:
+                # use exception to stop additional checks 
+                raise SIDDRangeGroupException(get_ui_string("dlg.attr.error.max", (max_val, min_val)))
+            # and minimum must be exactly 1 larger than maximum from previous row  
+            if i > 0:   # first row does not have previous
+                max_last = self._values[1][i-1]
+                is_valid = (min_val == max_last+1)
+                if not is_valid:
+                    # use exception to stop additional checks
+                    raise SIDDRangeGroupException(get_ui_string("dlg.attr.error.range", (max_last, min_val)))
         return is_valid                
     
     def retranslateUi(self, ui):

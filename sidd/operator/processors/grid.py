@@ -347,3 +347,21 @@ class GridGeometryWriter(Operator):
     def _verify_outputs(self, outputs):
         """ perform operator specific input validation """
         pass
+
+class ExposureGeometryWriter(GridGeometryWriter):
+    """ class to create exposure grid according to GED Spec """
+    
+    def __init__(self, options=None, name="Exposure Geometry Writer"):
+        """ constructor """
+        super(ExposureGeometryWriter, self).__init__(options, name)
+    
+    # self documenting method override
+    ###########################
+
+    @property
+    def input_types(self):
+        return [OperatorDataTypes.Exposure]
+        
+    @property    
+    def input_names(self):
+        return ["GEM compatible Grid Exposure"]    

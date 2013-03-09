@@ -557,7 +557,17 @@ class WorkflowBuilder(object):
         ms_applier.outputs = [workflow.operator_data['exposure'],
                               workflow.operator_data['exposure_file'],]
         
-        workflow.operators.append(ms_applier)              
+        workflow.operator_data['exposure_grid'] = OperatorData(OperatorDataTypes.Grid)
+        workflow.operator_data['exposure_grid_file'] = OperatorData(OperatorDataTypes.Shapefile)
+        workflow.operators.append(ms_applier)
+
+        grid_geom_writer = ExposureGeometryWriter(self._operator_options)
+        grid_geom_writer.inputs = [workflow.operator_data['exposure']]
+        grid_geom_writer.outputs = [
+            workflow.operator_data['exposure_grid'],   
+            workflow.operator_data['exposure_grid_file'],
+        ]        
+        workflow.operators.append(grid_geom_writer)
         
     def _footprint_to_zone_workflow(self, project, workflow):
         """ create exposure aggregated into ged grid with footprint data """
@@ -652,8 +662,15 @@ class WorkflowBuilder(object):
                              workflow.operator_data['ms'],]
         ms_applier.outputs = [workflow.operator_data['exposure'],
                               workflow.operator_data['exposure_file'],]
-
         workflow.operators.append(ms_applier)
+        
+        grid_geom_writer = ExposureGeometryWriter(self._operator_options)
+        grid_geom_writer.inputs = [workflow.operator_data['exposure']]
+        grid_geom_writer.outputs = [
+            workflow.operator_data['exposure_grid'],   
+            workflow.operator_data['exposure_grid_file'],
+        ]        
+        workflow.operators.append(grid_geom_writer)
 
     def _completesurvey_to_grid_workflow(self, project, workflow):
         """ create exposure aggregated into ged grid with zone/count """
@@ -666,5 +683,12 @@ class WorkflowBuilder(object):
         svy_agg.outputs = [workflow.operator_data['exposure'],
                            workflow.operator_data['exposure_file'],]
         workflow.operators.append(svy_agg)
-        
+    
+        grid_geom_writer = ExposureGeometryWriter(self._operator_options)
+        grid_geom_writer.inputs = [workflow.operator_data['exposure']]
+        grid_geom_writer.outputs = [
+            workflow.operator_data['exposure_grid'],   
+            workflow.operator_data['exposure_grid_file'],
+        ]        
+        workflow.operators.append(grid_geom_writer)    
     

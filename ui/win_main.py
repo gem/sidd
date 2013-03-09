@@ -149,11 +149,11 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         
         self.ui.actionAbout.triggered.connect(self.showAbout)
         
-        # enable following during development
-        #self._dev_short_cut()
-
         self.closeProject()        
         self.ui.statusbar.showMessage(get_ui_string("app.status.ready"))
+
+        # enable following during development
+        self._dev_short_cut()
         
     def _dev_short_cut(self):
         self.ui.mainTabs.setTabEnabled (1, True)
@@ -164,6 +164,8 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         project = Project(curdir + "/test.db", self.app_config, self.taxonomy)
         project.sync(SyncModes.Read)
         self.setProject(project)
+        
+        self.showTab(2)
 
     # event handlers
     #############################
@@ -460,18 +462,18 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
     ###############################
     @logAPICall
     def showTab(self, index):
-        """
-        switch view to tab with given index. do nothing if index is not valid
-        """
-        if index >=0 and index < 3:
+        """ switch view to tab with given index. do nothing if index is not valid """
+        if index >=0 and index <=3:
             self.ui.mainTabs.setCurrentIndex(index)
     
     @logAPICall
     def refreshPreview(self):
+        """ refresh all layers shown in Preview tab """
         self.tab_result.refreshView()
 
     @logAPICall
     def visualizeMappingScheme(self, ms):
+        """ display the given mapping scheme in Mapping scheme and Modifier tabs"""
         self.tab_ms.showMappingScheme(ms)
         self.tab_mod.showMappingScheme(ms)
 

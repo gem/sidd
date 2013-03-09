@@ -221,6 +221,9 @@ class Project (object):
         # when all steps are completed, set resulting exposure
         self.exposure = self.workflow.operator_data['exposure'].value
         self.exposure_file = self.workflow.operator_data['exposure_file'].value
+        if self.workflow.operator_data.has_key('exposure_grid'):
+            self.exposure_grid = self.workflow.operator_data['exposure_grid'].value
+        
         logAPICall.log('exposure data created %s' % self.exposure_file, logAPICall.INFO)        
 
     @logAPICall

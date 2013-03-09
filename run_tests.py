@@ -26,9 +26,9 @@ def suite():
     suite = unittest.TestSuite()
 
     # ms test cases
-    #suite.addTest(MSTestCase('test_BuildMS'))
+    #suite.addTest(MSTestCase('test_BuildMS'))    
     #suite.addTest(MSTestCase('test_SaveMS'))
-    #suite.addTest(MSTestCase('test_LoadMS'))    
+    suite.addTest(MSTestCase('test_LoadMS'))    
     #suite.addTest(MSTestCase('test_StatsAddBranch'))
     #suite.addTest(MSTestCase('test_StatsRandomWalk'))
     #suite.addTest(MSTestCase('test_StatsLeaves'))
@@ -41,7 +41,7 @@ def suite():
     #suite.addTest(OperatorTestCase('test_ApplyMS'))    
     #suite.addTest(OperatorTestCase('test_LoadGEMDBSurvey'))
     #suite.addTest(OperatorTestCase('test_VerifyExposure'))
-    suite.addTest(OperatorTestCase('test_MakeGridGeometry'))
+    #suite.addTest(OperatorTestCase('test_MakeGridGeometry'))
     
     #suite.addTest(TaxonomyTestCase('test_Parse'))
     

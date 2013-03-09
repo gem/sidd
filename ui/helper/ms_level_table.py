@@ -27,7 +27,7 @@ class MSLevelTableModel(QAbstractTableModel):
     """
     table model supporting visualization of node in mapping scheme tree
     """
-    def __init__(self, values, weights, parser, valid_codes):
+    def __init__(self, values, weights, parser, valid_codes, is_editable=[True, True]):
         """ constructor """
         super(MSLevelTableModel, self).__init__()
 
@@ -40,6 +40,7 @@ class MSLevelTableModel(QAbstractTableModel):
         self.parser=parser
         self.valid_codes=valid_codes
         self.values, self.weights = self._sort(values, weights)
+        self.is_editable = is_editable
     
     def columnCount(self, parent):
         """ only two columns exist. always return 2 """
@@ -138,7 +139,12 @@ class MSLevelTableModel(QAbstractTableModel):
         """ cell condition flag """
         # NOTE: 
         #   ItemIsEditable also required data() and setData() function
-        return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsEditable
+        _combined_flag = Qt.ItemIsEnabled | Qt.ItemIsSelectable  
+        if index.column() < 0 and index.column() > len(self.is_editable):
+            return _combined_flag
+        if self.is_editable[index.column()]:
+            _combined_flag = _combined_flag | Qt.ItemIsEditable
+        return _combined_flag 
 
     def sort(self, ncol, order):
         """ sort table """

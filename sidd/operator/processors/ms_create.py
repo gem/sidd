@@ -23,20 +23,22 @@ from qgis.analysis import QgsOverlayAnalyzer
 
 from utils.shapefile import load_shapefile, layer_features, layer_field_index, remove_shapefile, \
                             layer_fields_stats 
-from utils.system import get_unique_filename
+from utils.system import get_unique_filename, get_temp_dir, get_dictionary_value
 
 from sidd.constants import logAPICall
 from sidd.ms import MappingScheme, MappingSchemeZone, Statistics
-
+from sidd.taxonomy import get_taxonomy
 from sidd.operator import Operator, OperatorError
 from sidd.operator.data import OperatorDataTypes
 
 class EmptyMSCreator(Operator):
     def __init__(self, options=None, name='Empty MS Creator'):
         super(EmptyMSCreator, self).__init__(options, name)
-        self._tmp_dir = options['tmp_dir']
-        self._taxonomy = options['taxonomy']
-        self._skips = options['skips']
+        self._tmp_dir = get_dictionary_value(options, 'tmp_dir', get_temp_dir())
+        self._taxonomy = get_dictionary_value(options, 'taxonomy', get_taxonomy('GEM'))  
+        self._skips = get_dictionary_value(options, 'skips', [])
+        self._parse_modifiers = get_dictionary_value(options, 'parse_modifiers', True)
+        self._parse_order = get_dictionary_value(options, 'attribute.order', None)
 
     # self documenting method override
     ###########################
@@ -202,7 +204,8 @@ class SurveyZonesMSCreator(EmptyMSCreator):
             _tax_str = str(_f.attributeMap()[tax_idx].toString())
             
             logAPICall.log('zone %s => %s' % (_zone_str, _tax_str) , logAPICall.DEBUG_L2)
-            ms.get_assignment_by_name(_zone_str).add_case(_tax_str)
+            ms.get_assignment_by_name(_zone_str).add_case(_tax_str, self._parse_order, self._parse_modifiers)
+            
         
         # store data in output
         for _zone, _stats in ms.assignments():
@@ -256,7 +259,7 @@ class SurveyOnlyMSCreator(EmptyMSCreator):
         
         for _f in layer_features(survey_layer):
             _tax_str = str(_f.attributeMap()[tax_idx].toString())            
-            stats.add_case(_tax_str)
+            stats.add_case(_tax_str, self._parse_order, self._parse_modifiers)
         
         # store data in output
         stats.finalize()        
