@@ -1,21 +1,9 @@
-# Copyright (c) 2011-2012, ImageCat Inc.
-#
-# SIDD is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License version 3
-# only, as published by the Free Software Foundation.
+# Copyright (c) 2011-2013, ImageCat Inc.
 #
 # SIDD is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License version 3 for more details
-# (a copy is included in the LICENSE file that accompanied this code).
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
 #
-# You should have received a copy of the GNU Lesser General Public License
-# version 3 along with SIDD.  If not, see
-# <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
-#
-# Version: $Id: statistic.py 18 2012-10-24 20:21:41Z zh $
-
 """
 Module class for statistic tree handling
 """
@@ -115,7 +103,7 @@ class Statistics (object):
 
     @logAPICall
     def get_leaves(self, refresh=False, with_modifier=True):
-        if refresh:
+        if len(self.leaves)==0 or refresh:
             self.leaves = []
             for _child in self.root.children:
                 for _val, _wt in _child.leaves(self.taxonomy.attribute_separator, with_modifier):                    

@@ -1,21 +1,9 @@
-# Copyright (c) 2011-2012, ImageCat Inc.
-#
-# SIDD is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License version 3
-# only, as published by the Free Software Foundation.
+# Copyright (c) 2011-2013, ImageCat Inc.
 #
 # SIDD is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License version 3 for more details
-# (a copy is included in the LICENSE file that accompanied this code).
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
 #
-# You should have received a copy of the GNU Lesser General Public License
-# version 3 along with SIDD.  If not, see
-# <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
-#
-# Version: $Id: msdb_dao.py 19 2012-10-25 01:06:59Z zh $
-
 """
 module supports reading mapping scheme library SQLite database
 """

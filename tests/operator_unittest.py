@@ -1,7 +1,5 @@
-#
 # SeismiCat: an on-line seismic risk assessment tool for 
 # building property owners, lenders, insurers and municipal analysts. 
-# 
 # @copyright  (c)2012 ImageCat inc, All rights reserved
 # @link       http://www.seismicat.com
 # @since      SeismiCat v1.0
@@ -10,7 +8,6 @@
 #
 
 import os
-import unittest
 import logging
 
 # import sidd packages for testing
@@ -18,32 +15,36 @@ from sidd.ms import MappingScheme
 from sidd.operator import *
 from utils.shapefile import remove_shapefile, layer_fields_stats, load_shapefile
 
-class OperatorTestCase(unittest.TestCase):
+from common import SIDDTestCase
+
+class OperatorTestCase(SIDDTestCase):
     
     # run for every test
     ##################################
     
     def setUp(self):
-        from sidd.taxonomy import get_taxonomy
-        self.taxonomy = get_taxonomy("gem")
-        self.test_data_dir = str(os.getcwd()) +  "/tests/data/"
-        self.test_tmp_dir = str(os.getcwd()) +  "/tests/tmp/"
+        super(OperatorTestCase, self).setUp()
         
+        # test data set 1        
         self.ms_file = self.test_data_dir +  "ms.xml"
         self.fp_path = self.test_data_dir +  'footprint.shp'
         self.fp_feature_count = 1475
         self.zone1_path = self.test_data_dir +  "zones1.shp"
         self.zone1_field = "ZONE"
 
-        self.gemdb3_path = self.test_data_dir +  "survey.gemdb"
-        self.zone3_path = self.test_data_dir +  "zones3.shp"
-        self.zone3_field = "ZONE"
-        
+        # test data set 2
         self.zone2_path = self.test_data_dir +  "zones2.shp"
         self.zone2_field = 'LandUse'
         self.zone2_bldg_count = 546
         self.zone2_bldgcount_field = 'NumBldg'
 
+        # test data set 3
+        self.fp3_path = self.test_data_dir +  "footprints3.shp"
+        self.fp3_height_path= "HT"
+        self.gemdb3_path = self.test_data_dir +  "survey3.gemdb"
+        self.zone3_path = self.test_data_dir +  "zones3.shp"
+        self.zone3_field = "ZONE"
+        
         self.grid_path = self.test_data_dir +  "grid.shp"
         self.grid2_path = self.test_data_dir +  "grid2.shp"
         
@@ -66,12 +67,16 @@ class OperatorTestCase(unittest.TestCase):
     # test loaders
     ##################################
 
-    def test_LoadFootprint(self, skipTest=False):
+    def test_LoadFootprint(self, skipTest=False, fp=1):
         logging.debug('test_LoadFootprint %s' % skipTest)
         
+        if fp==1:
+            fp_path = self.fp_path
+        else:
+            fp_path = self.fp3_path
         loader = FootprintLoader(self.operator_options)
         loader.inputs = [
-            OperatorData(OperatorDataTypes.Shapefile, self.fp_path),
+            OperatorData(OperatorDataTypes.Shapefile, fp_path),
         ]
         loader.outputs = [
             OperatorData(OperatorDataTypes.Footprint),
@@ -85,7 +90,7 @@ class OperatorTestCase(unittest.TestCase):
         
         del layer
         self._clean_layer(loader.outputs)  
-
+        
 
     def test_LoadZone(self, skipTest=False, zone=1):
         logging.debug('test_LoadZone %s' % skipTest)
@@ -167,6 +172,25 @@ class OperatorTestCase(unittest.TestCase):
         self._clean_layer(loader.outputs)  
 
 
+    def test_StratifiedSampleMS(self, skipTest=False):
+        fp_data = self.test_LoadFootprint(skipTest=True, fp=3)
+        fp_ht_field = OperatorData(OperatorDataTypes.StringAttribute, self.fp3_height_path)
+        zone_data = self.test_LoadZone(skipTest=True, zone=3)
+        zone_field = OperatorData(OperatorDataTypes.StringAttribute, self.zone3_field)
+        survey_data = self.test_LoadGEMDBSurvey(skipTest=True)
+        
+        ms_creator = StratifiedMSCreator(self.operator_options)
+        ms_creator.inputs = [zone_data[0], zone_field, survey_data[0]]
+        ms_creator.outputs = [OperatorData(OperatorDataTypes.MappingScheme),
+                              OperatorData(OperatorDataTypes.ZoneStatistic),]
+        
+        ms_creator.do_operation()
+        
+        # clean up
+        self._clean_layer(fp_data)
+        self._clean_layer(survey_data)        
+        self._clean_layer(zone_data)
+          
     def test_LoadMS(self, skipTest=False):
         logging.debug('test_LoadMS %s' % skipTest)
                 

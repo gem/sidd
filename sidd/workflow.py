@@ -1,21 +1,9 @@
-# Copyright (c) 2011-2012, ImageCat Inc.
-#
-# SIDD is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License version 3
-# only, as published by the Free Software Foundation.
+# Copyright (c) 2011-2013, ImageCat Inc.
 #
 # SIDD is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License version 3 for more details
-# (a copy is included in the LICENSE file that accompanied this code).
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
 #
-# You should have received a copy of the GNU Lesser General Public License
-# version 3 along with SIDD.  If not, see
-# <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
-#
-# Version: $Id: workflow.py 21 2012-10-26 01:48:25Z zh $
-
 """
 SIDD workflow manager
 """
@@ -224,6 +212,28 @@ class WorkflowBuilder(object):
         workflow.ready=True
         
         return workflow
+    
+    def build_sampling_ms_workflow(self, project):
+        workflow = Workflow()
+        
+        logAPICall.log('creating survey loader ...', logAPICall.DEBUG_L2)
+
+        self.load_survey(project, workflow, False)
+        self.load_zone(project, workflow, False)
+        
+        workflow.operator_data['zone_field'] = OperatorData(OperatorDataTypes.StringAttribute, project.zone_field)
+        ms_creator = StratifiedMSCreator(self._operator_options)
+        ms_creator.inputs = [workflow.operator_data['zone'],
+                             workflow.operator_data['zone_field'],
+                             workflow.operator_data['survey'],]
+        
+        workflow.operator_data['ms'] = OperatorData(OperatorDataTypes.MappingScheme)
+        workflow.operator_data['zone_stats'] = OperatorData(OperatorDataTypes.ZoneStatistic)
+        ms_creator.outputs = [workflow.operator_data['ms'], workflow.operator_data['zone_stats']]
+        workflow.operators.append(ms_creator)
+        workflow.ready=True 
+        return workflow
+    
         
     @logAPICall
     def build_workflow(self, project):
@@ -664,6 +674,9 @@ class WorkflowBuilder(object):
                               workflow.operator_data['exposure_file'],]
         workflow.operators.append(ms_applier)
         
+        workflow.operator_data['exposure_grid'] = OperatorData(OperatorDataTypes.Grid)
+        workflow.operator_data['exposure_grid_file'] = OperatorData(OperatorDataTypes.Shapefile)
+                
         grid_geom_writer = ExposureGeometryWriter(self._operator_options)
         grid_geom_writer.inputs = [workflow.operator_data['exposure']]
         grid_geom_writer.outputs = [

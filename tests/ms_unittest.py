@@ -1,7 +1,5 @@
-#
 # SeismiCat: an on-line seismic risk assessment tool for 
 # building property owners, lenders, insurers and municipal analysts. 
-# 
 # @copyright  (c)2012 ImageCat inc, All rights reserved
 # @link       http://www.seismicat.com
 # @since      SeismiCat v1.0
@@ -10,24 +8,22 @@
 #
 
 import os
-import unittest
 
 # import sidd packages for testing
 from sidd.ms import MappingScheme, MappingSchemeZone, \
                     Statistics, StatisticNode, StatisticError
-from sidd.taxonomy import get_taxonomy
-from utils.system import get_app_dir 
 
-class MSTestCase(unittest.TestCase):
+from common import SIDDTestCase
+ 
+class MSTestCase(SIDDTestCase):
 
     # run for every test
-    ##################################
-    
+    ##################################    
     def setUp(self):
-        self.taxonomy = get_taxonomy("gem")
-        self.survey_file = get_app_dir() + "/tests/data/survey.csv"
-        self.ms_file = get_app_dir() + '/tests/data/ms.xml'
-        self.tmp_ms_file = get_app_dir() + '/tests/data/tmp_ms.xml'
+        super(MSTestCase, self).setUp()
+        self.survey_file = self.test_data_dir + "survey.csv"
+        self.ms_file = self.test_data_dir + "ms.xml"
+        self.ms_file2 = self.test_data_dir + "ms2.xml"
 
     # tests
     ##################################
@@ -58,7 +54,7 @@ class MSTestCase(unittest.TestCase):
             return ms
         
         ms2 = MappingScheme(self.taxonomy)
-        ms2.read(self.ms_file)
+        ms2.read(self.ms_file2)
         
         self.assertEqual(
             ms.get_assignment_by_name("ALL").to_xml().strip().__len__(),
@@ -66,11 +62,12 @@ class MSTestCase(unittest.TestCase):
         )
   
     def test_SaveMS(self):
+        tmp_ms_file = self.test_tmp_dir + "tmp_ms.xml"
         ms = self.test_BuildMS(skipTest=True)        
-        ms.save(self.tmp_ms_file)
+        ms.save(tmp_ms_file)
         
-        self.assertTrue(os.path.exists(self.tmp_ms_file))
-        os.remove(self.tmp_ms_file)
+        self.assertTrue(os.path.exists(tmp_ms_file))
+        os.remove(tmp_ms_file)
 
     def test_LoadMS(self, skipTest=False, statsOnly=True):
         ms = MappingScheme(self.taxonomy)

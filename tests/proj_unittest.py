@@ -1,7 +1,5 @@
-#
 # SeismiCat: an on-line seismic risk assessment tool for 
 # building property owners, lenders, insurers and municipal analysts. 
-# 
 # @copyright  (c)2012 ImageCat inc, All rights reserved
 # @link       http://www.seismicat.com
 # @since      SeismiCat v1.0
@@ -10,7 +8,6 @@
 #
 
 import os
-import unittest
 import logging
 
 from utils.system import get_random_name
@@ -25,23 +22,23 @@ from sidd.constants import logAPICall, \
 from sidd.project import Project
 from sidd.workflow import WorkflowBuilder
 
-class ProjectTestCase(unittest.TestCase):
+from common import SIDDTestCase
+class ProjectTestCase(SIDDTestCase):
 
     # run for everytesy
     ##################################
     
     def setUp(self):
-        self.taxonomy = get_taxonomy("gem")
-        self.test_data_dir = str(os.getcwd()) +  "/tests/data/"
-        self.test_tmp_dir = str(os.getcwd()) +  "/tests/tmp/"
+        super(ProjectTestCase, self).setUp()
+        
         self.test_config = SIDDConfig(self.test_data_dir + '/test.cfg')
         
         self.proj_file = self.test_data_dir +  'test.db'
         self.proj_file3 = self.test_data_dir +  'test3.db'
         
-        self.fp_path = self.test_data_dir +  'footprint.shp'
-        self.survey_path = self.test_data_dir +  "survey.csv"
-        self.zone_path = self.test_data_dir +  "zones.shp"
+        self.fp_path = self.test_data_dir +  'footprints3.shp'
+        self.survey_path = self.test_data_dir +  "survey3.gemdb"
+        self.zone_path = self.test_data_dir +  "zones3.shp"
         self.zone_field = 'LandUse'
         self.bldgcount_field = 'NumBldg'
 
@@ -165,12 +162,12 @@ class ProjectTestCase(unittest.TestCase):
     def test_BuildExposure(self):
         logging.debug('test_BuildWorkflow')        
         
-        logAPICall.setLevel(logAPICall.DEBUG)
+        logAPICall.setLevel(logAPICall.DEBUG_L2)
         
         # create temp dir for project data
         proj_tmp_dir = '%s/%s/' % (self.test_tmp_dir, get_random_name())
         if not os.path.exists(proj_tmp_dir):
-            os.mkdir(proj_tmp_dir)  
+            os.mkdir(proj_tmp_dir)
         
         proj = Project(self.proj_file3, self.test_config, self.taxonomy)
         proj.sync(SyncModes.Read)
@@ -181,6 +178,7 @@ class ProjectTestCase(unittest.TestCase):
         proj.survey_file = '%s%s' % (self.test_data_dir, 'survey3.gemdb')
         proj.zone_file = '%s%s' % (self.test_data_dir, 'zones3.shp')
         
+        proj.verify_data()
         proj.build_exposure()
         self.assertTrue(os.path.exists(proj.exposure_file))
         del proj

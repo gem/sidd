@@ -1,7 +1,5 @@
-#
 # SeismiCat: an on-line seismic risk assessment tool for 
 # building property owners, lenders, insurers and municipal analysts. 
-# 
 # @copyright  (c)2012 ImageCat inc, All rights reserved
 # @link       http://www.seismicat.com
 # @since      SeismiCat v1.0
@@ -10,21 +8,20 @@
 #
 
 import os
-import unittest
 import shutil
 
 # import sidd packages for testing
 from ui.helper.msdb_dao import MSDatabaseDAO
-from utils.system import get_app_dir 
+from common import SIDDTestCase
 
-class MSDBTestCase(unittest.TestCase):
+class MSDBTestCase(SIDDTestCase):
 
     # run for every test
-    ##################################
-    
+    ##################################    
     def setUp(self):
-        self.lib_ms_file = get_app_dir() + '/tests/data/mslib.db'
-        self.lib_ms_file2 = get_app_dir() + '/tests/data/mslib2.db'
+        super(MSDBTestCase, self).setUp()
+        self.lib_ms_file = self.test_data_dir + 'mslib.db'
+        self.lib_ms_file2 = self.test_data_dir + 'mslib2.db'
     
     def test_Read(self):
         ms_db_reader = MSDatabaseDAO(self.lib_ms_file)

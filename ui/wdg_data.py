@@ -1,21 +1,9 @@
-# Copyright (c) 2011-2012, ImageCat Inc.
-#
-# SIDD is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License version 3
-# only, as published by the Free Software Foundation.
+# Copyright (c) 2011-2013, ImageCat Inc.
 #
 # SIDD is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License version 3 for more details
-# (a copy is included in the LICENSE file that accompanied this code).
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
 #
-# You should have received a copy of the GNU Lesser General Public License
-# version 3 along with SIDD.  If not, see
-# <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
-#
-# Version: $Id: wdg_data.py 22 2012-10-26 23:29:52Z zh $
-
 """
 Widget (Panel) for specifying data inputs
 """
@@ -54,9 +42,9 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
             def wrapper(*args, **kw):
                 if self.project_is_required and self.project is None:
                     logUICall.log(get_ui_string("app.error.project.missing"), logUICall.ERROR)
-                    QMessageBox.critical(None,
-                                         get_ui_string("app.error.title"),
-                                         get_ui_string("app.error.project.missing"))
+                    #QMessageBox.critical(None,
+                    #                     get_ui_string("app.error.title"),
+                    #                     get_ui_string("app.error.project.missing"))
                     return
                 try:
                     logUICall.log('function call %s from module %s' % (f.__name__, f.__module__), logUICall.DEBUG)

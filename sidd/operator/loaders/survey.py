@@ -1,21 +1,9 @@
-# Copyright (c) 2011-2012, ImageCat Inc.
-#
-# SIDD is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License version 3
-# only, as published by the Free Software Foundation.
+# Copyright (c) 2011-2013, ImageCat Inc.
 #
 # SIDD is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License version 3 for more details
-# (a copy is included in the LICENSE file that accompanied this code).
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
 #
-# You should have received a copy of the GNU Lesser General Public License
-# version 3 along with SIDD.  If not, see
-# <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
-#
-# Version: $Id: survey.py 18 2012-10-24 20:21:41Z zh $
-
 """
 module constains class for loading survey data in SQLite format 
 """
@@ -32,7 +20,8 @@ from utils.shapefile import load_shapefile_verify, remove_shapefile
 from utils.system import get_unique_filename
 
 from sidd.constants import logAPICall, \
-                           GID_FIELD_NAME, LON_FIELD_NAME, LAT_FIELD_NAME, TAX_FIELD_NAME, GRP_FIELD_NAME, AREA_FIELD_NAME
+                           GID_FIELD_NAME, LON_FIELD_NAME, LAT_FIELD_NAME, TAX_FIELD_NAME, \
+                           GRP_FIELD_NAME, AREA_FIELD_NAME, HT_FIELD_NAME
 from sidd.operator import Operator,OperatorError, OperatorDataError
 from sidd.operator.data import OperatorDataTypes
 
@@ -75,6 +64,7 @@ class GEMDBSurveyLoader(Operator):
             3 : QgsField(TAX_FIELD_NAME, QVariant.String),
             4 : QgsField(GRP_FIELD_NAME, QVariant.String),
             5 : QgsField(AREA_FIELD_NAME, QVariant.String),
+            6 : QgsField(HT_FIELD_NAME, QVariant.String),
         }
     # self documenting method override
     ###########################
@@ -171,6 +161,7 @@ class GEMDBSurveyLoader(Operator):
             sample_grp = str(row[2])
             plan_area = self._tofloat(row[3])
             tax_string = self._make_gem_taxstring(row[4:])
+            ht = self._get_height(row[4:]) 
             
             f.setGeometry(QgsGeometry.fromPoint(QgsPoint(lon, lat)))
             gid+=1
@@ -180,6 +171,7 @@ class GEMDBSurveyLoader(Operator):
             f.addAttribute(3, QVariant(tax_string))
             f.addAttribute(4, QVariant(sample_grp))
             f.addAttribute(5, QVariant(plan_area))
+            f.addAttribute(6, QVariant(ht))
             writer.addFeature(f)
         del writer, f
         
@@ -241,12 +233,25 @@ class GEMDBSurveyLoader(Operator):
                            + self._append_not_null(ir_string,separator)
                            + self._append_not_null(occ_string,separator))
     
+    def _get_height(self, data):
+        story_ag_q, story_ag_1, story_ag_2 = data[11:14]
+        ht = 0
+        if story_ag_1 is None:
+            ht = 0
+        elif story_ag_q.upper() == "CIRCA":
+            ht = self._toint(story_ag_1)
+        elif story_ag_q.upper() == "BETWEEN":
+            ht = (self._toint(story_ag_1) + self._toint(story_ag_2)) / 2
+        else:
+            ht = self._toint(story_ag_1)
+        return int(ht)
+    
     def _coalesce(self, val):
         return str(val) if (val is not None) else ""
     
     def _toint(self, val):
         try:
-            return int(val) 
+            return int(val)
         except:
             return 0
     def _tofloat(self, val):

@@ -1,21 +1,9 @@
-# Copyright (c) 2011-2012, ImageCat Inc.
-#
-# SIDD is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License version 3
-# only, as published by the Free Software Foundation.
+# Copyright (c) 2011-2013, ImageCat Inc.
 #
 # SIDD is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License version 3 for more details
-# (a copy is included in the LICENSE file that accompanied this code).
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
 #
-# You should have received a copy of the GNU Lesser General Public License
-# version 3 along with SIDD.  If not, see
-# <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
-#
-# Version: $Id: project.py 21 2012-10-26 01:48:25Z zh $
-
 """
 main SIDD application controller
 """
@@ -231,9 +219,14 @@ class Project (object):
         """ build mapping scheme from survey data """
         # make sure survey exists
         if (self.survey_type == SurveyTypes.None):
-            raise SIDDException('survey is required for creating mapping scheme')
-        
-        return self._build_ms(isEmpty=False)
+            raise SIDDException('survey is required for creating mapping scheme')        
+        # try to create ms using random
+        try: 
+            use_sampling = self.operator_options['stratified.sampling']
+            return self._build_ms(isEmpty=False, useSampling=use_sampling)
+        except Exception as err:
+            self._build_ms(isEmpty=True)
+            raise SIDDException('Unable to create Mapping Scheme %s' % str(err))
 
     @logAPICall
     def create_empty_ms(self):
@@ -360,6 +353,12 @@ class Project (object):
             if _ms_str is not None:
                 self.ms = MappingScheme(None)
                 self.ms.from_text(_ms_str)
+
+            use_sampling = self._get_project_data('stratified.sampling')
+            if use_sampling is None:
+                self.operator_options['stratified.sampling']=True   # default to use sampling method
+            else:
+                self.operator_options['stratified.sampling']= (use_sampling == "True")
                 
             # load taxonomy related options
             attr_order = self._get_project_data('attribute.order')
@@ -434,6 +433,9 @@ class Project (object):
             else:
                 self._save_project_data('data.ms', self.ms.to_xml())
             
+            if self.operator_options.has_key('stratified.sampling'):
+                self._save_project_data('stratified.sampling',  self.operator_options['stratified.sampling'])            
+
             # save taxonomy order 
             if self.operator_options.has_key('attribute.order'):
                 self._save_project_data('attribute.order',  json.dumps(self.operator_options['attribute.order']))
@@ -502,29 +504,25 @@ class Project (object):
                 logAPICall.log(err, logAPICall.ERROR)
                 return False           
 
-    def _build_ms(self, isEmpty=False):
+    def _build_ms(self, isEmpty=False, useSampling=False):
         """ create mapping scheme """
         builder = WorkflowBuilder(self.operator_options)
-        try:
-            # force reload existing survey
-            self.survey = None
-            
-            # create workflow 
+        # force reload existing survey
+        self.survey = None
+        
+        # create workflow 
+        if useSampling:
+            ms_workflow = builder.build_sampling_ms_workflow(self)
+        else:
             ms_workflow = builder.build_ms_workflow(self, isEmpty)
+        
+        # process workflow 
+        for step in ms_workflow.nextstep():
+            step.do_operation()
+        self.ms = ms_workflow.operator_data['ms'].value
+        if useSampling:
+            self.zone_stats = ms_workflow.operator_data['zone_stats'].value
+        for zone, stats in self.ms.assignments():
+            stats.get_leaves(True)
             
-            # process workflow 
-            for step in ms_workflow.nextstep():
-                step.do_operation()
-            self.ms = ms_workflow.operator_data['ms'].value
-            for zone, stats in self.ms.assignments():
-                leaves = stats.get_leaves(True)
-                total = 0
-                for l in leaves:
-                    total += l[1]
-                
-            logAPICall.log('mapping scheme created', logAPICall.INFO)
-        except WorkflowException:
-            return False
-        except Exception as err:
-            logAPICall.log(err, logAPICall.ERROR)
-            return False
+        logAPICall.log('mapping scheme created', logAPICall.INFO)

@@ -1,21 +1,16 @@
+# Copyright (c) 2011-2013, ImageCat Inc.
 #
-# SeismiCat: an on-line seismic risk assessment tool for 
-# building property owners, lenders, insurers and municipal analysts. 
-# 
-# @copyright  (c)2012 ImageCat inc, All rights reserved
-# @link       http://www.seismicat.com
-# @since      SeismiCat v1.0
-# @license    
-# @version    $Id: run_tests.py 18 2012-10-24 20:21:41Z zh $
+# SIDD is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
 #
 
 import sys
 import os
 import unittest
 import getopt
-import shutil
-
 import logging
+
 logging.basicConfig(level=logging.ERROR)
 
 from qgis.core import QgsApplication
@@ -28,7 +23,7 @@ def suite():
     # ms test cases
     #suite.addTest(MSTestCase('test_BuildMS'))    
     #suite.addTest(MSTestCase('test_SaveMS'))
-    suite.addTest(MSTestCase('test_LoadMS'))    
+    #suite.addTest(MSTestCase('test_LoadMS'))    
     #suite.addTest(MSTestCase('test_StatsAddBranch'))
     #suite.addTest(MSTestCase('test_StatsRandomWalk'))
     #suite.addTest(MSTestCase('test_StatsLeaves'))
@@ -42,6 +37,7 @@ def suite():
     #suite.addTest(OperatorTestCase('test_LoadGEMDBSurvey'))
     #suite.addTest(OperatorTestCase('test_VerifyExposure'))
     #suite.addTest(OperatorTestCase('test_MakeGridGeometry'))
+    #suite.addTest(OperatorTestCase('test_StratifiedSampleMS'))
     
     #suite.addTest(TaxonomyTestCase('test_Parse'))
     
@@ -49,7 +45,7 @@ def suite():
     #suite.addTest(MSDBTestCase('test_SaveDelete'))
     
     #suite.addTest(ProjectTestCase('test_WorkflowBuilder'))
-    #suite.addTest(ProjectTestCase('test_BuildExposure'))
+    suite.addTest(ProjectTestCase('test_BuildExposure'))
         
     return suite
 
@@ -62,11 +58,6 @@ if __name__ == '__main__':
         sys.exit(2)
 
     os.environ['QGIS_DEBUG'] = '-1'
-    
-    required_dirs = ['tests/tmp']
-    for dir_path in required_dirs:
-        if not os.path.exists(dir_path):
-            os.mkdir(dir_path)
     
     # supply path to where is your qgis installed
     QgsApplication.setPrefixPath(os.environ['QGIS'], True)
@@ -88,10 +79,5 @@ if __name__ == '__main__':
         print '----------------------------------------------------------------------'
         unittest.main(verbosity=2)
 
-    for dir_path in required_dirs:
-        try:
-            shutil.rmtree(dir_path)
-        except:
-            pass
     QgsApplication.exitQgis()
     

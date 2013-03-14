@@ -1,24 +1,15 @@
-# Copyright (c) 2011-2012, ImageCat Inc.
-#
-# SIDD is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License version 3
-# only, as published by the Free Software Foundation.
+# Copyright (c) 2011-2013, ImageCat Inc.
 #
 # SIDD is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License version 3 for more details
-# (a copy is included in the LICENSE file that accompanied this code).
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
 #
-# You should have received a copy of the GNU Lesser General Public License
-# version 3 along with SIDD.  If not, see
-# <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
-#
-# Version: $Id: wdg_ms.py 21 2012-10-26 01:48:25Z zh $
-
 """
 Widget (Panel) for creating mapping scheme
 """
+import functools
+import traceback
+
 from PyQt4.QtGui import QWidget, QMessageBox, QDialog, QAbstractItemView, QFileDialog
 from PyQt4.QtCore import QObject, QSize, QPoint, pyqtSlot, QString, Qt
 
@@ -47,9 +38,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         def __init__(self):
             pass
 
-        def __call__(self, f):
-            import functools
-            import traceback
+        def __call__(self, f):            
             @functools.wraps(f)
             def wrapper(*args, **kw):
                 # try requested operation
@@ -57,16 +46,12 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
                     logUICall.log('function call %s from module %s' % (f.__name__, f.__module__), logUICall.DEBUG)                    
                     retval =  f(*args, **kw)
                     return retval                
-                except SIDDUIException as uie:
+                except SIDDUIException:
                     logUICall.log(get_ui_string("app.error.unexpected"), logUICall.WARNING)
-                    QMessageBox.warning(None, get_ui_string("app.error.unexpected"), str(uie))
-                except SIDDException as se:
-                    logUICall.log(get_ui_string("app.error.model"), logUICall.ERROR)
-                    QMessageBox.critical(None,get_ui_string("app.error.model"), str(se))
-                except Exception as e:
+                except SIDDException:
+                    logUICall.log(get_ui_string("app.error.model"), logUICall.WARNING)
+                except Exception:
                     logUICall.log(get_ui_string("app.error.ui"), logUICall.ERROR)
-                    traceback.print_exc()
-                    QMessageBox.critical(None,get_ui_string("app.error.ui"), str(e))
             return wrapper
         
     uiCallChecker = UICallChecker()
@@ -186,16 +171,24 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
                 self.dlgMSOptions.attribute_ranges[attr.name] = options[attr.name]
         if options.has_key('attribute.order'):
             self.dlgMSOptions.attribute_order = options['attribute.order']
+        else:
+            self.dlgMSOptions.attribute_order = [attr.name for attr in self.dlgMSOptions.attributes]
+        
+        if options.has_key('stratified.sampling'):
+            self.dlgMSOptions.use_sampling = options['stratified.sampling']
+        else:
+            self.dlgMSOptions.use_sampling = True
         if self.dlgMSOptions.exec_() == QDialog.Accepted:
             # set options
             options['attribute.order'] = self.dlgMSOptions.attribute_order
             for attr, attr_range in self.dlgMSOptions.attribute_ranges.iteritems():
                 options[attr] = attr_range
+            options['stratified.sampling'] = self.dlgMSOptions.use_sampling 
             # process
             if self.dlgMSOptions.build_option == self.dlgMSOptions.BUILD_EMPTY:
                 self.app.createEmptyMS()
             else:
-                self.app.buildMappingScheme()
+                self.app.buildMappingScheme()                
         
     @uiCallChecker
     @pyqtSlot()

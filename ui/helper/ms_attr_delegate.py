@@ -1,26 +1,16 @@
-# Copyright (c) 2011-2012, ImageCat Inc.
-#
-# SIDD is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License version 3
-# only, as published by the Free Software Foundation.
+# Copyright (c) 2011-2013, ImageCat Inc.
 #
 # SIDD is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License version 3 for more details
-# (a copy is included in the LICENSE file that accompanied this code).
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
 #
-# You should have received a copy of the GNU Lesser General Public License
-# version 3 along with SIDD.  If not, see
-# <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
-#
-# Version: $Id: ms_level_table.py 18 2012-10-24 20:21:41Z zh $
-
 """
 dialog for editing mapping scheme branches
 """
 from PyQt4.QtCore import Qt, QVariant
-from PyQt4.QtGui import QItemDelegate, QComboBox
+from PyQt4.QtGui import QItemDelegate, QComboBox, QMessageBox
+
+from ui.constants import get_ui_string
 
 class MSAttributeItemDelegate(QItemDelegate):
     def __init__(self, parent, valid_codes, min_editables):
@@ -58,9 +48,13 @@ class MSAttributeItemDelegate(QItemDelegate):
     # returns updated data to the model.
     def setModelData(self, editor, model, index):
         existing_values = index.model().values
-        code = self.valid_codes[editor.currentText()]
+        code = self.valid_codes[str(editor.currentText())]
         try:
             existing_values.index(code)
+            if index.data().toString() != code:
+                QMessageBox.warning(None,
+                                    get_ui_string("app.warning.title"), 
+                                    get_ui_string("dlg.msbranch.error.attribute.exists", (code)))
         except:
             # code not in existing values list
             model.setData(index, QVariant(code), Qt.EditRole)

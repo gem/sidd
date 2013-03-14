@@ -1,21 +1,9 @@
-# Copyright (c) 2011-2012, ImageCat Inc.
-#
-# SIDD is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License version 3
-# only, as published by the Free Software Foundation.
+# Copyright (c) 2011-2013, ImageCat Inc.
 #
 # SIDD is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License version 3 for more details
-# (a copy is included in the LICENSE file that accompanied this code).
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
 #
-# You should have received a copy of the GNU Lesser General Public License
-# version 3 along with SIDD.  If not, see
-# <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
-#
-# Version: $Id: dlg_mod_input.py 21 2012-10-26 01:48:25Z zh $
-
 """
 dialog for editing secondary modifiers
 """
@@ -94,8 +82,9 @@ class DialogMSOptions(Ui_msOptionsDialog, QDialog):
         for att in attributes:
             # numeric attributes can have range
             if att.type == 2:
-                self._attribute_has_range[att.name]=1
-
+                self._attribute_has_range[att.name]=1        
+        self.refreshNotIncludedList()
+        
     @property
     def attribute_order(self):
         return self._attr_names
@@ -114,6 +103,14 @@ class DialogMSOptions(Ui_msOptionsDialog, QDialog):
     def attribute_ranges(self, ranges):
         self._ranges = ranges
     
+    @property
+    def use_sampling(self):
+        return self.ui.ck_use_sampling.isChecked()
+    
+    @use_sampling.setter
+    def use_sampling(self, value):
+        self.ui.ck_use_sampling.setChecked(value)
+    
     # ui event handler
     ###############################
     @logUICall
@@ -124,10 +121,12 @@ class DialogMSOptions(Ui_msOptionsDialog, QDialog):
         if sender.isChecked():
             if sender == self.ui.radioEmptyMS:
                 self.build_option = self.BUILD_EMPTY
-                self.ui.widget_attributes.setEnabled(False)   
+                self.ui.widget_attributes.setEnabled(False)
+                self.ui.ck_use_sampling.setEnabled(False)
             elif sender == self.ui.radioBuildMS:
                 self.build_option = self.BUILD_FROM_SURVEY
                 self.ui.widget_attributes.setEnabled(True)
+                self.ui.ck_use_sampling.setEnabled(True)
             else:
                 logUICall.log('\tdo nothing. should not even be here',
                               logUICall.WARNING)
@@ -205,9 +204,6 @@ class DialogMSOptions(Ui_msOptionsDialog, QDialog):
         indices = self.ui.lst_attributes_not_included.selectedIndexes()
         if len(indices) == 1:
             attribute = str(indices[0].data().toString())
-            for _attr in self._attribute_has_range:
-                if attribute == _attr:
-                    attribute = '%s *' % attribute                    
             self._attr_names.append(attribute)
         self.refreshAttributeList(self._attr_names)
         self.refreshNotIncludedList()
@@ -218,6 +214,9 @@ class DialogMSOptions(Ui_msOptionsDialog, QDialog):
         indices = self.ui.lst_attributes.selectedIndexes()
         if len(indices) == 1:
             attribute = str(indices[0].data().toString())
+            for _attr in self._attribute_has_range:
+                if attribute == '%s *' % _attr:
+                    attribute = _attr               
             try:
                 self._attr_names.remove(attribute)
             except:
@@ -268,7 +267,7 @@ class DialogMSOptions(Ui_msOptionsDialog, QDialog):
     def refreshNotIncludedList(self):
         # add to not_included if not already in attribute_order list
         self.ui.lst_attributes_not_included.clear()
-        for _attr in self._attributes:
+        for _attr in self._attributes:            
             try:
                 self._attr_names.index(_attr.name)
             except:
@@ -285,6 +284,7 @@ class DialogMSOptions(Ui_msOptionsDialog, QDialog):
         ui.lb_notes.setText(get_ui_string("dlg.buildms.notes"))        
         ui.radioEmptyMS.setText(get_ui_string("dlg.buildms.option.empty"))
         ui.radioBuildMS.setText(get_ui_string("dlg.buildms.option.survey"))
+        ui.ck_use_sampling.setText(get_ui_string("dlg.buildms.use.sampling"))
         # tooltips
         self.ui.btn_move_up.setToolTip(get_ui_string("dlg.buildms.button.moveup"))
         self.ui.btn_move_down.setToolTip(get_ui_string("dlg.buildms.button.movedown"))

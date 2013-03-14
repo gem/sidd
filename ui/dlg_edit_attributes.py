@@ -1,21 +1,9 @@
-# Copyright (c) 2011-2012, ImageCat Inc.
-#
-# SIDD is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License version 3
-# only, as published by the Free Software Foundation.
+# Copyright (c) 2011-2013, ImageCat Inc.
 #
 # SIDD is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License version 3 for more details
-# (a copy is included in the LICENSE file that accompanied this code).
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
 #
-# You should have received a copy of the GNU Lesser General Public License
-# version 3 along with SIDD.  If not, see
-# <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
-#
-# Version: $Id: dlg_mod_input.py 21 2012-10-26 01:48:25Z zh $
-
 """
 dialog for editing secondary modifiers
 """
@@ -55,22 +43,19 @@ class DialogEditAttributes(Ui_editAttributesDialog, QDialog):
         for _widget in self._code_widgets:
             codes.append(_widget.selected_code)
         return str(self._taxonomy.level_separator).join(codes)
-    
-    @pyqtSlot
+
     def add_code(self):
         """ event handler for adding new empty attribute input widget """
         self.add_blank()
         self.refreshUI()
     
-    @pyqtSlot    
     def del_code(self):
         """ event handler for deleting the last attribute input widget """
         self._code_widgets.pop()
         if len(self._code_widgets) == 0:
             self.add_blank()
         self.refreshUI()
-
-    @pyqtSlot
+    
     def updateAttributeValue(self):
         """ event handler for attribute value combo box """
         self.ui.txt_attribute_value.setText(self.attribute_value)
@@ -141,7 +126,7 @@ class DialogEditAttributes(Ui_editAttributesDialog, QDialog):
         """ set UI labels """
         self.setWindowTitle(QApplication.translate("editAttributesDialog", "Edit Attribute", None, QApplication.UnicodeUTF8))
         ui.lb_attribute.setText(QApplication.translate("editAttributesDialog", "Attribute", None, QApplication.UnicodeUTF8))
-        ui.lb_title.setText(QApplication.translate("editAttributesDialog", "Create Mapping Scheme", None, QApplication.UnicodeUTF8))
+        ui.lb_title.setText(QApplication.translate("editAttributesDialog", "Edit Attribute", None, QApplication.UnicodeUTF8))
         ui.boxAttributes.setTitle(QApplication.translate("editAttributesDialog", "Values", None, QApplication.UnicodeUTF8))
         ui.lb_attribute_value.setText(QApplication.translate("editAttributesDialog", "Attribute Value", None, QApplication.UnicodeUTF8))
 

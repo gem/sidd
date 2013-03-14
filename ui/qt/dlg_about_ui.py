@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # Form implementation generated from reading ui file 'qt\dlg_about.ui'
-#
 # Created: Thu Feb 28 11:36:16 2013
 #      by: PyQt4 UI code generator 4.8.3
-#
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui

@@ -1,31 +1,19 @@
-# Copyright (c) 2011-2012, ImageCat Inc.
-#
-# SIDD is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License version 3
-# only, as published by the Free Software Foundation.
+# Copyright (c) 2011-2013, ImageCat Inc.
 #
 # SIDD is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License version 3 for more details
-# (a copy is included in the LICENSE file that accompanied this code).
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
 #
-# You should have received a copy of the GNU Lesser General Public License
-# version 3 along with SIDD.  If not, see
-# <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
-#
-# Version: $Id: ms_create.py 18 2012-10-24 20:21:41Z zh $
-
 """
 module contains class for creating mapping scheme from survey data
 """
 from qgis.analysis import QgsOverlayAnalyzer
 
 from utils.shapefile import load_shapefile, layer_features, layer_field_index, remove_shapefile, \
-                            layer_fields_stats 
+                            layer_fields_stats
 from utils.system import get_unique_filename, get_temp_dir, get_dictionary_value
 
-from sidd.constants import logAPICall
+from sidd.constants import logAPICall, AREA_FIELD_NAME, GRP_FIELD_NAME, TAX_FIELD_NAME, HT_FIELD_NAME
 from sidd.ms import MappingScheme, MappingSchemeZone, Statistics
 from sidd.taxonomy import get_taxonomy
 from sidd.operator import Operator, OperatorError
@@ -265,3 +253,195 @@ class SurveyOnlyMSCreator(EmptyMSCreator):
         stats.finalize()        
         
         self.outputs[0].value = ms
+
+class StratifiedMSCreator(EmptyMSCreator):    
+    
+    def __init__(self, options=None, name='Stratified Sampling Mapping Scheme'):
+        super(StratifiedMSCreator, self).__init__(options, name)
+        self.weights=[0.3, 0.4, 0.3]
+        #self._parse_modifiers = False
+    
+    @property
+    def input_types(self):
+        return [OperatorDataTypes.Zone, OperatorDataTypes.StringAttribute,
+                OperatorDataTypes.Survey,]
+        
+    @property    
+    def input_names(self):
+        return ["Zone", "Zone Identifier Field",
+                "Survey"]
+
+    input_descriptions = input_names
+
+    @property
+    def output_types(self):
+        return [OperatorDataTypes.MappingScheme, 
+                OperatorDataTypes.ZoneStatistic]
+        
+    @property    
+    def output_names(self):
+        return ["Mapping Scheme", "Zone Statistics"]
+
+    output_descriptions = input_names
+            
+    # public method override
+    ###########################
+    @logAPICall
+    def do_operation(self):
+        # input/output verification not performed yet        
+        zone_layer = self.inputs[0].value
+        zone_field = self.inputs[1].value
+        svy_layer = self.inputs[2].value
+        
+        # make sure required data fields are populated
+        zone_idx = layer_field_index(zone_layer, zone_field)
+        if zone_idx == -1:        
+            raise OperatorError("Field %s does not exist in %s" %(zone_field, zone_layer.name()), self.__class__)
+        svy_samp_idx = layer_field_index(svy_layer, GRP_FIELD_NAME)
+        if svy_samp_idx == -1:
+            raise OperatorError("Field %s does not exist in %s" %(GRP_FIELD_NAME, svy_layer.name()), self.__class__)
+        svy_ht_idx = layer_field_index(svy_layer, HT_FIELD_NAME)
+        if svy_ht_idx == -1:
+            raise OperatorError("Field %s does not exist in %s" %(HT_FIELD_NAME, svy_layer.name()), self.__class__)        
+        svy_size_idx = layer_field_index(svy_layer, AREA_FIELD_NAME)
+        if svy_size_idx == -1:
+            raise OperatorError("Field %s does not exist in %s" %(AREA_FIELD_NAME, svy_layer.name()))
+        tax_idx = layer_field_index(svy_layer, TAX_FIELD_NAME)
+        if tax_idx == -1:
+            raise OperatorError("Field %s does not exist in %s" %(TAX_FIELD_NAME, svy_layer.name()))
+        
+        # load zone classes
+        # the operations below must be performed for each zone 
+        try:
+            zone_classes = layer_fields_stats(zone_layer, zone_field)
+        except AssertionError as err:
+            raise OperatorError(str(err), self.__class__)
+                
+        # join survey with zones        
+        logAPICall.log('merge survey & zone', logAPICall.DEBUG)
+        tmp_join_layername = 'join_%s' % get_unique_filename()
+        tmp_join_file = self._tmp_dir + tmp_join_layername + '.shp'        
+        analyzer = QgsOverlayAnalyzer()        
+        analyzer.intersection(svy_layer, zone_layer, tmp_join_file)        
+        tmp_join_layer = load_shapefile(tmp_join_file, tmp_join_layername)
+        
+        logAPICall.log('compile zone statistics', logAPICall.DEBUG)
+        zone_idx = layer_field_index(tmp_join_layer, zone_field)
+        svy_samp_idx = layer_field_index(tmp_join_layer, GRP_FIELD_NAME)
+        svy_ht_idx = layer_field_index(tmp_join_layer, HT_FIELD_NAME)
+        
+        svy_size_idx = layer_field_index(tmp_join_layer, AREA_FIELD_NAME)
+        if svy_size_idx == -1:
+            raise OperatorError("Field %s does not exist in %s" %(AREA_FIELD_NAME, svy_layer.name()))
+        tax_idx = layer_field_index(tmp_join_layer, TAX_FIELD_NAME)
+        if tax_idx == -1:
+            raise OperatorError("Field %s does not exist in %s" %(TAX_FIELD_NAME, svy_layer.name()))
+        
+        
+        # empty fields for holding the stats
+        _zone_n_exp, _zone_p_exp, _zone_a_exp, _zone_e_exp = {}, {}, {}, {}
+        _zone_group_counts, _zone_group_stories, _zone_group_weight = {}, {}, {}        
+        for _zone in zone_classes.iterkeys():
+            _zone_n_exp[_zone] = {}
+            _zone_p_exp[_zone] = {}
+            _zone_a_exp[_zone] = {}
+            _zone_e_exp[_zone] = {}
+            _zone_group_counts[_zone] = {} 
+            _zone_group_stories[_zone] = {}
+            _zone_group_weight[_zone] = {}
+
+        # associate group to ratio value
+        for _rec in layer_features(tmp_join_layer):
+            _ht = _rec.attributeMap()[svy_ht_idx].toInt()[0]
+            _samp_grp = str(_rec.attributeMap()[svy_samp_idx].toString())            
+            _tax_str = str(_rec.attributeMap()[tax_idx].toString())
+            try:
+                self._taxonomy.parse(_tax_str)            
+                self.increment_dict(_zone_group_counts[_zone], _samp_grp, 1)
+                self.increment_dict(_zone_group_stories[_zone], _samp_grp, _ht)
+            except Exception as err:                
+                logAPICall.log("Error processing record %s" % err, logAPICall.WARNING)
+            
+        for _zone in zone_classes.iterkeys():
+            if len(_zone_group_counts[_zone]) != 3:
+                raise OperatorError("Survey must have 3 sampling groups", self.__class__)
+            cmp_value = -1
+            for _grp, _count in _zone_group_counts[_zone].iteritems():
+                if cmp_value==-1:
+                    cmp_value = _count
+                if cmp_value != _count:
+                    raise OperatorError("Survey groups must have same number of samples", self.__class__)
+            # sort by stories        
+            group_stories_for_sort = {}
+            for _grp, _ht in _zone_group_stories[_zone].iteritems():
+                group_stories_for_sort[_ht] = _grp
+            sorted_keys = group_stories_for_sort.keys()
+            sorted_keys.sort()
+            # assign group to weight 
+            for idx, key in enumerate(sorted_keys):
+                _zone_group_weight[_zone][group_stories_for_sort[key]] = self.weights[idx]
+                
+        # aggregate values from survey for each building type
+        # - count (n)
+        # - floor area (p)
+        # - total area (a)
+        for _f in layer_features(tmp_join_layer):
+            _zone_str = str(_f.attributeMap()[zone_idx].toString())
+            _tax_str = str(_f.attributeMap()[tax_idx].toString())            
+            _sample_grp = str(_f.attributeMap()[svy_samp_idx].toString())
+            _sample_size = _f.attributeMap()[svy_size_idx].toDouble()[0]
+            _sample_ht = _f.attributeMap()[svy_size_idx].toDouble()[0]            
+            group_weight = _zone_group_weight[_zone]
+            try:
+                self._taxonomy.parse(_tax_str)            
+                self.increment_dict(_zone_n_exp[_zone_str], _tax_str, group_weight[_sample_grp])
+                self.increment_dict(_zone_p_exp[_zone_str], _tax_str, _sample_size*group_weight[_sample_grp])
+                self.increment_dict(_zone_a_exp[_zone_str], _tax_str, _sample_size*_ht*group_weight[_sample_grp])
+                self.increment_dict(_zone_e_exp[_zone_str], _tax_str, 0)
+            except Exception as err:
+                pass              
+        
+        # calculate building ratios for each zone        
+        for _zone in zone_classes.iterkeys():   
+            # for total count (n) and area (a) 
+            n_total = sum(_zone_n_exp[_zone].itervalues())
+            a_total = sum(_zone_a_exp[_zone].itervalues())
+            
+            # calculate expected values  
+            for _sample_tax, _sample_area in _zone_a_exp[_zone].iteritems():
+                # if area is missing, use count instead                
+                if a_total > 0: 
+                    _zone_e_exp[_zone][_sample_tax] = _sample_area / a_total
+                    _zone_a_exp[_zone][_sample_tax] = _sample_area / _zone_n_exp[_zone][_sample_tax]
+                else:
+                    _zone_e_exp[_zone][_sample_tax] = _zone_n_exp[_zone][_sample_tax] / n_total
+                    _zone_a_exp[_zone][_sample_tax] = 0
+        
+        # convert the building ratios
+        logAPICall.log('create mapping scheme for zones', logAPICall.DEBUG)
+        ms = MappingScheme(self._taxonomy)
+        for _zone in zone_classes.iterkeys():
+            # create mapping scheme for zone
+            stats = Statistics(self._taxonomy)
+
+            # use building ratio to create statistic
+            for _tax_str, _e_exp in _zone_e_exp[_zone].iteritems():
+                for i in range(int(_e_exp*1000)):
+                    stats.add_case(_tax_str, self._parse_order, self._parse_modifiers)
+            # finalize call is required 
+            stats.finalize()
+            ms.assign(MappingSchemeZone(_zone), stats)            
+        
+        # clean up
+        del tmp_join_layer, analyzer
+        remove_shapefile(tmp_join_file)
+        
+        # assign output        
+        self.outputs[0].value = ms
+        self.outputs[1].value = _zone_a_exp    
+    
+    def increment_dict(self, dict_stat, key, value):
+        if dict_stat.has_key(key):
+            dict_stat[key] += value
+        else:
+            dict_stat[key] = value

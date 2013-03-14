@@ -1,25 +1,13 @@
-# Copyright (c) 2011-2012, ImageCat Inc.
-#
-# SIDD is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License version 3
-# only, as published by the Free Software Foundation.
+# Copyright (c) 2011-2013, ImageCat Inc.
 #
 # SIDD is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License version 3 for more details
-# (a copy is included in the LICENSE file that accompanied this code).
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
 #
-# You should have received a copy of the GNU Lesser General Public License
-# version 3 along with SIDD.  If not, see
-# <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
-#
-# Version: $Id: win_main.py 21 2012-10-26 01:48:25Z zh $
-
 """
 Main application window
 """
-from threading import Thread
+import functools
 from time import sleep
 
 from PyQt4.QtCore import pyqtSlot, QSettings
@@ -61,7 +49,6 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
             self.main_window = main_window
 
         def __call__(self, f):
-            import functools
             @functools.wraps(f)
             def wrapper(*args, **kw):
                 self.main_window.setEnabled(False)
@@ -69,17 +56,13 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
                     logUICall.log('function call %s from module %s' % (f.__name__, f.__module__), logUICall.DEBUG)                                        
                     return f(*args, **kw)
                 except SIDDUIException as uie:
-                    logUICall.log(uie, logUICall.ERROR)
-                    QMessageBox.warning(None, "Cannot Process Requested Action", str(uie))                                        
-                    # windows status message will be cleared out                                        
+                    logUICall.log(uie, logUICall.WARNING)
                     self.main_window.ui.statusbar.showMessage(get_ui_string('app.error.ui'))
                 except SIDDException as se:
-                    logUICall.log(se, logUICall.ERROR)
-                    QMessageBox.critical(None,"Error Processing", str(se))
+                    logUICall.log(se, logUICall.WARNING)
                     self.main_window.ui.statusbar.showMessage(get_ui_string('app.error.ui'))
                 except Exception as e:
                     logUICall.log(e, logUICall.ERROR)
-                    QMessageBox.critical(None,"Unexpected Error", str(e))
                     self.main_window.ui.statusbar.showMessage(get_ui_string('app.error.ui'))
                 finally:
                     self.main_window.setEnabled(True)
@@ -153,7 +136,7 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         self.ui.statusbar.showMessage(get_ui_string("app.status.ready"))
 
         # enable following during development
-        self._dev_short_cut()
+        #self._dev_short_cut()
         
     def _dev_short_cut(self):
         self.ui.mainTabs.setTabEnabled (1, True)
@@ -341,7 +324,11 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         """ build mapping scheme with given data """
         self.ui.statusbar.showMessage(get_ui_string("app.status.ms.processing"))
         # invoke asynchronously
-        invoke_async(get_ui_string("app.status.processing"), self.project.build_ms)
+        try:
+            invoke_async(get_ui_string("app.status.processing"), self.project.build_ms)
+        except SIDDException as err:
+            raise SIDDUIException(get_ui_string('project.error.sampling', str(err)))
+        
         self.visualizeMappingScheme(self.project.ms)
         self.ui.statusbar.showMessage(get_ui_string("app.status.ms.created"))
 

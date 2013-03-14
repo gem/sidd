@@ -1,21 +1,9 @@
-# Copyright (c) 2011-2012, ImageCat Inc.
-#
-# SIDD is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License version 3
-# only, as published by the Free Software Foundation.
+# Copyright (c) 2011-2013, ImageCat Inc.
 #
 # SIDD is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License version 3 for more details
-# (a copy is included in the LICENSE file that accompanied this code).
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
 #
-# You should have received a copy of the GNU Lesser General Public License
-# version 3 along with SIDD.  If not, see
-# <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
-#
-# Version: $Id: ms_table.py 18 2012-10-24 20:21:41Z zh $
-
 """
 table model for visualizing secondary modifiers from mapping scheme
 """
@@ -26,7 +14,7 @@ from PyQt4.QtCore import Qt, QVariant, QString, \
 from sidd.constants import logAPICall
 
 from ui.constants import get_ui_string
-from ui.helper.common import build_multivalue_attribute_tooltip
+from ui.helper.common import build_attribute_tooltip
 
 class MSTableModel(QAbstractTableModel):
     """
@@ -125,7 +113,7 @@ class MSTableModel(QAbstractTableModel):
             if (col==2):
                 _key = sorted(_mod[self.MOD_INDEX].keys())[_idx]
                 if _key is not None:
-                    return build_multivalue_attribute_tooltip(self.valid_codes, self.ms.taxonomy.parse(_key))
+                    return build_attribute_tooltip(self.valid_codes, self.ms.taxonomy.parse(_key))
             else:
                 return QVariant("")
         else:

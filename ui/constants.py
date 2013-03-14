@@ -1,30 +1,18 @@
-# Copyright (c) 2011-2012, ImageCat Inc.
-#
-# SIDD is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License version 3
-# only, as published by the Free Software Foundation.
+# Copyright (c) 2011-2013, ImageCat Inc.
 #
 # SIDD is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License version 3 for more details
-# (a copy is included in the LICENSE file that accompanied this code).
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
 #
-# You should have received a copy of the GNU Lesser General Public License
-# version 3 along with SIDD.  If not, see
-# <http://www.gnu.org/licenses/lgpl-3.0.txt> for a copy of the LGPLv3 License.
-#
-# Version: $Id: constants.py 22 2012-10-26 23:29:52Z zh $
-
 """
 constants used by UI
 """
 from PyQt4.QtGui import QApplication
 from utils.system import get_app_dir
-from sidd.logger import SIDDLogging
+from ui.helper.logger import SIDDUILogging
 
 # decorator and loggeer for UI function calls
-logUICall = SIDDLogging('ui')
+logUICall = SIDDUILogging('ui')
 
 # constant file names
 ###########################
@@ -56,6 +44,7 @@ SIDD_UI_STRINGS = {
     "project.error.NeedSurvey":QApplication.translate('project.error', 'Survey data is required', None, QApplication.UnicodeUTF8),
     "project.error.NoActionDefined":QApplication.translate('project.error', 'No action is defined for type of data provided', None, QApplication.UnicodeUTF8),
     "project.error.NotEnoughData":QApplication.translate('project.error', 'No action is defined for type of data provided', None, QApplication.UnicodeUTF8),
+    "project.error.sampling":QApplication.translate('project.error', """Error Creating Mapping Scheme with Stratified Sampling method:\n%s\nPlease use deselect "Use Stratified sampling" option and try again.""", None, QApplication.UnicodeUTF8),
     # common messages
     ######################
     "app.extension.shapefile":QApplication.translate('app.extension', 'Shapefile (*.shp)', None, QApplication.UnicodeUTF8),
@@ -270,6 +259,7 @@ SIDD_UI_STRINGS = {
     "dlg.buildms.title":QApplication.translate('app.buildms', 'Create Mapping Scheme', None, QApplication.UnicodeUTF8),
     "dlg.buildms.attributes":QApplication.translate('app.buildms', 'Attributes to include', None, QApplication.UnicodeUTF8),
     "dlg.buildms.attributes.not_included":QApplication.translate('app.buildms', 'Attributes not included', None, QApplication.UnicodeUTF8),
+    "dlg.buildms.use.sampling":QApplication.translate('app.buildms', 'Use Stratified Sampling method', None, QApplication.UnicodeUTF8),
     "dlg.buildms.notes":QApplication.translate('app.buildms', 'Attribute with * symbol can be grouped into ranges', None, QApplication.UnicodeUTF8),    
     "dlg.buildms.option.empty":QApplication.translate('app.buildms', 'Create Empty Mapping Scheme', None, QApplication.UnicodeUTF8),
     "dlg.buildms.option.survey":QApplication.translate('app.buildms', 'Build from Survey Data', None, QApplication.UnicodeUTF8),
@@ -277,7 +267,7 @@ SIDD_UI_STRINGS = {
     "dlg.buildms.button.movedown":QApplication.translate('app.buildms', 'Move Down', None, QApplication.UnicodeUTF8),
     "dlg.buildms.button.movetop":QApplication.translate('app.buildms', 'Move to Top', None, QApplication.UnicodeUTF8),
     "dlg.buildms.button.movebottom":QApplication.translate('app.buildms', 'Move to Bottom', None, QApplication.UnicodeUTF8),
-    "dlg.buildms.button.range":QApplication.translate('app.buildms', 'Edit Grouping', None, QApplication.UnicodeUTF8),
+    "dlg.buildms.button.range":QApplication.translate('app.buildms', 'Edit Grouping', None, QApplication.UnicodeUTF8),    
     # edit mapping scheme branch dialog
     ######################
     "dlg.msbranch.edit.window.title":QApplication.translate('app.msbranch', 'Edit Mapping Scheme Branch', None, QApplication.UnicodeUTF8),
@@ -291,6 +281,7 @@ SIDD_UI_STRINGS = {
     "dlg.msbranch.button.add":QApplication.translate('app.msbranch', 'Add Value', None, QApplication.UnicodeUTF8), 
     "dlg.msbranch.button.delete":QApplication.translate('app.msbranch', 'Delete Selected Value', None, QApplication.UnicodeUTF8), 
     "dlg.msbranch.button.save":QApplication.translate('app.msbranch', 'Save Mapping Scheme Branch', None, QApplication.UnicodeUTF8), 
+    "dlg.msbranch.error.attribute.exists": QApplication.translate('app.msbranch', 'Attribute value %s is already defined in same level', None, QApplication.UnicodeUTF8),
     # save mapping scheme dialog
     ######################
     "dlg.savems.window.title":QApplication.translate('app.savems', 'Save Mapping Scheme', None, QApplication.UnicodeUTF8),

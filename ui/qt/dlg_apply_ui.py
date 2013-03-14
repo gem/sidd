@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # Form implementation generated from reading ui file 'qt\dlg_apply.ui'
-#
 # Created: Mon Oct 15 17:11:15 2012
 #      by: PyQt4 UI code generator 4.8.3
-#
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
