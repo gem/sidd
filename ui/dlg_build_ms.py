@@ -77,7 +77,6 @@ class DialogMSOptions(Ui_msOptionsDialog, QDialog):
     @attributes.setter
     def attributes(self, attributes):
         self._attributes = attributes
-        #self.attribute_order = [attr.name for attr in self.attributes]
         self._attribute_has_range = {}
         for att in attributes:
             # numeric attributes can have range

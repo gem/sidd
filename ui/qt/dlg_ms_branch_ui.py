@@ -79,12 +79,4 @@ class Ui_editMSDialog(object):
         QtCore.QMetaObject.connectSlotsByName(editMSDialog)
 
     def retranslateUi(self, editMSDialog):
-        editMSDialog.setWindowTitle(QtGui.QApplication.translate("editMSDialog", "Dialog", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_title.setText(QtGui.QApplication.translate("editMSDialog", "Edit Mapping Scheme Branch", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_apply.setText(QtGui.QApplication.translate("editMSDialog", "Apply", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_close.setText(QtGui.QApplication.translate("editMSDialog", "Close", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_attribute.setText(QtGui.QApplication.translate("editMSDialog", "Attribute", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_total_weights.setText(QtGui.QApplication.translate("editMSDialog", "Some of Weights", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_percent.setText(QtGui.QApplication.translate("editMSDialog", "%", None, QtGui.QApplication.UnicodeUTF8))
-
-import SIDDResource_rc
+        pass

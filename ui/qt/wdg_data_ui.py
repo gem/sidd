@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Form implementation generated from reading ui file 'qt\wdg_data.ui'
+#
 # Created: Fri Mar 01 11:36:10 2013
 #      by: PyQt4 UI code generator 4.8.3
 # WARNING! All changes made in this file will be lost!
@@ -350,5 +351,4 @@ class Ui_widgetDataInput(object):
 
     def retranslateUi(self, widgetDataInput):
         pass
-    
-import SIDDResource_rc
+

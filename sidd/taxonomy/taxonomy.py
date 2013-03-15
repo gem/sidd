@@ -7,7 +7,6 @@
 """
 module contains abstract taxonomy interface to be extended
 """
-import types
 class Taxonomy(object):
     """
     main Taxonomy class

@@ -20,7 +20,7 @@ from sidd.constants import logAPICall, \
                            ExtrapolateOptions, \
                            GID_FIELD_NAME, LON_FIELD_NAME, LAT_FIELD_NAME, CNT_FIELD_NAME, TAX_FIELD_NAME, ZONE_FIELD_NAME, \
                            DEFAULT_GRID_SIZE, MAX_FEATURES_IN_MEMORY
-from sidd.operator import Operator, OperatorError, OperatorDataError
+from sidd.operator import Operator, OperatorError
 from sidd.operator.data import OperatorDataTypes
 
 class GridMSApplier(Operator):    

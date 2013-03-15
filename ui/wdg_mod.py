@@ -8,7 +8,7 @@
 Widget (Panel) for managing secondary modifier 
 """
 from PyQt4.QtGui import QWidget, QDialog, QMessageBox, QAbstractItemView
-from PyQt4.QtCore import pyqtSlot, Qt, QSize, QPoint 
+from PyQt4.QtCore import pyqtSlot, Qt 
 
 from sidd.ms.node import StatisticModifier
 

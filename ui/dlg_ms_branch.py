@@ -190,7 +190,6 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
             
         self.levelModel = MSLevelTableModel(values, weights, self.taxonomy, self.taxonomy.codes,
                                             is_editable=[True, True])
-        
         # initialize table view 
         tableUI = self.ui.table_ms_level                
         tableUI.setModel(self.levelModel)

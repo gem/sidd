@@ -147,5 +147,3 @@ class Ui_widgetResult(object):
 
     def retranslateUi(self, widgetResult):
         pass
-
-import SIDDResource_rc

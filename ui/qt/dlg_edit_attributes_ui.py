@@ -70,5 +70,3 @@ class Ui_editAttributesDialog(object):
         self.lb_title.setText(QtGui.QApplication.translate("editAttributesDialog", "Create Mapping Scheme", None, QtGui.QApplication.UnicodeUTF8))
         self.boxAttributes.setTitle(QtGui.QApplication.translate("editAttributesDialog", "Values", None, QtGui.QApplication.UnicodeUTF8))
         self.lb_attribute_value.setText(QtGui.QApplication.translate("editAttributesDialog", "Attribute Value", None, QtGui.QApplication.UnicodeUTF8))
-
-import SIDDResource_rc

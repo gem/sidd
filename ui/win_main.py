@@ -32,7 +32,7 @@ from ui.dlg_apply import DialogApply
 from ui.dlg_proc_options import DialogProcessingOptions
 
 from ui.helper.msdb_dao import MSDatabaseDAO
-from ui.helper.async import AsyncThread, invoke_async
+from ui.helper.async import invoke_async
 
 class AppMainWindow(Ui_mainWindow, QMainWindow):
     """

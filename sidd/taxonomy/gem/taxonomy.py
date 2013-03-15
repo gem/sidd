@@ -8,7 +8,6 @@
 module supporting GEM taxonomy version 1
 """
 import sqlite3
-import types
 import os
 import re
 import copy
@@ -164,19 +163,6 @@ class GemTaxonomy(Taxonomy):
             outstr = outstr + str(_attr_val) + "/"
         return outstr
     
-    @logAPICall
-    def set_parse_order2(self, order):        
-        # order must be list of all names in taxonomy attribute
-        # set to default if there is an error
-        try:
-            for attr in GemTaxonomy.__attrs:
-                attr.order = order.index(attr.name)+1
-            self.parse_order = order
-        except:
-            for attr in GemTaxonomy.__attrs:
-                attr.order = GemTaxonomy.__attr_orders.index(attr.name)+1
-            self.parse_order = None     # will use default
-    
     def __initialize(self, db_path):
         """
         prepare parser
@@ -218,7 +204,7 @@ class GemTaxonomy(Taxonomy):
                 self.__defaults.append(_attr_val)
             else:
                 raise TaxonomyParseError("attribute format not recognized for %s" % _attr)
-            
+
         GemTaxonomy.__attr_orders = [attr.name for attr in GemTaxonomy.__attrs]
         # load codes
         sql = "select c.type_id, c.description, a.gem_attribute_id, a.level from attribute a inner join code_lookup c on a.id=c.attribute_id"

@@ -97,5 +97,3 @@ class Ui_modifierInputDialog(object):
 
     def retranslateUi(self, modifierInputDialog):
         pass
-
-import SIDDResource_rc

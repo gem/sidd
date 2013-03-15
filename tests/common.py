@@ -1,18 +1,14 @@
-# SeismiCat: an on-line seismic risk assessment tool for 
-# building property owners, lenders, insurers and municipal analysts. 
-# @copyright  (c)2012 ImageCat inc, All rights reserved
-# @link       http://www.seismicat.com
-# @since      SeismiCat v1.0
-# @license    
-# @version    $Id: run_tests.py 18 2012-10-24 20:21:41Z zh $
+# Copyright (c) 2011-2013, ImageCat Inc.
 #
-
+# SIDD is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
 import os
 import shutil
 import unittest
 
 from sidd.taxonomy import get_taxonomy
-
 
 class SIDDTestCase(unittest.TestCase):
     required_dirs = ['tests/tmp']

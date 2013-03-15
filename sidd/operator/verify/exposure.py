@@ -7,19 +7,9 @@
 """
 module contains class for applying mapping scheme
 """
-import bsddb 
+from utils.shapefile import layer_features, layer_field_index
 
-from PyQt4.QtCore import QVariant
-from qgis.core import QGis, QgsVectorFileWriter, QgsFeature, QgsField, QgsGeometry, QgsPoint
-
-from utils.shapefile import load_shapefile, layer_features, layer_field_index, remove_shapefile
-from utils.system import get_unique_filename
-from utils.grid import latlon_to_grid
-
-from sidd.constants import logAPICall, \
-                           ExtrapolateOptions, \
-                           GID_FIELD_NAME, LON_FIELD_NAME, LAT_FIELD_NAME, CNT_FIELD_NAME, TAX_FIELD_NAME, ZONE_FIELD_NAME, \
-                           DEFAULT_GRID_SIZE, MAX_FEATURES_IN_MEMORY
+from sidd.constants import logAPICall, CNT_FIELD_NAME
 from sidd.operator import Operator, OperatorError
 from sidd.operator.data import OperatorDataTypes
 

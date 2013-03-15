@@ -62,5 +62,3 @@ class Ui_widgetSecondaryModifier(object):
 
     def retranslateUi(self, widgetSecondaryModifier):
         pass
-
-import SIDDResource_rc

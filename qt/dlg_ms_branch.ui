@@ -144,7 +144,11 @@
     <rect>
      <x>10</x>
      <y>70</y>
+<<<<<<< HEAD
      <width>251</width>
+=======
+     <width>181</width>
+>>>>>>> origin/master
      <height>22</height>
     </rect>
    </property>

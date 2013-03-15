@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # Form implementation generated from reading ui file 'qt\dlg_build_ms.ui'
-# Created: Mon Mar 11 17:51:57 2013
+#
+# Created: Wed Feb 27 17:26:26 2013
 #      by: PyQt4 UI code generator 4.8.3
 # WARNING! All changes made in this file will be lost!
 
@@ -115,5 +116,3 @@ class Ui_msOptionsDialog(object):
 
     def retranslateUi(self, msOptionsDialog):
         pass
-
-import SIDDResource_rc
