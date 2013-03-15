@@ -162,7 +162,8 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         self.closeProject()
         settings = QSettings(SIDD_COMPANY, '%s %s' %(SIDD_APP_NAME, SIDD_VERSION));
         settings.setValue(self.UI_WINDOW_GEOM, self.saveGeometry());
-        settings.setValue(self.UI_WINDOW_STATE, self.saveState());        
+        settings.setValue(self.UI_WINDOW_STATE, self.saveState());
+        self.msdb_dao.close()       
         super(AppMainWindow, self).closeEvent(event)
     
     @logUICall 

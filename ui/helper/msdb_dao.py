@@ -17,9 +17,8 @@ class MSDatabaseDAO:
     """
 
     # SQL used to query db
-    sql = {
-        'GET_ALL_REGIONS':"""select name from regions order by name""",
-        'GET_MS_REGIONS':"""select distinct region from mapping_scheme order by region """,
+    sql = {        
+        'GET_REGIONS':"""select distinct region from mapping_scheme order by region """,
         'GET_TYPES':"""select distinct source from mapping_scheme where region=? order by source""",
         'GET_MSNAME':"""select ms_name from mapping_scheme where region=? and source=? order by ms_name""",
         'GET_MS':"""select date_created, data_source, quality, use_notes, ms_xml from mapping_scheme where region=? and source=? and ms_name=?""",
@@ -40,19 +39,23 @@ class MSDatabaseDAO:
         except:
             self.initialized = False
     
-    def __del__(self):
+    def close(self):
         if self.initialized:
             self.conn.close()
     
-    def get_regions(self, with_ms=False):        
+    def get_regions(self):
         logUICall.log('get_regions', logUICall.DEBUG_L2)
         if not self.initialized:
             return []
         else:
-            if with_ms:
-                return self._get_list( self.sql['GET_MS_REGIONS'] )
-            else:
-                return self._get_list( self.sql['GET_ALL_REGIONS'] )
+            regions = self._get_list( self.sql['GET_REGIONS'] )
+            # add undefined region to allow user to store 
+            # mapping schemes not associated with any region
+            try:
+                regions.index('Undefined-Region')
+            except:
+                regions.insert(0, 'Undefined-Region')
+            return regions
         
     def get_types_in_region(self, region):
         logUICall.log('get_types_in_region %s' % region, logUICall.DEBUG_L2)
@@ -87,7 +90,7 @@ class MSDatabaseDAO:
      
     
     def delete_ms(self, region, ms_type, ms_name):
-        return self._exec(self.sql['DELETE_MS'], [region, ms_type, ms_name])
+        return self._exec(self.sql['DELETE_MS'], [region, ms_type, ms_name], True)
     
     def _get_list(self, sql, param=[], first_column=True):
         results = []

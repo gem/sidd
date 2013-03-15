@@ -61,6 +61,7 @@ SIDD_UI_STRINGS = {
     "app.file.button":QApplication.translate('app.common', '...', None, QApplication.UnicodeUTF8),
     "app.dialog.button.ok":QApplication.translate('app.common', 'OK', None, QApplication.UnicodeUTF8),
     "app.dialog.button.cancel":QApplication.translate('app.common', 'Cancel', None, QApplication.UnicodeUTF8),
+    "app.dialog.button.go":QApplication.translate('app.common', 'Go', None, QApplication.UnicodeUTF8),
     "app.dialog.button.close":QApplication.translate('app.common', 'Close', None, QApplication.UnicodeUTF8),
     "app.dialog.button.apply":QApplication.translate('app.common', 'Apply', None, QApplication.UnicodeUTF8),
     "app.popup.delete.confirm":QApplication.translate('app.common', '', None, QApplication.UnicodeUTF8),
@@ -325,9 +326,17 @@ SIDD_UI_STRINGS = {
     "dlg.options.ep.fraction.rounded":QApplication.translate('app.options', 'Building Distribution Fraction Rounded', None, QApplication.UnicodeUTF8),
     # result detailed info dialog    
     ######################
-    "dlg.result.window.title":QApplication.translate('app.options', 'Feature Information', None, QApplication.UnicodeUTF8),
-    "dlg.result.title":QApplication.translate('app.options', 'Detailed Information for Selected Feature ', None, QApplication.UnicodeUTF8),
-    "dlg.result.bldgcount":QApplication.translate('app.options', 'Building Count', None, QApplication.UnicodeUTF8),
+    "dlg.result.window.title":QApplication.translate('app.result.info', 'Feature Information', None, QApplication.UnicodeUTF8),
+    "dlg.result.title":QApplication.translate('app.result.info', 'Detailed Information for Selected Feature ', None, QApplication.UnicodeUTF8),
+    "dlg.result.bldgcount":QApplication.translate('app.result.info', 'Building Count', None, QApplication.UnicodeUTF8),
+    # result feature seach dialog    
+    ######################
+    "dlg.result.search.window.title":QApplication.translate('app.result.seach', 'Zoom to Feature', None, QApplication.UnicodeUTF8),
+    "dlg.result.search.title":QApplication.translate('app.result.seach', 'Zoom to Feature', None, QApplication.UnicodeUTF8),
+    "dlg.result.search.button.find":QApplication.translate('app.result.seach', 'Zoom to', None, QApplication.UnicodeUTF8),
+    "dlg.result.search.button.close":QApplication.translate('app.result.seach', 'Close', None, QApplication.UnicodeUTF8),
+    "dlg.result.search.attribute":QApplication.translate('app.result.seach', 'Attribute', None, QApplication.UnicodeUTF8),
+    "dlg.result.search.value":QApplication.translate('app.result.seach', 'Value', None, QApplication.UnicodeUTF8),
     # operator processing messages
     ######################
     "message.sidd.operator.loaders.footprint.FootprintLoader":QApplication.translate('app.processing', 'Loading Building Footprints ...', None, QApplication.UnicodeUTF8),

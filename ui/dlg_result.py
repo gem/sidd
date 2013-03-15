@@ -65,7 +65,7 @@ class DialogResult(Ui_tablePreviewDialog, QDialog):
         if cnt_idx <> -1:   # building count index is found
             # increment building count
             for s in selected:
-                cnt_sum  += s[cnt_idx].toInt()[0]
+                cnt_sum  += s[cnt_idx].toDouble()[0]
                 
         # display result 
         self.resultDetailModel = ResultDetailTableModel(header.values(), selected)        
@@ -74,7 +74,7 @@ class DialogResult(Ui_tablePreviewDialog, QDialog):
         # display exposure specific ui elements         
         self.ui.txt_bldgcount.setVisible(True) 
         self.ui.lb_bldgcount.setVisible(True)
-        self.ui.txt_bldgcount.setText('%d'% cnt_sum)
+        self.ui.txt_bldgcount.setText('%d'% round(cnt_sum))
         self.ui.txt_bldgcount.setReadOnly(True)        
 
     @logUICall

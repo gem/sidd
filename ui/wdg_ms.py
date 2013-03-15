@@ -88,7 +88,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         self.ui.tree_ms.animated=True
         
         self.msdb_dao =  app.msdb_dao
-        for region in self.msdb_dao.get_regions(with_ms=True):
+        for region in self.msdb_dao.get_regions():
             self.ui.list_ms_library_regions.addItem(QString(region))
         
         self.clearMappingScheme()

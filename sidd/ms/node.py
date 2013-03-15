@@ -776,9 +776,17 @@ class StatisticNode (object):
         for child in self.children:
             try:
                 values.index(child.value)
-            except:
-                to_delete.append(child.value)
-
+            except: 
+                if len(added) > 0:
+                    # reuse to_delete to host the to_add
+                    # this is can help in case a value is changed to another one
+                    # the children of the node to delete can still be preserved
+                    child.value = added[0] 
+                    added.remove(child.value)
+                else:
+                    # nothing to add, remove the children
+                    to_delete.append(child.value)
+        
         # case 1
         if sum_weight <> 100:
             raise StatisticNodeError('weight does not equal to 100')

@@ -11,19 +11,21 @@ from os.path import exists
 
 from PyQt4.QtGui import QWidget, QMessageBox, QFileDialog
 from PyQt4.QtCore import Qt, QObject, QPoint, pyqtSlot
+from PyQt4.QtXml import QDomDocument
 from qgis.gui import QgsMapCanvas, QgsMapCanvasLayer, \
                      QgsMapToolPan, QgsMapToolZoom, QgsMapToolEmitPoint, \
                      QgsRendererV2PropertiesDialog
-from qgis.core import QGis, QgsMapLayerRegistry, QgsStyleV2, \
-                      QgsCoordinateReferenceSystem, QgsCoordinateTransform, \
-                      QgsFeature, QgsRectangle
+from qgis.core import QGis, QgsMapLayerRegistry, QgsCoordinateReferenceSystem, \
+                      QgsCoordinateTransform, QgsFeature, QgsRectangle, \
+                      QgsStyleV2, QgsFeatureRendererV2
 
-from utils.shapefile import load_shapefile
+from utils.shapefile import load_shapefile, layer_field_index, layer_features
 from sidd.constants import ExportTypes, ExtrapolateOptions
 
 from ui.constants import logUICall, get_ui_string, UI_PADDING
 from ui.dlg_result import DialogResult
 from ui.qt.wdg_result_ui import Ui_widgetResult
+from ui.dlg_search_feature import DialogSearchFeature
 
 class WidgetResult(Ui_widgetResult, QWidget):
     """
@@ -49,6 +51,13 @@ class WidgetResult(Ui_widgetResult, QWidget):
         get_ui_string("widget.result.layer.footprint"),
         get_ui_string("widget.result.layer.zones"),
     ];    
+    LAYER_STYLES = [
+        '<!DOCTYPE renderer><renderer-v2 symbollevels="0" type="singleSymbol"><symbols><symbol outputUnit="MM" alpha="1" type="marker" name="0"><layer pass="0" class="SimpleMarker" locked="0"><prop k="angle" v="0"/><prop k="color" v="255,170,0,255"/><prop k="color_border" v="255,170,0,255"/><prop k="name" v="regular_star"/><prop k="offset" v="0,0"/><prop k="size" v="3"/></layer></symbol></symbols><rotation field=""/><sizescale field=""/></renderer-v2>',         
+        '<!DOCTYPE renderer><renderer-v2 symbollevels="0" type="singleSymbol"><symbols><symbol outputUnit="MM" alpha="1" type="fill" name="0"><layer pass="0" class="SimpleLine" locked="0"><prop k="capstyle" v="square"/><prop k="color" v="0,0,0,255"/><prop k="customdash" v="5;2"/><prop k="joinstyle" v="bevel"/><prop k="offset" v="0"/><prop k="penstyle" v="solid"/><prop k="use_custom_dash" v="0"/><prop k="width" v="0.26"/></layer></symbol></symbols><rotation field=""/><sizescale field=""/></renderer-v2>',
+        '<!DOCTYPE renderer><renderer-v2 symbollevels="0" type="singleSymbol"><symbols><symbol outputUnit="MM" alpha="1" type="marker" name="0"><layer pass="0" class="SimpleMarker" locked="0"><prop k="angle" v="0"/><prop k="color" v="0,0,255,255"/><prop k="color_border" v="0,0,255,255"/><prop k="name" v="circle"/><prop k="offset" v="0,0"/><prop k="size" v="2"/></layer></symbol></symbols><rotation field=""/><sizescale field=""/></renderer-v2>',
+        '<!DOCTYPE renderer><renderer-v2 symbollevels="0" type="singleSymbol"><symbols><symbol outputUnit="MM" alpha="1" type="fill" name="0"><layer pass="0" class="SimpleFill" locked="0"><prop k="color" v="170,250,170,255"/><prop k="color_border" v="0,0,0,255"/><prop k="offset" v="0,0"/><prop k="style" v="solid"/><prop k="style_border" v="solid"/><prop k="width_border" v="0.26"/></layer></symbol></symbols><rotation field=""/><sizescale field=""/></renderer-v2>',
+        '<!DOCTYPE renderer><renderer-v2 symbollevels="0" type="singleSymbol"><symbols><symbol outputUnit="MM" alpha="1" type="fill" name="0"><layer pass="0" class="SimpleFill" locked="0"><prop k="color" v="211,211,158,200"/><prop k="color_border" v="0,0,0,255"/><prop k="offset" v="0,0"/><prop k="style" v="solid"/><prop k="style_border" v="solid"/><prop k="width_border" v="0.26"/></layer></symbol></symbols><rotation field=""/><sizescale field=""/></renderer-v2>',
+    ]
     
     # constructor / destructor
     ###############################
@@ -59,7 +68,7 @@ class WidgetResult(Ui_widgetResult, QWidget):
         self.ui = Ui_widgetResult()
         self.ui.setupUi(self)
         self.retranslateUi(self.ui)
-
+        
         # create canvas
         self.canvas = QgsMapCanvas(self.ui.widget_map)
         self.canvas.setGeometry(
@@ -75,6 +84,10 @@ class WidgetResult(Ui_widgetResult, QWidget):
         self.canvas.mapRenderer().setDestinationCrs(QgsCoordinateReferenceSystem(4326, QgsCoordinateReferenceSystem.PostgisCrsId))
         self.map_layers = [None] * len(self.LAYER_NAMES)
         self.map_layer_renderer = [None] * len(self.LAYER_NAMES)
+        for idx, str_style in enumerate(self.LAYER_STYLES):
+            rdoc = QDomDocument("renderer")
+            rdoc.setContent(str_style)        
+            self.map_layer_renderer[idx] = QgsFeatureRendererV2.load(rdoc.firstChild().toElement())
 
         # populate export list
         self.ui.cb_export_format.clear()
@@ -113,13 +126,14 @@ class WidgetResult(Ui_widgetResult, QWidget):
         self.ui.btn_theme.clicked.connect(self.mapEditTheme)
         self.ui.btn_info.clicked.connect(self.mapIdentify)
         
+        self.ui.btn_zoom_to_feature.clicked.connect(self.searchFeature)
+        
         self.ui.cb_export_format.currentIndexChanged[str].connect(self.exportFormatChanged)
         self.ui.btn_export.clicked.connect(self.exportData)
         self.ui.btn_export_select_path.clicked.connect(self.selectExportFile)
 
     # UI event handling calls (Qt slots)
     ###############################
-    
     @pyqtSlot(QObject)
     def resizeEvent(self, event):
         """ handle window resize """ 
@@ -187,7 +201,29 @@ class WidgetResult(Ui_widgetResult, QWidget):
                 self.canvas.refresh()
             dlg_render.destroy()            
         except Exception as err:
-            print err
+            logUICall.log(str(err), logUICall.INFO)
+
+    @logUICall
+    @pyqtSlot()
+    def searchFeature(self):        
+        cur_layer = self.ui.cb_layer_selector.currentText()
+        try:
+            cur_layer_idx = self.LAYER_NAMES.index(cur_layer)            
+            layer = self.map_layers[cur_layer_idx]
+            fields = []
+            for fidx in layer.dataProvider().fields():
+                fields.append(layer.dataProvider().fields()[fidx].name())
+            dlg_search = DialogSearchFeature(fields)            
+            answer = dlg_search.exec_()
+            if answer == QMessageBox.Accepted:
+                extent = self.findFeatureExtentByAttribute(layer, dlg_search.attribute, dlg_search.value)
+                if extent is not None:
+                    self.zoomToExtent(extent)
+                else:
+                    QMessageBox.information(self, get_ui_string("app.warning.title"),get_ui_string("widget.result.info.notfound"))
+            dlg_search.destroy()            
+        except Exception as err:
+            logUICall.log(str(err), logUICall.INFO)
             
     @logUICall
     @pyqtSlot()
@@ -400,6 +436,7 @@ class WidgetResult(Ui_widgetResult, QWidget):
         self.removeDataLayer(self.EXPOSURE)
         self.removeDataLayer(self.EXPOSURE_GRID)
 
+    @logUICall
     def closeAll(self):
         self.ui.cb_layer_selector.clear()
         if getattr(self, 'registry', None) is None:
@@ -413,10 +450,9 @@ class WidgetResult(Ui_widgetResult, QWidget):
         finally:
             self.canvas.setLayerSet([])
             self.canvas.refresh()
-                
+    
     # internal helper methods
     ###############################
-    @logUICall    
     def showDataLayer(self, layer, renderer=None, zoom_to=True):
         """ display result layer """
         if getattr(self, 'registry', None) is None:
@@ -446,6 +482,27 @@ class WidgetResult(Ui_widgetResult, QWidget):
                 pass # do nothing if it fails. probably already deleted
             self.refreshLayers()        
 
+    def findFeatureExtentByAttribute(self, layer, field, value):
+        fidx = layer_field_index(layer, field)
+        if fidx == -1:
+            return None
+        xmin, xmax, ymin, ymax = 180, -180, 90, -90
+        extent = QgsRectangle(xmin, ymin, xmax, ymax)
+        need_transform = layer.crs() != self.canvas.mapRenderer().destinationCrs()
+        if need_transform:
+            transform = QgsCoordinateTransform(layer.crs(), self.canvas.mapRenderer().destinationCrs())
+        for feature in layer_features(layer):
+            if str(value) == feature.attributeMap()[fidx].toString():
+                f_extent = feature.geometry().boundingBox()
+                if need_transform:
+                    f_extent = transform.transform(f_extent)
+                xmin = min(f_extent.xMinimum(), xmin)
+                xmax = max(f_extent.xMaximum(), xmax)
+                ymin = min(f_extent.yMinimum(), ymin)
+                ymax = max(f_extent.yMaximum(), ymax)
+        extent.set (xmin, ymin, xmax, ymax)
+        return extent
+
     def zoomToLayer(self, layer):
         """ zoom canvas to extent of given layer """
         try:
@@ -453,13 +510,18 @@ class WidgetResult(Ui_widgetResult, QWidget):
             if layer.crs() != self.canvas.mapRenderer().destinationCrs():
                 transform = QgsCoordinateTransform(layer.crs(), self.canvas.mapRenderer().destinationCrs())
                 lyr_extent = transform.transform(lyr_extent)
-                            
-            self.canvas.setExtent(lyr_extent)
+            self.zoomToExtent(lyr_extent)
+        except:
+            pass
+    
+    def zoomToExtent(self, extent):
+        try:
+            self.canvas.setExtent(extent)
             self.canvas.zoomByFactor(1.1)
             self.canvas.refresh()
         except:
             self.mapZoomFull()
-            
+    
     def refreshLayers(self):
         """ refresh all layers """
         # add each layer according to order

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>941</width>
-    <height>670</height>
+    <height>655</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -183,7 +183,7 @@ p, li { white-space: pre-wrap; }
      <x>10</x>
      <y>40</y>
      <width>631</width>
-     <height>611</height>
+     <height>581</height>
     </rect>
    </property>
    <widget class="QWidget" name="widget_map_menu_r" native="true">
@@ -198,7 +198,7 @@ p, li { white-space: pre-wrap; }
     <widget class="QLabel" name="lb_layer_selector">
      <property name="geometry">
       <rect>
-       <x>40</x>
+       <x>0</x>
        <y>0</y>
        <width>191</width>
        <height>21</height>
@@ -214,7 +214,7 @@ p, li { white-space: pre-wrap; }
     <widget class="QComboBox" name="cb_layer_selector">
      <property name="geometry">
       <rect>
-       <x>240</x>
+       <x>200</x>
        <y>0</y>
        <width>141</width>
        <height>22</height>
@@ -259,6 +259,20 @@ p, li { white-space: pre-wrap; }
      <property name="icon">
       <iconset resource="resources/SIDDResource.qrc">
        <normaloff>:/imgs/icons/information.png</normaloff>:/imgs/icons/information.png</iconset>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_zoom_to_feature">
+     <property name="geometry">
+      <rect>
+       <x>360</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/hourglass.png</normaloff>:/imgs/icons/hourglass.png</iconset>
      </property>
     </widget>
    </widget>
