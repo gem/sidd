@@ -20,7 +20,7 @@ from qgis.core import QGis, QgsMapLayerRegistry, QgsCoordinateReferenceSystem, \
                       QgsStyleV2, QgsFeatureRendererV2
 
 from utils.shapefile import load_shapefile, layer_field_index, layer_features
-from sidd.constants import ExportTypes, ExtrapolateOptions
+from sidd.constants import ExportTypes, ExtrapolateOptions, OutputTypes
 
 from ui.constants import logUICall, get_ui_string, UI_PADDING
 from ui.dlg_result import DialogResult
@@ -377,13 +377,26 @@ class WidgetResult(Ui_widgetResult, QWidget):
         self.ui.txt_export_select_path.setText(self._project.export_path)
         self.refreshResult()
 
-    def refreshResult(self):        
-        exposure = getattr(self._project, 'exposure', None)
+    def refreshResult(self):
+        if self.project.output_type == OutputTypes.Zone:
+            exposure = getattr(self._project, 'exposure', None)
+            exposure_layer = self.EXPOSURE
+            exposure_renderer = self.EXPOSURE_GRID
+        else:
+            exposure = getattr(self._project, 'exposure_grid', None)
+            exposure_layer = self.EXPOSURE_GRID
+            exposure_renderer = self.EXPOSURE_GRID
+    
         if exposure is not None:
-            # display exposure layer
-            #self.map_layers[self.EXPOSURE] = exposure 
-            #self.showDataLayer(self.map_layers[self.EXPOSURE], self.map_layer_renderer[self.EXPOSURE])
-            
+            self.map_layers[exposure_layer] = exposure 
+            self.showDataLayer(self.map_layers[exposure_layer], self.map_layer_renderer[exposure_renderer])
+            has_result = True            
+        else:
+            self.map_layers[exposure_layer] = None 
+            self.removeDataLayer(exposure_layer)
+            has_result = False
+        
+        if has_result:
             # build quality report 
             report_lines = []
             if self._project.operator_options.has_key("proc.extrapolation"):
@@ -411,20 +424,8 @@ class WidgetResult(Ui_widgetResult, QWidget):
                 report_lines.append('')                    
             
             self.ui.txt_dq_test_details.setText("\n".join(report_lines))
-            has_result = True
-        else:
-            #self.map_layers[self.EXPOSURE] = None 
-            #self.removeDataLayer(self.EXPOSURE)
-            has_result = False
 
-        exposure_grid = getattr(self._project, 'exposure_grid', None)
-        if exposure_grid is not None:
-            self.map_layers[self.EXPOSURE_GRID]=exposure_grid
-            self.showDataLayer(self.map_layers[self.EXPOSURE_GRID], self.map_layer_renderer[self.EXPOSURE_GRID]) 
-        else:
-            self.map_layers[self.EXPOSURE_GRID] = None 
-            self.removeDataLayer(self.EXPOSURE_GRID)
-            
+
         self.ui.btn_export.setEnabled(has_result)
         self.ui.widget_dq_test.setVisible(has_result)
         self.ui.txt_export_select_path.setEnabled(has_result)

@@ -45,6 +45,7 @@ class MSDatabaseDAO:
     
     def get_regions(self):
         logUICall.log('get_regions', logUICall.DEBUG_L2)
+        undefined_region = 'Undefined-Region'
         if not self.initialized:
             return []
         else:
@@ -52,9 +53,10 @@ class MSDatabaseDAO:
             # add undefined region to allow user to store 
             # mapping schemes not associated with any region
             try:
-                regions.index('Undefined-Region')
+                regions.remove(undefined_region)                
             except:
-                regions.insert(0, 'Undefined-Region')
+                pass
+            regions.insert(0, undefined_region)
             return regions
         
     def get_types_in_region(self, region):

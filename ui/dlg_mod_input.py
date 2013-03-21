@@ -143,7 +143,7 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
                                             str(index.data().toString()))
             if edit_dlg.exec_() == QDialog.Accepted:                
                 try:
-                    index.model().setData(index, QVariant(edit_dlg.attribute_value()), Qt.EditRole)                    
+                    index.model().setData(index, QVariant(edit_dlg.attribute_value), Qt.EditRole)                  
                 except Exception as err:
                     print err
 

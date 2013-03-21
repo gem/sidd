@@ -200,7 +200,7 @@ p, li { white-space: pre-wrap; }
       <rect>
        <x>0</x>
        <y>0</y>
-       <width>191</width>
+       <width>181</width>
        <height>21</height>
       </rect>
      </property>
@@ -214,7 +214,7 @@ p, li { white-space: pre-wrap; }
     <widget class="QComboBox" name="cb_layer_selector">
      <property name="geometry">
       <rect>
-       <x>200</x>
+       <x>180</x>
        <y>0</y>
        <width>141</width>
        <height>22</height>
@@ -224,7 +224,7 @@ p, li { white-space: pre-wrap; }
     <widget class="QPushButton" name="btn_theme">
      <property name="geometry">
       <rect>
-       <x>390</x>
+       <x>360</x>
        <y>0</y>
        <width>31</width>
        <height>23</height>
@@ -264,7 +264,7 @@ p, li { white-space: pre-wrap; }
     <widget class="QPushButton" name="btn_zoom_to_feature">
      <property name="geometry">
       <rect>
-       <x>360</x>
+       <x>390</x>
        <y>0</y>
        <width>31</width>
        <height>23</height>
@@ -273,6 +273,26 @@ p, li { white-space: pre-wrap; }
      <property name="icon">
       <iconset resource="resources/SIDDResource.qrc">
        <normaloff>:/imgs/icons/hourglass.png</normaloff>:/imgs/icons/hourglass.png</iconset>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_zoom_layer">
+     <property name="geometry">
+      <rect>
+       <x>330</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Zoom to Layer</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/magnify.png</normaloff>:/imgs/icons/magnify.png</iconset>
      </property>
     </widget>
    </widget>
@@ -308,7 +328,7 @@ p, li { white-space: pre-wrap; }
     <widget class="QPushButton" name="btn_pan">
      <property name="geometry">
       <rect>
-       <x>90</x>
+       <x>60</x>
        <y>0</y>
        <width>31</width>
        <height>23</height>
@@ -323,26 +343,6 @@ p, li { white-space: pre-wrap; }
      <property name="icon">
       <iconset resource="resources/SIDDResource.qrc">
        <normaloff>:/imgs/icons/arrows_4_way.png</normaloff>:/imgs/icons/arrows_4_way.png</iconset>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="btn_zoom_layer">
-     <property name="geometry">
-      <rect>
-       <x>60</x>
-       <y>0</y>
-       <width>31</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="toolTip">
-      <string>Zoom to Layer</string>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-     <property name="icon">
-      <iconset resource="resources/SIDDResource.qrc">
-       <normaloff>:/imgs/icons/magnify.png</normaloff>:/imgs/icons/magnify.png</iconset>
      </property>
     </widget>
     <widget class="QPushButton" name="btn_zoom_out">
@@ -368,7 +368,7 @@ p, li { white-space: pre-wrap; }
     <widget class="QPushButton" name="btn_zoom_full">
      <property name="geometry">
       <rect>
-       <x>120</x>
+       <x>90</x>
        <y>0</y>
        <width>31</width>
        <height>23</height>
