@@ -31,13 +31,14 @@ def suite():
     # operator tests
     #suite.addTest(OperatorTestCase('test_LoadZone'))
     #suite.addTest(OperatorTestCase('test_MakeGrid'))
+    #suite.addTest(OperatorTestCase('test_ZoneGridJoin'))
     #suite.addTest(OperatorTestCase('test_CreateMSFromSurveyZone'))
     #suite.addTest(OperatorTestCase('test_CreateMSFromSurveyOnly'))
     #suite.addTest(OperatorTestCase('test_ApplyMS'))    
     #suite.addTest(OperatorTestCase('test_LoadGEMDBSurvey'))
     #suite.addTest(OperatorTestCase('test_VerifyExposure'))
     #suite.addTest(OperatorTestCase('test_MakeGridGeometry'))
-    #suite.addTest(OperatorTestCase('test_StratifiedSampleMS'))
+    suite.addTest(OperatorTestCase('test_StratifiedSampleMS'))
     
     #suite.addTest(TaxonomyTestCase('test_Parse'))
     
@@ -45,7 +46,7 @@ def suite():
     #suite.addTest(MSDBTestCase('test_SaveDelete'))
     
     #suite.addTest(ProjectTestCase('test_WorkflowBuilder'))
-    suite.addTest(ProjectTestCase('test_BuildExposure'))
+    #suite.addTest(ProjectTestCase('test_BuildExposure'))
         
     return suite
 

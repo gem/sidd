@@ -263,12 +263,16 @@ class StratifiedMSCreator(EmptyMSCreator):
     
     @property
     def input_types(self):
-        return [OperatorDataTypes.Zone, OperatorDataTypes.StringAttribute,
+        return [OperatorDataTypes.Footprint, 
+                OperatorDataTypes.StringAttribute, OperatorDataTypes.StringAttribute,
+                OperatorDataTypes.Zone, OperatorDataTypes.StringAttribute,
                 OperatorDataTypes.Survey,]
         
     @property    
     def input_names(self):
-        return ["Zone", "Zone Identifier Field",
+        return ["Footprint", 
+                "Footprint Area Field", "Footprint Height Field",
+                "Zone", "Zone Identifier Field",
                 "Survey"]
 
     input_descriptions = input_names
@@ -288,12 +292,21 @@ class StratifiedMSCreator(EmptyMSCreator):
     ###########################
     @logAPICall
     def do_operation(self):
-        # input/output verification not performed yet        
-        zone_layer = self.inputs[0].value
-        zone_field = self.inputs[1].value
-        svy_layer = self.inputs[2].value
+        # input/output verification not performed yet
+        fp_layer = self.inputs[0].value
+        area_field = self.inputs[1].value
+        ht_field = self.inputs[2].value
+        zone_layer = self.inputs[3].value
+        zone_field = self.inputs[4].value
+        svy_layer = self.inputs[5].value
         
         # make sure required data fields are populated
+        area_idx = layer_field_index(fp_layer, area_field)
+        if area_idx == -1:        
+            raise OperatorError("Field %s does not exist in %s" %(area_field, fp_layer.name()), self.__class__)        
+        ht_idx = layer_field_index(fp_layer, ht_field)
+        if ht_idx == -1:        
+            raise OperatorError("Field %s does not exist in %s" %(ht_field, fp_layer.name()), self.__class__)        
         zone_idx = layer_field_index(zone_layer, zone_field)
         if zone_idx == -1:        
             raise OperatorError("Field %s does not exist in %s" %(zone_field, zone_layer.name()), self.__class__)
@@ -316,7 +329,7 @@ class StratifiedMSCreator(EmptyMSCreator):
             zone_classes = layer_fields_stats(zone_layer, zone_field)
         except AssertionError as err:
             raise OperatorError(str(err), self.__class__)
-                
+
         # join survey with zones        
         logAPICall.log('merge survey & zone', logAPICall.DEBUG)
         tmp_join_layername = 'join_%s' % get_unique_filename()
@@ -337,10 +350,10 @@ class StratifiedMSCreator(EmptyMSCreator):
         if tax_idx == -1:
             raise OperatorError("Field %s does not exist in %s" %(TAX_FIELD_NAME, svy_layer.name()))
         
-        
         # empty fields for holding the stats
         _zone_n_exp, _zone_p_exp, _zone_a_exp, _zone_e_exp = {}, {}, {}, {}
-        _zone_group_counts, _zone_group_stories, _zone_group_weight = {}, {}, {}        
+        _zone_group_counts, _zone_group_stories, _zone_group_weight = {}, {}, {}
+        _zone_total_area, _zone_total_count, _zone_total_ht = {}, {}, {} 
         for _zone in zone_classes.iterkeys():
             _zone_n_exp[_zone] = {}
             _zone_p_exp[_zone] = {}
@@ -349,6 +362,9 @@ class StratifiedMSCreator(EmptyMSCreator):
             _zone_group_counts[_zone] = {} 
             _zone_group_stories[_zone] = {}
             _zone_group_weight[_zone] = {}
+            _zone_total_area[_zone] = 0
+            _zone_total_count[_zone] = 0
+            _zone_total_ht[_zone] = 0
 
         # associate group to ratio value
         for _rec in layer_features(tmp_join_layer):
@@ -399,23 +415,57 @@ class StratifiedMSCreator(EmptyMSCreator):
                 self.increment_dict(_zone_a_exp[_zone_str], _tax_str, _sample_size*_ht*group_weight[_sample_grp])
                 self.increment_dict(_zone_e_exp[_zone_str], _tax_str, 0)
             except Exception as err:
+                logAPICall.log("error processing sample with building type: %s" % _tax_str, logAPICall.WARNING)
                 pass              
+
+        # adjust ratio using footprint ht/area
+        tmp_join_layername2 = 'join_%s' % get_unique_filename()
+        tmp_join_file2 = self._tmp_dir + tmp_join_layername2 + '.shp'        
+        analyzer = QgsOverlayAnalyzer()        
+        analyzer.intersection(fp_layer, zone_layer, tmp_join_file2)        
+        tmp_join_layer2 = load_shapefile(tmp_join_file2, tmp_join_layername)
+        
+        zone_idx = layer_field_index(tmp_join_layer2, zone_field)        
+        area_idx = layer_field_index(tmp_join_layer2, area_field)
+        ht_idx = layer_field_index(tmp_join_layer2, ht_field)        
+        for _f in layer_features(tmp_join_layer2):
+            _zone_str = str(_f.attributeMap()[zone_idx].toString())
+            _area = _f.attributeMap()[area_idx].toDouble()[0]
+            _ht = _f.attributeMap()[ht_idx].toDouble()[0]
+
+            _zone_total_area[_zone_str] += _area
+            _zone_total_count[_zone_str] += 1
+            _zone_total_ht[_zone_str] += _ht
         
         # calculate building ratios for each zone        
-        for _zone in zone_classes.iterkeys():   
+        for _zone in zone_classes.iterkeys():
             # for total count (n) and area (a) 
-            n_total = sum(_zone_n_exp[_zone].itervalues())
-            a_total = sum(_zone_a_exp[_zone].itervalues())
+            e_nt_cluster_total = sum(_zone_n_exp[_zone].itervalues())
+            e_at_cluster_total = sum(_zone_a_exp[_zone].itervalues())            
+            # E[A] estimated total building area for zone
+            e_at_total = _zone_total_area[_zone] * _zone_total_ht[_zone]/_zone_total_count[_zone]
             
             # calculate expected values  
-            for _sample_tax, _sample_area in _zone_a_exp[_zone].iteritems():
-                # if area is missing, use count instead                
-                if a_total > 0: 
-                    _zone_e_exp[_zone][_sample_tax] = _sample_area / a_total
-                    _zone_a_exp[_zone][_sample_tax] = _sample_area / _zone_n_exp[_zone][_sample_tax]
+            for t, e_at_cluster in _zone_a_exp[_zone].iteritems():
+                e_nt_cluster = _zone_n_exp[_zone][t]         
+                if e_at_cluster == 0 or e_at_total == 0: 
+                    # area is missing, use count instead
+                    _zone_e_exp[_zone][t] = e_nt_cluster / e_nt_cluster_total
+                    _zone_a_exp[_zone][t] = 0
                 else:
-                    _zone_e_exp[_zone][_sample_tax] = _zone_n_exp[_zone][_sample_tax] / n_total
-                    _zone_a_exp[_zone][_sample_tax] = 0
+                    # use ratio of area over total area
+                    # E[f(t)] building fraction based on sampled area 
+                    e_ft_cluster = e_at_cluster / e_at_cluster_total
+                    # E[G(t)] average area per building 
+                    e_gt_cluster = e_at_cluster / e_nt_cluster
+
+                    # E[A(t)] estimated total building area for zone for building type
+                    e_at = e_at_total * e_ft_cluster
+                    # E[N(t)] estimated total number of buildings zone-wide by type
+                    e_nt = e_at / e_gt_cluster
+                                        
+                    _zone_e_exp[_zone][t] = e_nt
+                    _zone_a_exp[_zone][t] = e_ft_cluster
         
         # convert the building ratios
         logAPICall.log('create mapping scheme for zones', logAPICall.DEBUG)

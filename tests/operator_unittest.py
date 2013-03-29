@@ -11,6 +11,7 @@ import logging
 from sidd.ms import MappingScheme
 from sidd.operator import *
 from utils.shapefile import remove_shapefile, layer_fields_stats, load_shapefile
+from sidd.constants import AREA_FIELD_NAME, HT_FIELD_NAME
 
 from common import SIDDTestCase
 
@@ -37,7 +38,7 @@ class OperatorTestCase(SIDDTestCase):
 
         # test data set 3
         self.fp3_path = self.test_data_dir +  "footprints3.shp"
-        self.fp3_height_path= "HT"
+        self.fp3_height_field = "HEIGHT"
         self.gemdb3_path = self.test_data_dir +  "survey3.gemdb"
         self.zone3_path = self.test_data_dir +  "zones3.shp"
         self.zone3_field = "ZONE"
@@ -87,7 +88,29 @@ class OperatorTestCase(SIDDTestCase):
         
         del layer
         self._clean_layer(loader.outputs)  
+
+    def test_LoadFootprintHT(self, skipTest=False):
+        logging.debug('test_LoadFootprint %s' % skipTest)
         
+        fp_path = self.fp3_path
+        loader = FootprintHtLoader(self.operator_options)
+        loader.inputs = [
+            OperatorData(OperatorDataTypes.Shapefile, fp_path),
+            OperatorData(OperatorDataTypes.StringAttribute, self.fp3_height_field),
+        ]
+        loader.outputs = [
+            OperatorData(OperatorDataTypes.Footprint),
+            OperatorData(OperatorDataTypes.Shapefile),
+        ]
+        loader.do_operation()
+        if skipTest:
+            return loader.outputs
+        layer = loader.outputs[0].value        
+        self.assertEquals(self.fp_feature_count, layer.dataProvider().featureCount())        
+        
+        del layer
+        self._clean_layer(loader.outputs)  
+    
 
     def test_LoadZone(self, skipTest=False, zone=1):
         logging.debug('test_LoadZone %s' % skipTest)
@@ -170,14 +193,15 @@ class OperatorTestCase(SIDDTestCase):
 
 
     def test_StratifiedSampleMS(self, skipTest=False):
-        fp_data = self.test_LoadFootprint(skipTest=True, fp=3)
-        fp_ht_field = OperatorData(OperatorDataTypes.StringAttribute, self.fp3_height_path)
+        fp_data = self.test_LoadFootprintHT(skipTest=True)
+        fp_area_field = OperatorData(OperatorDataTypes.StringAttribute, AREA_FIELD_NAME)
+        fp_ht_field = OperatorData(OperatorDataTypes.StringAttribute, HT_FIELD_NAME)
         zone_data = self.test_LoadZone(skipTest=True, zone=3)
         zone_field = OperatorData(OperatorDataTypes.StringAttribute, self.zone3_field)
         survey_data = self.test_LoadGEMDBSurvey(skipTest=True)
         
         ms_creator = StratifiedMSCreator(self.operator_options)
-        ms_creator.inputs = [zone_data[0], zone_field, survey_data[0]]
+        ms_creator.inputs = [fp_data[0], fp_area_field, fp_ht_field, zone_data[0], zone_field, survey_data[0]]
         ms_creator.outputs = [OperatorData(OperatorDataTypes.MappingScheme),
                               OperatorData(OperatorDataTypes.ZoneStatistic),]
         

@@ -7,8 +7,10 @@
 """
 module contains class for creating mapping scheme from survey data
 """
+import bsddb
+import os
 
-from PyQt4.QtCore import QVariant
+from PyQt4.QtCore import QVariant, QString
 from qgis.core import QGis, QgsVectorFileWriter, QgsFeature, QgsField, QgsGeometry, QgsPoint
 from qgis.analysis import QgsOverlayAnalyzer
 
@@ -16,7 +18,7 @@ from utils.shapefile import load_shapefile, layer_features, layer_field_index, r
                             layer_multifields_stats, layer_fields_stats, load_shapefile_verify 
 from utils.system import get_unique_filename
 
-from sidd.constants import logAPICall, GID_FIELD_NAME 
+from sidd.constants import logAPICall, GID_FIELD_NAME, MAX_FEATURES_IN_MEMORY, DEFAULT_GRID_SIZE
 from sidd.operator import Operator, OperatorError
 from sidd.operator.data import OperatorDataTypes
 
@@ -31,6 +33,8 @@ class ZoneGridMerger(Operator):
     def __init__(self, options=None, name='Zone & Grid Merger'):
         super(ZoneGridMerger, self).__init__(options, name)        
         self._tmp_dir = options['tmp_dir']
+        self._x_off = DEFAULT_GRID_SIZE
+        self._y_off = DEFAULT_GRID_SIZE
         
     # self documenting method override
     ###########################
@@ -75,6 +79,32 @@ class ZoneGridMerger(Operator):
         zone_field = self.inputs[1].value        
         count_field = self.inputs[2].value
         grid_layer = self.inputs[3].value        
+
+        # calculate zone building count statistics
+        # store into DB in feature exceed max allowed         
+        use_zone_db = zone_layer.dataProvider().featureCount() > MAX_FEATURES_IN_MEMORY
+        if use_zone_db:            
+            tmp_zone_db_file = '%sdb_%s.db' % (self._tmp_dir, get_unique_filename())
+            zone_stats = bsddb.btopen(tmp_zone_db_file, 'c')
+            tmp_zone_count_db_file = '%sdb_%s.db' % (self._tmp_dir, get_unique_filename())
+            zone_count_stats = bsddb.btopen(tmp_zone_count_db_file, 'c')
+        else:
+            zone_stats = {}
+            zone_count_stats = {}
+        gid_idx = layer_field_index(zone_layer, self._gid_field)         
+        count_idx = layer_field_index(zone_layer, count_field)
+        for _f in layer_features(zone_layer):
+            gid = _f.attributeMap()[gid_idx].toString()
+            zone_stats[gid] = 0
+            zone_count_stats[gid] = _f.attributeMap()[count_idx].toDouble()[0]
+        
+        # create storage for temporary output data
+        use_grid_db = grid_layer.dataProvider().featureCount() > MAX_FEATURES_IN_MEMORY
+        if use_grid_db:
+            tmp_grid_db_file = '%sdb_%s.db' % (self._tmp_dir, get_unique_filename())
+            grid_points = bsddb.btopen(tmp_grid_db_file, 'c')
+        else:
+            grid_points = {}
         
         # merge to create stats
         tmp_join = 'joined_%s' % get_unique_filename()
@@ -92,13 +122,51 @@ class ZoneGridMerger(Operator):
         if stats == False:
             raise OperatorError("error creating statistic based on input files",
                                 self.__class__)
-        total_features = tmp_join_layer.featureCount()
-        
+
         zone_idx = layer_field_index(tmp_join_layer, zone_field)
         count_idx = layer_field_index(tmp_join_layer, count_field)
         lon_idx = layer_field_index(tmp_join_layer, self._lon_field)
         lat_idx = layer_field_index(tmp_join_layer, self._lat_field)
+        gid_idx = layer_field_index(tmp_join_layer, self._gid_field)        
+        
+        try:        
+            for _f in layer_features(tmp_join_layer):
+                lon = _f.attributeMap()[lon_idx].toDouble()[0]
+                lat = _f.attributeMap()[lat_idx].toDouble()[0]
+                zone_str = str(_f.attributeMap()[zone_idx].toString()).upper()
+                count_val = _f.attributeMap()[count_idx].toDouble()[0]
+                gid = _f.attributeMap()[gid_idx].toString()
 
+                # update stats
+                zone_stats[gid] += 1
+                grid_points[self._make_key(zone_str, gid, lon, lat)] = 1 
+        except Exception as err:
+            raise OperatorError("error processing joined layer: " % err, self.__class__)
+
+        # test for zones without a grid point assigned
+        count_idx = layer_field_index(zone_layer, count_field)
+        gid_idx = layer_field_index(zone_layer, self._gid_field)
+        zone_idx = layer_field_index(zone_layer, zone_field)
+        _x_off, _y_off = self._x_off / 2.0,  self._y_off / 2.0
+        try:
+            for _f in layer_features(zone_layer):
+                centroid = _f.geometry().centroid().asPoint()
+                zone_str = str(_f.attributeMap()[zone_idx].toString()).upper()
+                count_val = _f.attributeMap()[count_idx].toDouble()[0]
+                gid = _f.attributeMap()[gid_idx].toString()
+                
+                if zone_stats[gid] == 0:
+                    # get lower left corner
+                    lon = int(centroid.x()/DEFAULT_GRID_SIZE)*self._x_off + _x_off
+                    lat = int(centroid.y()/self._y_off)*self._y_off + _y_off
+
+                    #self._write_feature(writer, f, lon, lat, zone_str, count_val)
+                    zone_stats[gid] += 1                                        
+                    grid_points[self._make_key(zone_str, gid, lon, lat)] = 1                                
+        except Exception as err:
+            raise OperatorError("error processing missing points: " % err, self.__class__)
+
+        # output result
         fields = {
             0 : QgsField(self._lon_field, QVariant.Double),
             1 : QgsField(self._lat_field, QVariant.Double),
@@ -108,35 +176,42 @@ class ZoneGridMerger(Operator):
         grid_layername = 'grid_%s' % (get_unique_filename())
         grid_file = '%s%s.shp' % (self._tmp_dir, grid_layername)
         try:
-            writer = QgsVectorFileWriter(grid_file, "utf-8", fields, QGis.WKBPoint, self._crs, "ESRI Shapefile")
             f = QgsFeature()
-            for _f in layer_features(tmp_join_layer):
-                lon = _f.attributeMap()[lon_idx].toDouble()[0]
-                lat = _f.attributeMap()[lat_idx].toDouble()[0]
-                zone_str = str(_f.attributeMap()[zone_idx].toString()).upper()
-                count_val = _f.attributeMap()[count_idx].toDouble()[0]
-                #key = '%s_%d' % (zone_str, count_val)
-                #val = stats[key]
-                
+            writer = QgsVectorFileWriter(grid_file, "utf-8", fields, QGis.WKBPoint, self._crs, "ESRI Shapefile")
+            for key, value in grid_points.iteritems():                
+                [zone, zone_gid, lon, lat] = self._parse_key(key)                
+                f.setGeometry(QgsGeometry.fromPoint(QgsPoint(lon, lat)))
+                """                
                 f.setGeometry(QgsGeometry.fromPoint(QgsPoint(lon, lat)))
                 f.addAttribute(0, QVariant(lon))
                 f.addAttribute(1, QVariant(lat))
                 f.addAttribute(2, QVariant(zone_str))            
                 f.addAttribute(3, QVariant(count_val / total_features))
                 writer.addFeature(f)
-            
+                """
+                value = float(value) / zone_stats[zone_gid] * zone_count_stats[zone_gid]
+                grid_points[key] = value 
+                self._write_feature(writer, f, lon, lat, zone, value)
             del writer
         except Exception as err:
-            remove_shapefile(grid_file)
-            raise OperatorError("error creating joined grid: " % err, self.__class__)
-
+            raise OperatorError("error creating joined grid file: " % err, self.__class__)
+            
+        # load result layer
         grid_layer = load_shapefile(grid_file, grid_layername)
         if not grid_layer:
-            raise OperatorError('Error loading footprint centroid file' % (grid_file), self.__class__)
+            raise OperatorError('Error loading joined grid file' % (grid_file), self.__class__)
         
         # clean up
         del tmp_join_layer
         remove_shapefile(tmp_join_file)
+        if use_zone_db:
+            zone_stats.close()
+            os.remove(tmp_zone_db_file)
+            zone_count_stats.close()
+            os.remove(tmp_zone_count_db_file)
+        if use_grid_db:
+            grid_points.close()
+            os.remove(tmp_grid_db_file)
         
         self.outputs[0].value = grid_layer
         self.outputs[1].value = grid_file
@@ -151,6 +226,25 @@ class ZoneGridMerger(Operator):
     def _verify_outputs(self, outputs):
         """ perform operator specific output validation """
         pass
+
+    def _make_key(self, zone_str, gid, lon, lat):
+        return '%s,%s,%.5f,%.5f' % (zone_str, gid, lon, lat)
+    
+    def _parse_key(self, key):
+        (zone_str, gid, lon, lat) = str(key).split(",")
+        gid = QString(gid) 
+        lat = float(lat)
+        lon = float(lon)
+        return (zone_str, gid, lon, lat)
+    
+    def _write_feature(self, writer, f, lon, lat, zone, zone_ratio):
+        f.setGeometry(QgsGeometry.fromPoint(QgsPoint(lon, lat)))
+        f.addAttribute(0, QVariant(lon))
+        f.addAttribute(1, QVariant(lat))
+        f.addAttribute(2, QVariant(zone))            
+        f.addAttribute(3, QVariant(zone_ratio))
+        writer.addFeature(f)
+        
 
 class ZoneFootprintMerger(Operator):
     def __init__(self, options=None, name='Zone & Footprint Merger'):

@@ -9,6 +9,8 @@ system helper functions
 """
 
 import os
+import fnmatch
+import shutil
 import random
 import datetime
 
@@ -39,6 +41,12 @@ def get_temp_dir(dirname=''):
         if not os.path.exists(temp):
             os.mkdir(temp)
     return temp
+    
+def delete_folders_in_dir(dirname='.', pattern='*.*'):    
+    for folder in os.listdir(dirname):
+        fullpath_folder = os.path.join(dirname, folder)
+        if os.path.isdir(fullpath_folder) and fnmatch.fnmatch(folder, pattern):
+            shutil.rmtree(fullpath_folder)
     
 def get_user_dir():
     """ get path to user directory """    

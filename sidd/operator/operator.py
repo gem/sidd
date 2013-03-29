@@ -9,7 +9,7 @@ base class for SIDD operators
 """
 from qgis.core import QgsCoordinateReferenceSystem
 
-from sidd.constants import logAPICall, LON_FIELD_NAME, LAT_FIELD_NAME, TAX_FIELD_NAME  
+from sidd.constants import logAPICall, LON_FIELD_NAME, LAT_FIELD_NAME, TAX_FIELD_NAME, GID_FIELD_NAME
 from data import OperatorData
 from exception import OperatorError, OperatorDataError
 from utils.shapefile import layer_field_index
@@ -54,6 +54,7 @@ class Operator(object):
         self._lon_field = LON_FIELD_NAME 
         self._lat_field = LAT_FIELD_NAME 
         self._tax_field = TAX_FIELD_NAME
+        self._gid_field = GID_FIELD_NAME 
 
     # self documenting method signatures
     ###########################

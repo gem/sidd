@@ -12,7 +12,7 @@ from xml.etree.ElementTree import ElementTree, fromstring
 from sidd.exception import WorkflowException
 from sidd.constants import logAPICall, WorkflowErrors, \
                            FootprintTypes, ExportTypes, OutputTypes, SurveyTypes, ZonesTypes, \
-                           CNT_FIELD_NAME
+                           CNT_FIELD_NAME, HT_FIELD_NAME, AREA_FIELD_NAME
 from sidd.ms import MappingScheme
 from sidd.operator import *
 
@@ -218,12 +218,26 @@ class WorkflowBuilder(object):
         
         logAPICall.log('creating survey loader ...', logAPICall.DEBUG_L2)
 
+        if project.fp_type != FootprintTypes.FootprintHt:
+            workflow.add_error(WorkflowErrors.NeedsHeight)
+        if project.zone_type == ZonesTypes.None:
+            workflow.add_error(WorkflowErrors.NeedsZone)            
+        if project.survey_type == SurveyTypes.None:
+            workflow.add_error(WorkflowErrors.NeedSurvey)
+
+        if workflow.has_error():
+            return workflow
+                
+        self.load_footprint(project, workflow, True)
         self.load_survey(project, workflow, False)
         self.load_zone(project, workflow, False)
         
         workflow.operator_data['zone_field'] = OperatorData(OperatorDataTypes.StringAttribute, project.zone_field)
         ms_creator = StratifiedMSCreator(self._operator_options)
-        ms_creator.inputs = [workflow.operator_data['zone'],
+        ms_creator.inputs = [workflow.operator_data['fp'],
+                             OperatorData(OperatorDataTypes.StringAttribute, AREA_FIELD_NAME),
+                             OperatorData(OperatorDataTypes.StringAttribute, HT_FIELD_NAME),
+                             workflow.operator_data['zone'],
                              workflow.operator_data['zone_field'],
                              workflow.operator_data['survey'],]
         

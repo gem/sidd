@@ -14,7 +14,7 @@ from PyQt4.QtCore import pyqtSlot, QSettings
 from PyQt4.QtGui import QMainWindow, QFileDialog, QMessageBox, QCloseEvent, QDialog
 
 from sidd.exception import SIDDException
-from utils.system import get_app_dir
+from utils.system import get_app_dir, get_temp_dir, delete_folders_in_dir
 from sidd.constants import SIDD_COMPANY, SIDD_APP_NAME, SIDD_VERSION, logAPICall, \
                            ProjectStatus, SyncModes
 from sidd.project import Project
@@ -134,6 +134,9 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         
         self.closeProject()        
         self.ui.statusbar.showMessage(get_ui_string("app.status.ready"))
+
+        # perform clean up from previous runs
+        delete_folders_in_dir(get_temp_dir(), "tmp*")
 
         # enable following during development
         #self._dev_short_cut()
@@ -275,14 +278,6 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
     def closeProject(self):
         """ close opened project and update UI elements accordingly """
 
-        if getattr(self, 'project', None) is not None:
-            # adjust UI in tabs 
-            self.tab_datainput.closeProject()
-            self.tab_ms.clearMappingScheme()
-            self.tab_mod.closeMappingScheme()            
-            del self.project
-            self.project = None
-        
         # adjust UI in application window
         self.tab_result.closeAll()
         self.ui.mainTabs.setTabEnabled(0, False)            
@@ -295,6 +290,14 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         self.ui.actionResult.setEnabled(False)
         self.ui.actionProcessing_Options.setEnabled(False)
         
+        if getattr(self, 'project', None) is not None:
+            # adjust UI in tabs 
+            self.tab_datainput.closeProject()
+            self.tab_ms.clearMappingScheme()
+            self.tab_mod.closeMappingScheme()
+            self.project.clean_up()            
+            del self.project
+            self.project = None
         #self.ui.statusbar.showMessage(get_ui_string("app.status.project.closed"))    
 
     @apiCallChecker
@@ -368,6 +371,15 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         # invoke asynchronously        
         invoke_async(get_ui_string("app.status.processing"), self.project.export_ms_leaves, folder)
         self.ui.statusbar.showMessage(get_ui_string("app.status.ms.exported"))
+
+    @apiCallChecker
+    def exportResults(self, export_format, export_path):
+        """ export mapping scheme leaves as CSV """
+        self.ui.statusbar.showMessage(get_ui_string("app.status.exposure.exported"))
+        # invoke asynchronously
+        self.project.set_export(export_format, export_path)        
+        invoke_async(get_ui_string("app.status.processing"), self.project.export_data)
+        self.ui.statusbar.showMessage(get_ui_string("app.status.exposure.exported"))
 
     @apiCallChecker
     def buildExposure(self):        

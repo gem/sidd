@@ -57,4 +57,4 @@ ProjectStatus = Enum('NotVerified', 'ReadyForExposure', 'ReadyForMS')
 ExtrapolateOptions = Enum('RandomWalk', 'Fraction', 'FractionRounded')
 
 # workflow related
-WorkflowErrors = Enum("NeedsCount", "NeedsZone", "NeedsMS", "NeedSurvey", "NeedExposure", "NoActionDefined")
+WorkflowErrors = Enum("NeedsCount", "NeedsZone", "NeedsHeight", "NeedsMS", "NeedSurvey", "NeedExposure", "NoActionDefined")

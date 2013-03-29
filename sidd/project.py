@@ -55,7 +55,14 @@ class Project (object):
         self.reset()
     
     def __del__(self):
-        """ destructor that perform cleanup """
+        """ 
+        destructor that perform cleanup
+        NOTE: based on python behavior, there is no guarantee this method will ever to called
+        """
+        self.clean_up()
+        
+    def clean_up(self):
+        """ cleanup """
         try:            
             logAPICall.log('attempt to delete project temp dir %s' % self.temp_dir, logAPICall.DEBUG)
             if os.path.exists(self.temp_dir):                
@@ -63,8 +70,8 @@ class Project (object):
                 del self.exposure   # must delete layer, otherwise exposure_file becomes locked
                                     # and will generate error on shutil.rmtree
                 shutil.rmtree(self.temp_dir)
-        except Exception:            
-            pass
+        except Exception as err:            
+            logAPICall.log('failed to delete temporary directory: %' % err, logAPICall.WARNING)
         try:
             self.db.close()
         except Exception:
@@ -226,7 +233,7 @@ class Project (object):
             return self._build_ms(isEmpty=False, useSampling=use_sampling)
         except Exception as err:
             self._build_ms(isEmpty=True)
-            raise SIDDException('Unable to create Mapping Scheme %s' % str(err))
+            raise SIDDException('Unable to create Mapping Scheme:%s' % str(err))
 
     @logAPICall
     def create_empty_ms(self):
@@ -515,6 +522,8 @@ class Project (object):
             ms_workflow = builder.build_sampling_ms_workflow(self)
         else:
             ms_workflow = builder.build_ms_workflow(self, isEmpty)
+        if not ms_workflow.ready:
+            raise SIDDException(ms_workflow.errors)
         
         # process workflow 
         for step in ms_workflow.nextstep():

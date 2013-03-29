@@ -77,6 +77,7 @@ SIDD_UI_STRINGS = {
     "app.status.ms.modified":QApplication.translate('app.status', 'Mapping Scheme Modified', None, QApplication.UnicodeUTF8),
     "app.status.ms.exported":QApplication.translate('app.status', 'Building Distribution Exported', None, QApplication.UnicodeUTF8),
     "app.status.exposure.created":QApplication.translate('app.status', 'Exposure Created', None, QApplication.UnicodeUTF8),    
+    "app.status.exposure.exported":QApplication.translate('app.status', 'Exposure Exported', None, QApplication.UnicodeUTF8),
     "app.status.cancelled":QApplication.translate('app.status', 'Process Cancelled', None, QApplication.UnicodeUTF8),
     "app.status.processing":QApplication.translate('app.status', 'Processing ...', None, QApplication.UnicodeUTF8),
     # common UI messages

@@ -268,8 +268,8 @@ class WidgetResult(Ui_widgetResult, QWidget):
                                  get_ui_string("app.warning.title"), 
                                  get_ui_string("app.error.path.is.null"))
             return
-        self._project.set_export(self.export_format, export_path)
-        self._project.export_data()
+        self.app.exportResults(self.export_format, export_path)
+
         
     @logUICall
     @pyqtSlot(QPoint, QObject)
