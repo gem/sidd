@@ -21,9 +21,10 @@ from utils.shapefile import remove_shapefile
 from sidd.constants import logAPICall, \
                            FILE_PROJ_TEMPLATE, \
                            FootprintTypes, OutputTypes, SurveyTypes, ZonesTypes, \
-                           ProjectStatus, ExtrapolateOptions, SyncModes, ExportTypes
+                           ProjectStatus, ExtrapolateOptions, SyncModes, ExportTypes, \
+                           ProjectErrors
 from sidd.ms import MappingScheme
-from sidd.exception import SIDDException, WorkflowException
+from sidd.exception import SIDDException, SIDDProjectException, WorkflowException
 from sidd.workflow import Workflow, WorkflowBuilder
 
 class Project (object):
@@ -34,25 +35,20 @@ class Project (object):
     # constructor / destructor
     ##################################
 
-    def __init__(self, project_file, app_config, taxonomy):
+    def __init__(self, app_config, taxonomy):
         """ constructor """
         self.temp_dir = get_temp_dir('tmp%s'%get_random_name())
         self.app_config = app_config
-        
-        if (not os.path.exists(project_file)):
-            shutil.copyfile(FILE_PROJ_TEMPLATE, project_file)
-        self.db = bsddb.btopen(project_file, 'c')
-        self.version_major = self._get_project_data('version_major')
-        self.version_minor = self._get_project_data('version_minor')
-        logAPICall.log('opening project file version %s.%s' %(self.version_major, self.version_minor),
-                       logAPICall.INFO)
-        
         self.operator_options = {
             'tmp_dir': self.temp_dir,
             'taxonomy':taxonomy,
             'skips': app_config.get('options', 'skips', [], types.ListType),            
         }
         self.reset()
+
+        self.project_file = None
+        self.db = None
+        self.require_save = False
     
     def __del__(self):
         """ 
@@ -67,23 +63,41 @@ class Project (object):
             logAPICall.log('attempt to delete project temp dir %s' % self.temp_dir, logAPICall.DEBUG)
             if os.path.exists(self.temp_dir):                
                 del self.workflow
-                del self.exposure   # must delete layer, otherwise exposure_file becomes locked
-                                    # and will generate error on shutil.rmtree
+                if self.exposure is not None:
+                    del self.exposure   # must delete layer, otherwise exposure_file becomes locked
+                                        # and will generate error on shutil.rmtree
                 shutil.rmtree(self.temp_dir)
         except Exception as err:            
-            logAPICall.log('failed to delete temporary directory: %' % err, logAPICall.WARNING)
+            logAPICall.log('failed to delete temporary directory: %s' % str(err), logAPICall.WARNING)
         try:
-            self.db.close()
+            if self.project_file is not None and self.db is not None:
+                self.db.close()
         except Exception:
             pass
     
     # data setter methods
     ##################################
     @logAPICall
+    def set_project_path(self, project_file):
+        try:
+            if (not os.path.exists(project_file)):
+                shutil.copyfile(FILE_PROJ_TEMPLATE, project_file)
+            self.db = bsddb.btopen(project_file, 'c')
+            self.version_major = self._get_project_data('version_major')
+            self.version_minor = self._get_project_data('version_minor')
+            logAPICall.log('opening project file version %s.%s' %(self.version_major, self.version_minor),
+                           logAPICall.INFO)
+            self.project_file = project_file
+            self.require_save = True
+        except:
+            raise SIDDProjectException(ProjectErrors.FileFormatError)                
+    
+    @logAPICall
     def set_footprint(self, fp_type, fp_file='', ht_field=''):
         self.fp_file = fp_file
         self.fp_type = fp_type
         self.fp_ht_field = ht_field
+        self.require_save = True
 
     @logAPICall
     def set_zones(self, zone_type, zone_file='', zone_field='', zone_count_field=''):
@@ -91,7 +105,8 @@ class Project (object):
         self.zone_file = zone_file
         self.zone_type = zone_type
         self.zone_field = zone_field
-        self.zone_count_field = zone_count_field        
+        self.zone_count_field = zone_count_field
+        self.require_save = True        
 
     @logAPICall
     def set_survey(self, survey_type, survey_file='', survey_format='GEMDB'):
@@ -99,15 +114,18 @@ class Project (object):
         self.survey_file = survey_file
         self.survey_type = survey_type
         self.survey_format = survey_format
+        self.require_save = True
         
     @logAPICall
     def set_output_type(self, output_type):
         self.output_type = output_type
+        self.require_save = True
 
     @logAPICall
     def set_export(self, export_type, export_path):
         self.export_type = export_type
         self.export_path = export_path
+        self.require_save = True
 
     @logAPICall
     def reset(self, sync=False):
@@ -130,6 +148,8 @@ class Project (object):
         self.ms = None
         self.output_type = OutputTypes.Grid
 
+        self.exposure = None
+        
         self.export_type = ExportTypes.Shapefile
         self.export_path = ''
 
@@ -140,6 +160,7 @@ class Project (object):
         self.status = ProjectStatus.NotVerified
         self.errors = []
         
+        self.require_save = True
         if sync:
             self.sync(SyncModes.Write)
 
@@ -179,9 +200,6 @@ class Project (object):
     @logAPICall
     def verify_data(self):
         """ verify existing data and create workflow """
-        # persist project
-        self.sync(SyncModes.Write)
-        
         # build workflow based on current data
         builder = WorkflowBuilder(self.operator_options)
         self.workflow = builder.build_workflow(self)    
@@ -193,6 +211,7 @@ class Project (object):
         self.errors = self.workflow.errors
         self.exposure = None
         logAPICall.log('input verification completed', logAPICall.INFO)
+        
 
     @logAPICall
     def build_exposure(self):
@@ -288,7 +307,6 @@ class Project (object):
             if verify_workflow.operator_data.has_key('count_report'):
                 self.quality_reports['count'] = verify_workflow.operator_data['count_report'].value
             logAPICall.log('result verification completed', logAPICall.INFO)
-            
         except WorkflowException:
             return False
         except Exception as err:
@@ -301,6 +319,9 @@ class Project (object):
     @logAPICall
     def sync(self, direction=SyncModes.Read):
         """ synchorize data with DB """
+        if self.project_file is None or self.db is None:
+            raise SIDDProjectException(ProjectErrors.FileNotSet)
+        
         if (direction == SyncModes.Read):
             logAPICall.log("reading existing datasets from DB", logAPICall.DEBUG)
             
@@ -393,7 +414,11 @@ class Project (object):
                 self.export_path = export_path
             
         else:
-            logAPICall.log("store existing datasets into DB", logAPICall.DEBUG)
+            if not self.require_save:
+                logAPICall.log("nothing changed since last save", logAPICall.DEBUG)
+                return 
+                
+            logAPICall.log("store existing datasets into DB", logAPICall.DEBUG)            
             # store footprint            
             if self.fp_type == FootprintTypes.None:
                 self._save_project_data('data.footprint', None)
@@ -460,6 +485,10 @@ class Project (object):
             
             # flush to disk
             self.db.sync()
+        
+        # after each sync 
+        # project is same as db, so save no longer required
+        self.require_save = False
 
     # bsddb help functions
     ##################################    
@@ -535,3 +564,4 @@ class Project (object):
             stats.get_leaves(True)
             
         logAPICall.log('mapping scheme created', logAPICall.INFO)
+        self.require_save = True

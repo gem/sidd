@@ -23,7 +23,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Secondary Modifiers</string>
+    <string>Modifiers</string>
    </property>
   </widget>
   <widget class="QPushButton" name="btn_build_exposure">
@@ -36,7 +36,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Apply Mapping Scheme</string>
+    <string>Build Exposure</string>
    </property>
   </widget>
   <widget class="QLabel" name="lb_panel_title">
@@ -56,7 +56,7 @@
     </font>
    </property>
    <property name="text">
-    <string>Assign Mapping Schemes</string>
+    <string>Manage Mapping Schemes</string>
    </property>
   </widget>
   <widget class="QWidget" name="widget_ms_tree" native="true">
@@ -86,6 +86,9 @@
        <height>23</height>
       </rect>
      </property>
+     <property name="toolTip">
+      <string>Edit Level</string>
+     </property>
      <property name="text">
       <string/>
      </property>
@@ -102,6 +105,9 @@
        <width>31</width>
        <height>23</height>
       </rect>
+     </property>
+     <property name="toolTip">
+      <string>Delete Selected Node </string>
      </property>
      <property name="text">
       <string/>
@@ -120,6 +126,9 @@
        <height>23</height>
       </rect>
      </property>
+     <property name="toolTip">
+      <string>Add/Edit Child Nodes</string>
+     </property>
      <property name="text">
       <string/>
      </property>
@@ -137,12 +146,15 @@
        <height>23</height>
       </rect>
      </property>
+     <property name="toolTip">
+      <string>Expand Mapping Scheme Tree</string>
+     </property>
      <property name="text">
       <string/>
      </property>
      <property name="icon">
       <iconset resource="resources/SIDDResource.qrc">
-       <normaloff>:/imgs/icons/magnify_plus.png</normaloff>:/imgs/icons/magnify_plus.png</iconset>
+       <normaloff>:/imgs/icons/folder_open.png</normaloff>:/imgs/icons/folder_open.png</iconset>
      </property>
     </widget>
     <widget class="QPushButton" name="btn_collapse_tree">
@@ -154,12 +166,15 @@
        <height>23</height>
       </rect>
      </property>
+     <property name="toolTip">
+      <string>Collapse Mapping Scheme Tree</string>
+     </property>
      <property name="text">
       <string/>
      </property>
      <property name="icon">
       <iconset resource="resources/SIDDResource.qrc">
-       <normaloff>:/imgs/icons/magnify_minus.png</normaloff>:/imgs/icons/magnify_minus.png</iconset>
+       <normaloff>:/imgs/icons/folder_close.png</normaloff>:/imgs/icons/folder_close.png</iconset>
      </property>
     </widget>
    </widget>
@@ -191,6 +206,9 @@
        <height>23</height>
       </rect>
      </property>
+     <property name="toolTip">
+      <string>Save Mapping Scheme</string>
+     </property>
      <property name="text">
       <string/>
      </property>
@@ -207,6 +225,9 @@
        <width>31</width>
        <height>23</height>
       </rect>
+     </property>
+     <property name="toolTip">
+      <string>Create New Mapping Scheme</string>
      </property>
      <property name="text">
       <string/>
@@ -236,6 +257,9 @@
       <height>23</height>
      </rect>
     </property>
+    <property name="toolTip">
+     <string>Append Selected Mapping Scheme from Library to Zone</string>
+    </property>
     <property name="text">
      <string/>
     </property>
@@ -257,7 +281,7 @@
      </rect>
     </property>
     <property name="title">
-     <string>Mapping Schemes</string>
+     <string>Mapping Scheme Library</string>
     </property>
     <widget class="QListWidget" name="list_ms_library_regions">
      <property name="geometry">
@@ -484,7 +508,7 @@
       </font>
      </property>
      <property name="text">
-      <string>Percentage of</string>
+      <string>Data Measured</string>
      </property>
     </widget>
     <widget class="QLineEdit" name="txt_ms_library_quality">
@@ -516,7 +540,7 @@
       </font>
      </property>
      <property name="text">
-      <string>Use Notes</string>
+      <string>Mapping Scheme</string>
      </property>
     </widget>
     <widget class="QPushButton" name="btn_del_lib_ms">
@@ -528,6 +552,9 @@
        <height>25</height>
       </rect>
      </property>
+     <property name="toolTip">
+      <string>Delete Selected Mapping Scheme</string>
+     </property>
      <property name="text">
       <string/>
      </property>
@@ -536,12 +563,31 @@
        <normaloff>:/imgs/icons/minus.png</normaloff>:/imgs/icons/minus.png</iconset>
      </property>
     </widget>
+    <zorder>list_ms_library_regions</zorder>
+    <zorder>lb_ms_library_regions</zorder>
+    <zorder>lb_ms_library_types</zorder>
+    <zorder>list_ms_library_types</zorder>
+    <zorder>list_ms_library_msnames</zorder>
+    <zorder>lb_ms_library_msnames</zorder>
+    <zorder>tree_ms_library</zorder>
+    <zorder>lb_tree_ms_library</zorder>
+    <zorder>lb_ms_library_date</zorder>
+    <zorder>lb_ms_library_notes</zorder>
+    <zorder>txt_ms_library_date</zorder>
+    <zorder>txt_ms_library_notes</zorder>
+    <zorder>txt_ms_library_datasource</zorder>
+    <zorder>lb_ms_library_datasource</zorder>
+    <zorder>lb_ms_library_quality</zorder>
+    <zorder>txt_ms_library_quality</zorder>
+    <zorder>lb_ms_library_ms</zorder>
+    <zorder>btn_del_lib_ms</zorder>
+    <zorder>widget_ms_leaves</zorder>
    </widget>
   </widget>
   <widget class="QWidget" name="widget_ms_leaves" native="true">
    <property name="geometry">
     <rect>
-     <x>350</x>
+     <x>890</x>
      <y>30</y>
      <width>561</width>
      <height>531</height>
@@ -577,7 +623,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Zone</string>
+     <string>Select zone</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -652,7 +698,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Use Modifier</string>
+     <string>Include Modifiers</string>
     </property>
    </widget>
   </widget>

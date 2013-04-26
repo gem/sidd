@@ -127,7 +127,7 @@ class WorkflowBuilder(object):
         #       the order should be based on best quality of result
         
         self._process_chains = [
-            (['survey_file', 'survey_is_complete'], OutputTypes.Grid, self._completesurvey_to_grid_workflow),
+            (['survey_file', 'survey_is_complete'], OutputTypes.Grid, self._completesurvey_to_grid_workflow),            
             (['fp', 'zone',], OutputTypes.Grid, self._footprint_to_grid_workflow),
             (['fp', 'zone',], OutputTypes.Zone, self._footprint_to_zone_workflow),
             (['zone', 'zone_count_field'], OutputTypes.Zone, self._zonecount_to_zone_workflow),
@@ -157,7 +157,7 @@ class WorkflowBuilder(object):
         elif project.survey_type == SurveyTypes.SampledSurvey:
             self.load_survey(project, workflow, False)
         else:
-            workflow.ready=False        
+            workflow.ready=False
         return workflow
     
     @logAPICall
@@ -534,38 +534,23 @@ class WorkflowBuilder(object):
         raise WorkflowException(WorkflowErrors.NoActionDefined)
 
     def _footprint_to_grid_workflow(self, project, workflow):
-        """ create exposure aggregated into ged grid with footprint data """
-        
-        # action (operator) required
-        # 1 join footprint with zone to attache zone attribute
-        # 2 aggregate footprint centroids
-        # 3 apply mapping scheme to grid
-        ###################################
-        
-        # 1 join footprint with zone to attache zone attribute
-        workflow.operator_data['centroids'] = OperatorData(OperatorDataTypes.Footprint)
-        workflow.operator_data['centroids_file'] = OperatorData(OperatorDataTypes.Shapefile)
-        
-        merger = ZoneFootprintMerger(self._operator_options)
-        merger.inputs = [workflow.operator_data['zone'],
-                         workflow.operator_data['zone_field'],
-                         workflow.operator_data['fp'],]
-        merger.outputs = [workflow.operator_data['centroids'],
-                          workflow.operator_data['centroids_file'],]
-        
-        workflow.operators.append(merger)
-
-        # 2. aggregate footprint centroids
+        # 1. create grids using footprint and zone
         workflow.operator_data['grid'] = OperatorData(OperatorDataTypes.Grid)
         workflow.operator_data['grid_file'] = OperatorData(OperatorDataTypes.Shapefile)
 
-        fp_agg = FootprintAggregator(self._operator_options)
-        fp_agg.inputs = [workflow.operator_data['centroids'],
-                         workflow.operator_data['zone_field'],]
-        fp_agg.outputs = [workflow.operator_data['grid'],
-                          workflow.operator_data['grid_file'],]
-        
-        workflow.operators.append(fp_agg)
+        grid_writer = FootprintZoneToGrid(self._operator_options)
+        if workflow.operator_data.has_key('zone_count_field'):
+            zone_count_field = workflow.operator_data['zone_count_field']
+        else:
+            zone_count_field = OperatorData(OperatorDataTypes.StringAttribute, project.zone_count_field)
+        grid_writer.inputs = [workflow.operator_data['fp'],
+                              workflow.operator_data['zone'],
+                              workflow.operator_data['zone_field'],
+                              zone_count_field]                         
+                    
+        grid_writer.outputs = [workflow.operator_data['grid'],
+                               workflow.operator_data['grid_file'],]        
+        workflow.operators.append(grid_writer)
         
         # 3 apply mapping scheme to grid
         workflow.operator_data['exposure'] = OperatorData(OperatorDataTypes.Exposure)
@@ -580,18 +565,7 @@ class WorkflowBuilder(object):
         ]
         ms_applier.outputs = [workflow.operator_data['exposure'],
                               workflow.operator_data['exposure_file'],]
-        
-        workflow.operator_data['exposure_grid'] = OperatorData(OperatorDataTypes.Grid)
-        workflow.operator_data['exposure_grid_file'] = OperatorData(OperatorDataTypes.Shapefile)
         workflow.operators.append(ms_applier)
-
-        grid_geom_writer = ExposureGeometryWriter(self._operator_options)
-        grid_geom_writer.inputs = [workflow.operator_data['exposure']]
-        grid_geom_writer.outputs = [
-            workflow.operator_data['exposure_grid'],   
-            workflow.operator_data['exposure_grid_file'],
-        ]        
-        workflow.operators.append(grid_geom_writer)
         
     def _footprint_to_zone_workflow(self, project, workflow):
         """ create exposure aggregated into ged grid with footprint data """
@@ -646,58 +620,34 @@ class WorkflowBuilder(object):
         
         # action (operator) required
         # 1 create grid from zones
-        # 2 merge grids and zones to get grid with count
-        # 3 apply mapping scheme to grid
+        # 2 apply mapping scheme to grid
         ###################################
         
         # 1 create grid from zones
         workflow.operator_data['grid'] = OperatorData(OperatorDataTypes.Grid)
         workflow.operator_data['grid_file'] = OperatorData(OperatorDataTypes.Shapefile)
-        
-        grid_writer = GridFromRegionWriter(self._operator_options)
-        grid_writer.inputs = [workflow.operator_data['zone'],]
+
+        grid_writer = ZoneToGrid(self._operator_options)
+        grid_writer.inputs = [workflow.operator_data['zone'],
+                              workflow.operator_data['zone_field'],
+                              workflow.operator_data['zone_count_field']]
         grid_writer.outputs =[workflow.operator_data['grid'],
                               workflow.operator_data['grid_file'],]
         
         workflow.operators.append(grid_writer)
         
-        # 2 merge grids from zones to get building count
-        workflow.operator_data['merged_grid'] = OperatorData(OperatorDataTypes.Grid)
-        workflow.operator_data['merged_grid_file'] = OperatorData(OperatorDataTypes.Shapefile)        
-
-        grid_zone_merger = ZoneGridMerger(self._operator_options)
-        grid_zone_merger.inputs = [workflow.operator_data['zone'],
-                                   workflow.operator_data['zone_field'],
-                                   workflow.operator_data['zone_count_field'],
-                                   workflow.operator_data['grid'],]
-        grid_zone_merger.outputs = [workflow.operator_data['merged_grid'],
-                                    workflow.operator_data['merged_grid_file'],]
-
-        workflow.operators.append(grid_zone_merger)                
-        
-        # 3 apply mapping scheme to grid
+        # 2 apply mapping scheme to grid
         workflow.operator_data['exposure'] = OperatorData(OperatorDataTypes.Exposure)
         workflow.operator_data['exposure_file'] = OperatorData(OperatorDataTypes.Shapefile)
 
         ms_applier = GridMSApplier(self._operator_options)
-        ms_applier.inputs = [workflow.operator_data['merged_grid'],
+        ms_applier.inputs = [workflow.operator_data['grid'],
                              workflow.operator_data['zone_field'],
-                             workflow.operator_data['zone_count_field'],
+                             OperatorData(OperatorDataTypes.StringAttribute, CNT_FIELD_NAME),
                              workflow.operator_data['ms'],]
         ms_applier.outputs = [workflow.operator_data['exposure'],
                               workflow.operator_data['exposure_file'],]
         workflow.operators.append(ms_applier)
-        
-        workflow.operator_data['exposure_grid'] = OperatorData(OperatorDataTypes.Grid)
-        workflow.operator_data['exposure_grid_file'] = OperatorData(OperatorDataTypes.Shapefile)
-                
-        grid_geom_writer = ExposureGeometryWriter(self._operator_options)
-        grid_geom_writer.inputs = [workflow.operator_data['exposure']]
-        grid_geom_writer.outputs = [
-            workflow.operator_data['exposure_grid'],   
-            workflow.operator_data['exposure_grid_file'],
-        ]        
-        workflow.operators.append(grid_geom_writer)
 
     def _completesurvey_to_grid_workflow(self, project, workflow):
         """ create exposure aggregated into ged grid with zone/count """

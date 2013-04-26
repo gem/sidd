@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
 # Form implementation generated from reading ui file 'qt\win_main.ui'
-# Created: Wed Feb 20 10:48:55 2013
+#
+# Created: Thu Apr 25 17:06:40 2013
 #      by: PyQt4 UI code generator 4.8.3
+#
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
@@ -29,18 +31,18 @@ class Ui_mainWindow(object):
         self.menubar.setObjectName(_fromUtf8("menubar"))
         self.menuFile = QtGui.QMenu(self.menubar)
         self.menuFile.setObjectName(_fromUtf8("menuFile"))
+        self.menuCreate_New = QtGui.QMenu(self.menuFile)
+        self.menuCreate_New.setObjectName(_fromUtf8("menuCreate_New"))
         self.menuHelp = QtGui.QMenu(self.menubar)
         self.menuHelp.setObjectName(_fromUtf8("menuHelp"))
         self.menuView = QtGui.QMenu(self.menubar)
         self.menuView.setObjectName(_fromUtf8("menuView"))
-        self.menuOptions = QtGui.QMenu(self.menubar)
-        self.menuOptions.setObjectName(_fromUtf8("menuOptions"))
+        self.menuProcessing = QtGui.QMenu(self.menubar)
+        self.menuProcessing.setObjectName(_fromUtf8("menuProcessing"))
         mainWindow.setMenuBar(self.menubar)
         self.statusbar = QtGui.QStatusBar(mainWindow)
         self.statusbar.setObjectName(_fromUtf8("statusbar"))
         mainWindow.setStatusBar(self.statusbar)
-        self.actionOpen_New = QtGui.QAction(mainWindow)
-        self.actionOpen_New.setObjectName(_fromUtf8("actionOpen_New"))
         self.actionOpen_Existing = QtGui.QAction(mainWindow)
         self.actionOpen_Existing.setObjectName(_fromUtf8("actionOpen_Existing"))
         self.actionExit = QtGui.QAction(mainWindow)
@@ -57,20 +59,30 @@ class Ui_mainWindow(object):
         self.actionSave.setObjectName(_fromUtf8("actionSave"))
         self.actionProcessing_Options = QtGui.QAction(mainWindow)
         self.actionProcessing_Options.setObjectName(_fromUtf8("actionProcessing_Options"))
-        self.menuFile.addAction(self.actionOpen_New)
+        self.actionUsing_Data_Wizard = QtGui.QAction(mainWindow)
+        self.actionUsing_Data_Wizard.setObjectName(_fromUtf8("actionUsing_Data_Wizard"))
+        self.actionProject_Blank = QtGui.QAction(mainWindow)
+        self.actionProject_Blank.setObjectName(_fromUtf8("actionProject_Blank"))
+        self.actionSave_as = QtGui.QAction(mainWindow)
+        self.actionSave_as.setObjectName(_fromUtf8("actionSave_as"))
+        self.menuCreate_New.addAction(self.actionProject_Blank)
+        self.menuCreate_New.addAction(self.actionUsing_Data_Wizard)
+        self.menuFile.addAction(self.menuCreate_New.menuAction())
+        self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionOpen_Existing)
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionSave)
+        self.menuFile.addAction(self.actionSave_as)
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionExit)
         self.menuHelp.addAction(self.actionAbout)
         self.menuView.addAction(self.actionData_Input)
         self.menuView.addAction(self.actionMapping_Schemes)
         self.menuView.addAction(self.actionResult)
-        self.menuOptions.addAction(self.actionProcessing_Options)
+        self.menuProcessing.addAction(self.actionProcessing_Options)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuView.menuAction())
-        self.menubar.addAction(self.menuOptions.menuAction())
+        self.menubar.addAction(self.menuProcessing.menuAction())
         self.menubar.addAction(self.menuHelp.menuAction())
 
         self.retranslateUi(mainWindow)
@@ -78,5 +90,21 @@ class Ui_mainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(mainWindow)
 
     def retranslateUi(self, mainWindow):
-        pass
+        mainWindow.setWindowTitle(QtGui.QApplication.translate("mainWindow", "SIDD", None, QtGui.QApplication.UnicodeUTF8))
+        self.menuFile.setTitle(QtGui.QApplication.translate("mainWindow", "File", None, QtGui.QApplication.UnicodeUTF8))
+        self.menuCreate_New.setTitle(QtGui.QApplication.translate("mainWindow", "Create Project", None, QtGui.QApplication.UnicodeUTF8))
+        self.menuHelp.setTitle(QtGui.QApplication.translate("mainWindow", "Help", None, QtGui.QApplication.UnicodeUTF8))
+        self.menuView.setTitle(QtGui.QApplication.translate("mainWindow", "View", None, QtGui.QApplication.UnicodeUTF8))
+        self.menuProcessing.setTitle(QtGui.QApplication.translate("mainWindow", "Options", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionOpen_Existing.setText(QtGui.QApplication.translate("mainWindow", "Open Existing", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionExit.setText(QtGui.QApplication.translate("mainWindow", "Exit", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionData_Input.setText(QtGui.QApplication.translate("mainWindow", "Data Input", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionMapping_Schemes.setText(QtGui.QApplication.translate("mainWindow", "Mapping Schemes", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionResult.setText(QtGui.QApplication.translate("mainWindow", "Preview", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionAbout.setText(QtGui.QApplication.translate("mainWindow", "About", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionSave.setText(QtGui.QApplication.translate("mainWindow", "Save Project", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionProcessing_Options.setText(QtGui.QApplication.translate("mainWindow", "Processing Options ...", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionUsing_Data_Wizard.setText(QtGui.QApplication.translate("mainWindow", "Using Data Wizard ...", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionProject_Blank.setText(QtGui.QApplication.translate("mainWindow", "Blank Project", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionSave_as.setText(QtGui.QApplication.translate("mainWindow", "Save Project as ...", None, QtGui.QApplication.UnicodeUTF8))
 

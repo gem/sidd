@@ -66,4 +66,3 @@ class WidgetSelectAttribute(Ui_widgetSelectAttribute, QWidget):
             # set current value as selected from the drop-down
             if code == current:
                 self.ui.cb_codes.setCurrentIndex(idx)
-        

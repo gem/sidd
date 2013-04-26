@@ -7,7 +7,7 @@
 """
 GEM implementation specific
 """
-
+HALF_CELL=0.00416666666666667 # 1/240.0
 def latlon_to_grid(lat, lon):
     """
     algorithm by Paul Henshaw 
@@ -40,5 +40,34 @@ def latlon_to_grid(lat, lon):
     END
     $$ LANGUAGE plpgsql;
     """
-    HALF_CELL=0.00416666666666667 # 1/240.0
     return int(round( (lon-HALF_CELL)*120, 0)) << 16 | int(round( (lat-HALF_CELL)*120, 0)) & 65535
+
+def grid_to_latlon(grid_id):
+    """
+    algorithm by Paul Henshaw 
+    reverse of latlon_to_grid function
+    
+    CREATE OR REPLACE FUNCTION paul.to_lat_lon(grid_id integer)
+      RETURNS record AS
+    $BODY$
+    DECLARE
+            rec RECORD;
+    BEGIN
+            SELECT INTO rec (( grid_id & 65535) + 0.5 )/ 120.0 AS lat, (( (grid_id >>16) ) + 0.5 ) / 120.0 AS lon;
+            RETURN rec;
+    END
+    $BODY$
+    """
+    lon_id = grid_id >>16
+    lat_id = grid_id & 65535
+
+    if lat_id < 65535/2:
+        lat = (lat_id + 0.5)/ 120.0
+    else:
+        lat = -((65535 - lat_id + 0.5) / 120.0) 
+    
+    if lon_id < 65535/2:
+        lon = (lon_id + 0.5) / 120.0
+    else:
+        lon = -((65535 - lon_id + 0.5) / 120.0)
+    return lat, lon

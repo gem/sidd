@@ -2,8 +2,9 @@
 
 # Form implementation generated from reading ui file 'qt\dlg_about.ui'
 #
-# Created: Thu Feb 28 11:36:16 2013
+# Created: Thu Apr 25 17:06:38 2013
 #      by: PyQt4 UI code generator 4.8.3
+#
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
@@ -50,4 +51,13 @@ class Ui_DialogAbout(object):
         QtCore.QMetaObject.connectSlotsByName(DialogAbout)
 
     def retranslateUi(self, DialogAbout):
-        pass
+        DialogAbout.setWindowTitle(QtGui.QApplication.translate("DialogAbout", "About SIDD", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_description.setText(QtGui.QApplication.translate("DialogAbout", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Version: Alpha 5<br />Last updated: April 2013 </p>\n"
+"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">SIDD is developed from GEM Inventory and Damage Capture Tools effort. It is part of a collection of tools that can be used for development of exposure datasets and models at the sub-national level, for exposure dataset development per-building and to capture earthquake consequences per-building </p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_copyright.setText(QtGui.QApplication.translate("DialogAbout", "<p>Copyright &reg; ImageCat Inc. 2013.</p>", None, QtGui.QApplication.UnicodeUTF8))
+
+import SIDDResource_rc

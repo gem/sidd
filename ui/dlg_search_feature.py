@@ -38,15 +38,4 @@ class DialogSearchFeature(Ui_searchFeatureDialog, QDialog):
     @property
     def value(self):
         return str(self.ui.txt_value.text())
-    
-    # internal helper methods
-    ###############################    
-    def retranslateUi(self, ui):
-        """ set text for ui elements """
-        self.setWindowTitle(get_ui_string('dlg.result.search.window.title'))       
 
-        ui.lb_title.setText(get_ui_string('dlg.result.search.title'))
-        ui.btn_find.setText(get_ui_string('app.dialog.button.go'))
-        ui.btn_close.setText(get_ui_string('app.dialog.button.close'))
-        ui.lb_attribute.setText(get_ui_string('dlg.result.search.attribute'))
-        ui.lb_value.setText(get_ui_string('dlg.result.search.value'))

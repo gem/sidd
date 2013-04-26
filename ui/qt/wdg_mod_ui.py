@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
 # Form implementation generated from reading ui file 'qt\wdg_mod.ui'
-# Created: Mon Feb 04 11:16:55 2013
+#
+# Created: Thu Apr 25 17:06:40 2013
 #      by: PyQt4 UI code generator 4.8.3
+#
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
@@ -15,7 +17,7 @@ except AttributeError:
 class Ui_widgetSecondaryModifier(object):
     def setupUi(self, widgetSecondaryModifier):
         widgetSecondaryModifier.setObjectName(_fromUtf8("widgetSecondaryModifier"))
-        widgetSecondaryModifier.resize(922, 655)
+        widgetSecondaryModifier.resize(922, 660)
         self.btn_build_exposure = QtGui.QPushButton(widgetSecondaryModifier)
         self.btn_build_exposure.setGeometry(QtCore.QRect(780, 610, 131, 31))
         self.btn_build_exposure.setObjectName(_fromUtf8("btn_build_exposure"))
@@ -61,4 +63,11 @@ class Ui_widgetSecondaryModifier(object):
         QtCore.QMetaObject.connectSlotsByName(widgetSecondaryModifier)
 
     def retranslateUi(self, widgetSecondaryModifier):
-        pass
+        widgetSecondaryModifier.setWindowTitle(QtGui.QApplication.translate("widgetSecondaryModifier", "Form", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_build_exposure.setText(QtGui.QApplication.translate("widgetSecondaryModifier", "Build Exposure", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_panel_title.setText(QtGui.QApplication.translate("widgetSecondaryModifier", "Manage Modifiers", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_del_mod.setToolTip(QtGui.QApplication.translate("widgetSecondaryModifier", "Delete Selected Modifier", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_edit_mod.setToolTip(QtGui.QApplication.translate("widgetSecondaryModifier", "Edit Selected Modifier", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_add_mod.setToolTip(QtGui.QApplication.translate("widgetSecondaryModifier", "Add Modifier", None, QtGui.QApplication.UnicodeUTF8))
+
+import SIDDResource_rc

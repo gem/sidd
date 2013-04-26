@@ -13,10 +13,10 @@ from time import sleep
 from PyQt4.QtCore import pyqtSlot, QSettings
 from PyQt4.QtGui import QMainWindow, QFileDialog, QMessageBox, QCloseEvent, QDialog
 
-from sidd.exception import SIDDException
+from sidd.exception import SIDDException, SIDDProjectException
 from utils.system import get_app_dir, get_temp_dir, delete_folders_in_dir
 from sidd.constants import SIDD_COMPANY, SIDD_APP_NAME, SIDD_VERSION, logAPICall, \
-                           ProjectStatus, SyncModes
+                           ProjectStatus, SyncModes, ProjectErrors
 from sidd.project import Project
 from sidd.taxonomy import get_taxonomy
 
@@ -30,6 +30,7 @@ from ui.wdg_mod import WidgetSecondaryModifier
 from ui.dlg_about import DialogAbout
 from ui.dlg_apply import DialogApply
 from ui.dlg_proc_options import DialogProcessingOptions
+from ui.wdg_data_wizard import WidgetDataWizard
 
 from ui.helper.msdb_dao import MSDatabaseDAO
 from ui.helper.async import invoke_async
@@ -89,7 +90,6 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         self.taxonomy = get_taxonomy(app_config.get('options', 'taxonomy', 'gem'))
         self.ui = Ui_mainWindow()
         self.ui.setupUi(self)
-        self.retranslateUi(self.ui)
         
         settings = QSettings(SIDD_COMPANY, '%s %s' %(SIDD_APP_NAME, SIDD_VERSION));
         self.restoreGeometry(settings.value(self.UI_WINDOW_GEOM).toByteArray());
@@ -108,6 +108,7 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
 
         self.tab_result = WidgetResult(self)
         self.ui.mainTabs.addTab(self.tab_result, get_ui_string("app.window.tab.result"))
+        self.previewInput = True
         
         self.about = DialogAbout(self)
         self.about.setModal(True)        
@@ -119,9 +120,11 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         self.proc_options.setModal(True)
         
         # connect menu action to slots (ui events)
-        self.ui.actionOpen_New.triggered.connect(self.createProj)
+        self.ui.actionProject_Blank.triggered.connect(self.createBlank)
+        self.ui.actionUsing_Data_Wizard.triggered.connect(self.createWizard)
         self.ui.actionOpen_Existing.triggered.connect(self.loadProj)
         self.ui.actionSave.triggered.connect(self.saveProj)
+        self.ui.actionSave_as.triggered.connect(self.saveProjAs)
         self.ui.actionExit.triggered.connect(self.close)
         
         self.ui.actionData_Input.triggered.connect(self.changeTab)
@@ -132,6 +135,7 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         
         self.ui.actionAbout.triggered.connect(self.showAbout)
         
+        # set project to None and adjust ui as needed
         self.closeProject()        
         self.ui.statusbar.showMessage(get_ui_string("app.status.ready"))
 
@@ -147,7 +151,8 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         self.ui.mainTabs.setTabEnabled (3, True)
 
         from os import curdir        
-        project = Project(curdir + "/test.db", self.app_config, self.taxonomy)
+        project = Project(self.app_config, self.taxonomy)
+        project.set_project_path(curdir + "/test.db")
         project.sync(SyncModes.Read)
         self.setProject(project)
         
@@ -171,20 +176,34 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
     
     @logUICall 
     @pyqtSlot()   
-    def createProj(self):
+    def createBlank(self):
         """ create a new project """
-        filename = QFileDialog.getSaveFileName(self,
-                                               get_ui_string("app.window.msg.project.create"),
-                                               get_app_dir(),
-                                               get_ui_string("app.extension.db"))
-        # no need to check for file overwrite, because QFileDialog return always confirmed overwrite       
-        if not filename.isNull():
-            # create new project file
-            project = Project(str(filename), self.app_config, self.taxonomy)
-            # open project and sync UI
-            self.setProject(project)
-            self.ui.statusbar.showMessage(get_ui_string("app.status.project.created"))
-            
+        # create new project file
+        project = Project(self.app_config, self.taxonomy)
+        # open project and sync UI
+        self.setProject(project, skipVerify=True)
+        self.ui.statusbar.showMessage(get_ui_string("app.status.project.created"))
+    
+    @logUICall 
+    @pyqtSlot()     
+    def createWizard(self):
+        try:
+            # hide main window
+            self.setVisible(False)
+            self.previewInput = False   # no need to
+                        
+            wizard = WidgetDataWizard(self, Project(self.app_config, self.taxonomy))            
+            if wizard.exec_() == QDialog.Accepted:
+                self.setProject(wizard.project)
+                self.ui.statusbar.showMessage(get_ui_string("app.status.project.created"))
+            # else
+            # do nothing?            
+        finally:
+            # return to normal window
+            # placed here just in case any exception occurs
+            self.setVisible(True)
+            self.previewInput = True 
+    
     @logUICall 
     @pyqtSlot()   
     def loadProj(self):
@@ -196,7 +215,8 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         # no need to check for file exists, because QFileDialog return is always valid path or null 
         if not filename.isNull():        
             # open existing project 
-            project = Project(str(filename), self.app_config, self.taxonomy)
+            project = Project(self.app_config, self.taxonomy)
+            project.set_project_path(str(filename))
             project.sync(SyncModes.Read)
             # open project and sync UI        
             self.setProject(project)
@@ -206,8 +226,29 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
     @pyqtSlot()    
     def saveProj(self):
         """ save active project """
-        self.project.sync(SyncModes.Write)
-        self.ui.statusbar.showMessage(get_ui_string("app.status.project.saved"))
+        if self.project is None:
+            return
+        try: 
+            self.project.sync(SyncModes.Write)
+            self.ui.statusbar.showMessage(get_ui_string("app.status.project.saved"))
+        except SIDDProjectException as se:
+            if se.error == ProjectErrors.FileNotSet:
+                self.saveProjAs()
+
+    @logUICall
+    @pyqtSlot()   
+    def saveProjAs(self):
+        if self.project is None:
+            return
+        filename = QFileDialog.getSaveFileName(self,
+                                               get_ui_string("app.window.msg.project.create"),
+                                               get_app_dir(),
+                                               get_ui_string("app.extension.db"))
+        # no need to check for file overwrite, because QFileDialog return always confirmed overwrite       
+        if not filename.isNull():
+            self.project.set_project_path(str(filename))    
+            self.project.sync(SyncModes.Write)
+            self.ui.statusbar.showMessage(get_ui_string("app.status.project.saved"))                
 
     @logUICall
     @pyqtSlot()    
@@ -248,7 +289,7 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
     # public methods    
     #############################    
     @apiCallChecker
-    def setProject(self, project):
+    def setProject(self, project, skipVerify=False):
         """ open a project and sync UI accordingly"""        
         # close and reset UI 
         self.closeProject()
@@ -271,15 +312,16 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         for attribute in dir(self.proc_options):
             if self.project.operator_options.has_key('proc.%s'%attribute):
                 setattr(self.proc_options, attribute, self.project.operator_options['proc.%s'%attribute])
-
-        self.verifyInputs()
+        
+        if not skipVerify:
+            self.verifyInputs()
 
     @apiCallChecker    
     def closeProject(self):
         """ close opened project and update UI elements accordingly """
-
         # adjust UI in application window
-        self.tab_result.closeAll()
+        self.tab_result.closeAll()  # this call must happen first. 
+                                    # otherwise, it locks temporary GIS files 
         self.ui.mainTabs.setTabEnabled(0, False)            
         self.ui.mainTabs.setTabEnabled(1, False)
         self.ui.mainTabs.setTabEnabled(2, False)               
@@ -291,6 +333,16 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         self.ui.actionProcessing_Options.setEnabled(False)
         
         if getattr(self, 'project', None) is not None:
+            # save existing project is needed
+            if self.project.require_save:
+                ans = QMessageBox.question(self, 
+                                           get_ui_string("app.window.msg.project.not_saved"),
+                                           get_ui_string("app.window.msg.project.save_or_not"),
+                                           buttons=QMessageBox.Yes|QMessageBox.No,
+                                           defaultButton=QMessageBox.Yes)
+                if ans == QMessageBox.Yes:
+                    self.saveProj()
+            
             # adjust UI in tabs 
             self.tab_datainput.closeProject()
             self.tab_ms.clearMappingScheme()
@@ -298,8 +350,7 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
             self.project.clean_up()            
             del self.project
             self.project = None
-        #self.ui.statusbar.showMessage(get_ui_string("app.status.project.closed"))    
-
+            
     @apiCallChecker
     def verifyInputs(self):
         """ perform checks on current dataset provided and update UI accordingly """                
@@ -469,32 +520,11 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
     @logAPICall
     def refreshPreview(self):
         """ refresh all layers shown in Preview tab """
-        self.tab_result.refreshView()
+        if self.previewInput:
+            self.tab_result.refreshView()
 
     @logAPICall
     def visualizeMappingScheme(self, ms):
         """ display the given mapping scheme in Mapping scheme and Modifier tabs"""
         self.tab_ms.showMappingScheme(ms)
         self.tab_mod.showMappingScheme(ms)
-
-    # internal helper methods
-    ###############################        
-    def retranslateUi(self, ui):
-        """ set text for ui elements """
-        # dialog title
-        self.setWindowTitle(get_ui_string("app.window.title"))
-        # ui elements
-        ui.menuFile.setTitle(get_ui_string("app.window.menu.file"))
-        ui.menuView.setTitle(get_ui_string("app.window.menu.view"))
-        ui.menuOptions.setTitle(get_ui_string("app.window.menu.option"))
-        ui.menuHelp.setTitle(get_ui_string("app.window.menu.help"))
-        ui.actionOpen_New.setText(get_ui_string("app.window.menu.file.create"))
-        ui.actionSave.setText(get_ui_string("app.window.menu.file.save"))
-        ui.actionOpen_Existing.setText(get_ui_string("app.window.menu.file.open"))
-        ui.actionExit.setText(get_ui_string("app.window.menu.file.exit"))
-        ui.actionData_Input.setText(get_ui_string("app.window.menu.view.input"))
-        ui.actionMapping_Schemes.setText(get_ui_string("app.window.menu.view.ms"))
-        ui.actionResult.setText(get_ui_string("app.window.menu.view.result"))
-        ui.actionProcessing_Options.setText(get_ui_string("app.window.menu.option.processing"))
-        ui.actionAbout.setText(get_ui_string("app.window.menu.help.about"))
-        

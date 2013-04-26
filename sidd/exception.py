@@ -12,10 +12,14 @@ class SIDDException(Exception):
     def __init__(self, msg):
         super(SIDDException, self).__init__(msg)
 
+class SIDDProjectException(Exception):
+    """ project processing errors """
+    def __init__(self, error, msg=''):
+        self.error = error
+        super(SIDDProjectException, self).__init__(msg)
+
 class WorkflowException(Exception):
     """ Workflow related errors """    
-    
-    def __init__(self, error):
-        super(WorkflowException, self).__init__(
-            'Exception occured while building workflow')
+    def __init__(self, error, msg=''):
+        super(WorkflowException, self).__init__(msg)
         self.error = error

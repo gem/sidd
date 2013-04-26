@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
 # Form implementation generated from reading ui file 'qt\wdg_sel_attributes.ui'
-# Created: Thu Mar 07 18:28:07 2013
+#
+# Created: Thu Apr 25 17:06:40 2013
 #      by: PyQt4 UI code generator 4.8.3
+#
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui

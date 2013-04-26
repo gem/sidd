@@ -53,6 +53,12 @@ class Taxonomy(object):
     def to_string(self, attributes):
         raise NotImplementedError("abstract method not implemented")
     
+    def make_tax_string(self, attribute, value):
+        raise NotImplementedError("abstract method not implemented")
+    
+    def is_valid_string(self, tax_string):
+        raise NotImplementedError("abstract method not implemented")
+    
 class TaxonomyAttribute(object):
     """
     TaxonomyAttribute is a building characteristic that can be

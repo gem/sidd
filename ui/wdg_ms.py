@@ -8,7 +8,6 @@
 Widget (Panel) for creating mapping scheme
 """
 import functools
-import traceback
 
 from PyQt4.QtGui import QWidget, QMessageBox, QDialog, QAbstractItemView, QFileDialog
 from PyQt4.QtCore import QObject, QSize, QPoint, pyqtSlot, QString, Qt
@@ -64,20 +63,19 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         self.ui.setupUi(self)
 
         # vertical label for toggle mapping scheme library 
+
         self.ms_library_vlabel = VerticalQLabel(self)
+        self.ms_library_vlabel.setText(get_ui_string('widget.ms.library.title'))
         self.ms_library_vlabel.setFixedSize(40, 200)
         self.ms_library_vlabel.setStyleSheet("Font-size:10pt;Font-weight:Bold")        
-        self.ms_library_vlabel.setText("Mapping Scheme Library")
         self.ms_library_vlabel.clicked.connect(self.showMSLibrary)
 
         self.bldg_dist_vlabel = VerticalQLabel(self)
         self.bldg_dist_vlabel.setFixedSize(40, 200)
         self.bldg_dist_vlabel.setStyleSheet("Font-size:10pt;Font-weight:Bold")        
-        self.bldg_dist_vlabel.setText("Mapping Scheme Library")
+        self.bldg_dist_vlabel.setText(get_ui_string('widget.ms.distribution.title'))
         self.bldg_dist_vlabel.clicked.connect(self.showBuildingDistribution)
         
-        self.retranslateUi(self.ui)
-
         # fix column size for leaf table
         self.ui.table_ms_leaves.verticalHeader().hide()
         self.ui.table_ms_leaves.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -226,7 +224,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
             node = node.stats.get_tree()
         
         # show save dialogbox for selected node
-        self.dlgEditMS.setNode(node, addNew=True)
+        self.dlgEditMS.setNode(node, self.app.project.operator_options, addNew=True)
         ans = self.dlgEditMS.exec_()
 
         # accepted means apply change        
@@ -270,7 +268,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         # not zone / not root, good to continue
         
         # show save dialogbox for selected node
-        self.dlgEditMS.setNode(node)
+        self.dlgEditMS.setNode(node, self.app.project.operator_options)
         ans = self.dlgEditMS.exec_()
 
         # accepted means apply change        
@@ -519,23 +517,3 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         for i in range(index.model().rowCount(index)):
             child = index.child(i, 0)
             self.recursiveExpand(tree, child, expand)
-
-    def retranslateUi(self, ui):
-        """ set labels from constant module """
-        ui.lb_panel_title.setText(get_ui_string("widget.ms.title"))
-        ui.box_ms_library.setTitle(get_ui_string("widget.ms.library.title"))
-        ui.lb_ms_library_regions.setText(get_ui_string("widget.ms.library.regions"))
-        ui.lb_ms_library_types.setText(get_ui_string("widget.ms.library.types"))
-        ui.lb_ms_library_msnames.setText(get_ui_string("widget.ms.library.names"))
-        ui.btn_secondary_mod.setText(get_ui_string("widget.ms.modifier"))
-        ui.btn_build_exposure.setText(get_ui_string("widget.ms.build"))
-        ui.lb_ms_zones.setText(get_ui_string('widget.ms.distribution.zones'))
-        ui.ck_use_modifier.setText(get_ui_string('widget.ms.distribution.mod'))
-        ui.lb_ms_leaves.setText(get_ui_string('widget.ms.distribution.title'))    
-        ui.lb_ms_library_date.setText(get_ui_string("widget.ms.library.date"))
-        ui.lb_ms_library_datasource.setText(get_ui_string("widget.ms.library.datasource"))
-        ui.lb_ms_library_quality.setText(get_ui_string("widget.ms.library.quality"))
-        ui.lb_ms_library_notes.setText(get_ui_string("widget.ms.library.notes"))
-        
-        self.ms_library_vlabel.setText(get_ui_string('widget.ms.library.title'))
-        self.bldg_dist_vlabel.setText(get_ui_string('widget.ms.distribution.title'))

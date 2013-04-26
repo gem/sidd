@@ -6,28 +6,24 @@
    <rect>
     <x>0</x>
     <y>0</y>
-<<<<<<< HEAD
-    <width>548</width>
-    <height>339</height>
-=======
-    <width>343</width>
-    <height>359</height>
->>>>>>> origin/master
+    <width>543</width>
+    <height>340</height>
    </rect>
   </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Create Mapping Scheme</string>
   </property>
   <widget class="QDialogButtonBox" name="buttons">
    <property name="geometry">
     <rect>
-<<<<<<< HEAD
      <x>360</x>
      <y>300</y>
-=======
-     <x>150</x>
-     <y>320</y>
->>>>>>> origin/master
      <width>171</width>
      <height>32</height>
     </rect>
@@ -49,7 +45,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Empty Mapping Scheme</string>
+    <string>Create Empty Mapping Scheme</string>
    </property>
   </widget>
   <widget class="QRadioButton" name="radioBuildMS">
@@ -62,7 +58,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Using Survey Data</string>
+    <string>Build from Survey Data</string>
    </property>
   </widget>
   <widget class="QLabel" name="lb_title">
@@ -114,7 +110,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Attribute to be included</string>
+     <string>Attributes to include</string>
     </property>
    </widget>
    <widget class="QWidget" name="widget_attribute_buttons" native="true">
@@ -135,6 +131,9 @@
        <height>23</height>
       </rect>
      </property>
+     <property name="toolTip">
+      <string>Edit Grouping</string>
+     </property>
      <property name="text">
       <string/>
      </property>
@@ -151,6 +150,9 @@
        <width>30</width>
        <height>23</height>
       </rect>
+     </property>
+     <property name="toolTip">
+      <string>Move up</string>
      </property>
      <property name="text">
       <string/>
@@ -169,6 +171,9 @@
        <height>23</height>
       </rect>
      </property>
+     <property name="toolTip">
+      <string>Move to Bottom</string>
+     </property>
      <property name="text">
       <string/>
      </property>
@@ -186,6 +191,9 @@
        <height>23</height>
       </rect>
      </property>
+     <property name="toolTip">
+      <string>Move Down</string>
+     </property>
      <property name="text">
       <string/>
      </property>
@@ -202,6 +210,9 @@
        <width>30</width>
        <height>23</height>
       </rect>
+     </property>
+     <property name="toolTip">
+      <string>Move to Top</string>
      </property>
      <property name="text">
       <string/>
@@ -244,6 +255,9 @@
       <height>23</height>
      </rect>
     </property>
+    <property name="toolTip">
+     <string>Exclude Selected Attribute</string>
+    </property>
     <property name="text">
      <string/>
     </property>
@@ -260,6 +274,9 @@
       <width>30</width>
       <height>23</height>
      </rect>
+    </property>
+    <property name="toolTip">
+     <string>Include selected Attribute</string>
     </property>
     <property name="text">
      <string/>
@@ -306,7 +323,7 @@
     </rect>
    </property>
    <property name="text">
-    <string/>
+    <string>Attribute with * symbol can be grouped into ranges</string>
    </property>
   </widget>
  </widget>

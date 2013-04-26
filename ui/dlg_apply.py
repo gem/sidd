@@ -8,8 +8,6 @@
 dialog showing about message
 """
 from PyQt4.QtGui import QDialog
-
-from ui.constants import get_ui_string
 from ui.qt.dlg_apply_ui import Ui_DialogApply
 
 class DialogApply(Ui_DialogApply, QDialog):
@@ -22,11 +20,4 @@ class DialogApply(Ui_DialogApply, QDialog):
         QDialog.__init__(self)        
         self.ui = Ui_DialogApply()
         self.ui.setupUi(self)
-        self.retranslateUi(self.ui)
 
-    def retranslateUi(self, ui):
-        """ set text for ui elements """
-        # dialog title
-        self.setWindowTitle(get_ui_string("dlg.apply.window.title"))
-        # ui elements
-        ui.lb_description.setText(get_ui_string("dlg.apply.message"))

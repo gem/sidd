@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Edit Mapping Scheme Branch</string>
   </property>
   <widget class="QLabel" name="lb_title">
    <property name="geometry">
@@ -52,6 +52,9 @@
      <height>23</height>
     </rect>
    </property>
+   <property name="toolTip">
+    <string>Add Value</string>
+   </property>
    <property name="text">
     <string/>
    </property>
@@ -68,6 +71,9 @@
      <width>31</width>
      <height>23</height>
     </rect>
+   </property>
+   <property name="toolTip">
+    <string>Delete Selected Value</string>
    </property>
    <property name="text">
     <string/>
@@ -118,6 +124,9 @@
      <height>23</height>
     </rect>
    </property>
+   <property name="toolTip">
+    <string>Save Mapping Scheme Branch</string>
+   </property>
    <property name="text">
     <string/>
    </property>
@@ -136,7 +145,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Attribute</string>
+    <string>Attribute Name</string>
    </property>
   </widget>
   <widget class="QComboBox" name="cb_attributes">
@@ -144,11 +153,7 @@
     <rect>
      <x>10</x>
      <y>70</y>
-<<<<<<< HEAD
      <width>251</width>
-=======
-     <width>181</width>
->>>>>>> origin/master
      <height>22</height>
     </rect>
    </property>

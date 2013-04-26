@@ -148,6 +148,22 @@ class GemTaxonomy(Taxonomy):
                 
         return _attributes
 
+    def make_tax_string(self, attribute, value):
+        if attribute.type == 1:
+            if type(value) == list:
+                return str(self.separator(GemTaxonomy.Separators.Level)).join(value)
+            else:
+                return value
+        else:
+            if type(value) == list:
+                return ""
+            else:
+                return ""
+    
+    def is_valid_string(self, tax_string):
+        return True
+
+
     @logAPICall
     def separator(self, separator_type=Separators.Attribute):
         if separator_type==GemTaxonomy.Separators.Level:

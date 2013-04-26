@@ -38,16 +38,22 @@ def suite():
     #suite.addTest(OperatorTestCase('test_LoadGEMDBSurvey'))
     #suite.addTest(OperatorTestCase('test_VerifyExposure'))
     #suite.addTest(OperatorTestCase('test_MakeGridGeometry'))
-    suite.addTest(OperatorTestCase('test_StratifiedSampleMS'))
+    #suite.addTest(OperatorTestCase('test_StratifiedSampleMS'))
+    suite.addTest(OperatorTestCase('test_ZoneFootprintToGridJoin'))
+    suite.addTest(OperatorTestCase('test_ZoneToGridJoin'))
     
+    # taxonomy tests
     #suite.addTest(TaxonomyTestCase('test_Parse'))
     
+    # project tests
+    #suite.addTest(ProjectTestCase('test_WorkflowBuilder'))
+    #suite.addTest(ProjectTestCase('test_BuildExposure'))
+    
+    # other tests
     #suite.addTest(MSDBTestCase('test_Read'))
     #suite.addTest(MSDBTestCase('test_SaveDelete'))
     
-    #suite.addTest(ProjectTestCase('test_WorkflowBuilder'))
-    #suite.addTest(ProjectTestCase('test_BuildExposure'))
-        
+    #suite.addTest(UtilsTestCase('test_Grid'))
     return suite
 
 if __name__ == '__main__':

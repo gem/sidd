@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>530</width>
-    <height>283</height>
+    <width>524</width>
+    <height>301</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>360</x>
-     <y>250</y>
+     <y>270</y>
      <width>156</width>
      <height>23</height>
     </rect>
@@ -26,7 +26,7 @@
     <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
    </property>
   </widget>
-  <widget class="QLabel" name="lb_attribute">
+  <widget class="QLabel" name="lb_attribute_name">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -36,10 +36,10 @@
     </rect>
    </property>
    <property name="text">
-    <string>Attribute</string>
+    <string>Attribute Name</string>
    </property>
   </widget>
-  <widget class="QLineEdit" name="txt_attribute">
+  <widget class="QLineEdit" name="txt_attribute_name">
    <property name="geometry">
     <rect>
      <x>100</x>
@@ -66,14 +66,14 @@
     </font>
    </property>
    <property name="text">
-    <string>Create Mapping Scheme</string>
+    <string>Edit Modifier Value</string>
    </property>
   </widget>
   <widget class="QGroupBox" name="boxAttributes">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>110</y>
+     <y>140</y>
      <width>500</width>
      <height>131</height>
     </rect>
@@ -82,34 +82,34 @@
     <string>Values</string>
    </property>
   </widget>
-  <widget class="QLineEdit" name="txt_attribute_value">
+  <widget class="QLineEdit" name="txt_modifier_value">
    <property name="geometry">
     <rect>
      <x>100</x>
-     <y>76</y>
+     <y>100</y>
      <width>251</width>
      <height>20</height>
     </rect>
    </property>
   </widget>
-  <widget class="QLabel" name="lb_attribute_value">
+  <widget class="QLabel" name="lb_modifier_value">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>76</y>
+     <y>100</y>
      <width>100</width>
      <height>20</height>
     </rect>
    </property>
    <property name="text">
-    <string>Attribute Value</string>
+    <string>Modifier Value</string>
    </property>
   </widget>
   <widget class="QWidget" name="widget_mod_values_menu_r" native="true">
    <property name="geometry">
     <rect>
      <x>420</x>
-     <y>90</y>
+     <y>120</y>
      <width>91</width>
      <height>23</height>
     </rect>
@@ -122,6 +122,9 @@
       <width>31</width>
       <height>23</height>
      </rect>
+    </property>
+    <property name="toolTip">
+     <string>Add value</string>
     </property>
     <property name="text">
      <string/>
@@ -140,6 +143,9 @@
       <height>23</height>
      </rect>
     </property>
+    <property name="toolTip">
+     <string>Delete Last Value</string>
+    </property>
     <property name="text">
      <string/>
     </property>
@@ -148,6 +154,29 @@
       <normaloff>:/imgs/icons/minus.png</normaloff>:/imgs/icons/minus.png</iconset>
     </property>
    </widget>
+  </widget>
+  <widget class="QLineEdit" name="txt_attribute">
+   <property name="geometry">
+    <rect>
+     <x>100</x>
+     <y>75</y>
+     <width>251</width>
+     <height>20</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lb_attribute">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>75</y>
+     <width>100</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Attribute</string>
+   </property>
   </widget>
  </widget>
  <resources>

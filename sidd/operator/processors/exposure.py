@@ -10,18 +10,21 @@ module contains class for applying mapping scheme
 import bsddb 
 
 from PyQt4.QtCore import QVariant
-from qgis.core import QGis, QgsVectorFileWriter, QgsFeature, QgsField, QgsGeometry, QgsPoint
+from qgis.core import QgsVectorFileWriter, QgsFeature, QgsField, QgsGeometry
 
 from utils.shapefile import load_shapefile, layer_features, layer_field_index, remove_shapefile
 from utils.system import get_unique_filename
 from utils.grid import latlon_to_grid
-
+ 
 from sidd.constants import logAPICall, \
                            ExtrapolateOptions, \
                            GID_FIELD_NAME, LON_FIELD_NAME, LAT_FIELD_NAME, CNT_FIELD_NAME, TAX_FIELD_NAME, ZONE_FIELD_NAME, \
                            DEFAULT_GRID_SIZE, MAX_FEATURES_IN_MEMORY
 from sidd.operator import Operator, OperatorError
 from sidd.operator.data import OperatorDataTypes
+
+# local package
+from grids import ToGrid
 
 class GridMSApplier(Operator):    
     def __init__(self, options=None, name='Grid Mapping Scheme Applier'):
@@ -190,8 +193,8 @@ class ZoneMSApplier(GridMSApplier):
                 "Zone field",
                 "Building Count field"
                 "Mapping Scheme"]
-    
-class SurveyAggregator(GridMSApplier):
+
+class SurveyAggregator(GridMSApplier, ToGrid):
     def __init__(self, options=None, name='Complete Survey Aggregator'):
         super(SurveyAggregator, self).__init__(options, name)
     
@@ -250,18 +253,19 @@ class SurveyAggregator(GridMSApplier):
         exposure_file = '%sexp_%s.shp' % (self._tmp_dir, exposure_layername)
 
         try:
-            writer = QgsVectorFileWriter(exposure_file, "utf-8", self._fields, QGis.WKBPoint, self._crs, "ESRI Shapefile")
-            f = QgsFeature()
-            
+            writer = QgsVectorFileWriter(exposure_file, "utf-8", 
+                                         self._fields, self._outputGeometryType(), self._crs, 
+                                         "ESRI Shapefile")
+            f = QgsFeature()            
             gid = 0
             for key, val in db.iteritems():
                 (tax_str, x, y) = key.split(' ')
-                point = QgsPoint(int(x)*DEFAULT_GRID_SIZE, int(y)*DEFAULT_GRID_SIZE)
-                f.setGeometry(QgsGeometry.fromPoint(point))
-                #f.addAttribute(0, QVariant(gid))
-                f.addAttribute(0, QVariant(latlon_to_grid(point.y(), point.x())))
-                f.addAttribute(1, QVariant(point.x()))
-                f.addAttribute(2, QVariant(point.y()))
+                lon, lat = int(x)*DEFAULT_GRID_SIZE, int(y)*DEFAULT_GRID_SIZE
+                outgeom = self._outputGeometryFromLatLon(lon, lat, DEFAULT_GRID_SIZE, DEFAULT_GRID_SIZE)
+                f.setGeometry(QgsGeometry.fromPoint(outgeom))
+                f.addAttribute(0, QVariant(latlon_to_grid(lat, lon)))
+                f.addAttribute(1, QVariant(lat))
+                f.addAttribute(2, QVariant(lon))
                 f.addAttribute(3, QVariant(tax_str))
                 f.addAttribute(4, QVariant(''))
                 f.addAttribute(5, QVariant(val))

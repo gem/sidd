@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
 # Form implementation generated from reading ui file 'qt\dlg_proc_options.ui'
-# Created: Tue Feb 26 16:48:50 2013
+#
+# Created: Thu Apr 25 17:06:39 2013
 #      by: PyQt4 UI code generator 4.8.3
+#
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
@@ -43,5 +45,11 @@ class Ui_procOptionsDialog(object):
         QtCore.QMetaObject.connectSlotsByName(procOptionsDialog)
 
     def retranslateUi(self, procOptionsDialog):
-        pass
+        procOptionsDialog.setWindowTitle(QtGui.QApplication.translate("procOptionsDialog", "Processing Options", None, QtGui.QApplication.UnicodeUTF8))
+        self.box_extrapolate_options.setTitle(QtGui.QApplication.translate("procOptionsDialog", "Extrapolation Options", None, QtGui.QApplication.UnicodeUTF8))
+        self.radio_random.setText(QtGui.QApplication.translate("procOptionsDialog", "Monte-Carlo Simulation", None, QtGui.QApplication.UnicodeUTF8))
+        self.radio_actual.setText(QtGui.QApplication.translate("procOptionsDialog", "Building Distribution Fraction", None, QtGui.QApplication.UnicodeUTF8))
+        self.radio_actual_rounded.setText(QtGui.QApplication.translate("procOptionsDialog", "Building Distribution Fraction Rounded", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_ok.setText(QtGui.QApplication.translate("procOptionsDialog", "OK", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_close.setText(QtGui.QApplication.translate("procOptionsDialog", "Close", None, QtGui.QApplication.UnicodeUTF8))
 

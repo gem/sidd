@@ -25,7 +25,6 @@ class DialogAttrRanges(Ui_attrRangesDialog, QDialog):
         super(DialogAttrRanges, self).__init__()
         self.ui = Ui_attrRangesDialog()
         self.ui.setupUi(self)
-        self.retranslateUi(self.ui)
         self.setFixedSize(self.size())
         
         # additional table UI adjustment
@@ -136,17 +135,3 @@ class DialogAttrRanges(Ui_attrRangesDialog, QDialog):
                     # use exception to stop additional checks
                     raise SIDDRangeGroupException(get_ui_string("dlg.attr.error.range", (max_last, min_val)))
         return is_valid                
-    
-    def retranslateUi(self, ui):
-        """ set text for ui elements """
-        # dialog title
-        self.setWindowTitle(get_ui_string('dlg.attr.range.window.title'))
-        # ui elements
-        ui.lb_title.setText(get_ui_string('dlg.attr.title'))
-        ui.lb_attribute.setText(get_ui_string('dlg.attr.label.attribute'))
-        ui.table_ranges.setHorizontalHeaderLabels([get_ui_string('dlg.attr.min_value'), get_ui_string('dlg.attr.max_value')])                
-        ui.buttons.button(QDialogButtonBox.Ok).setText(get_ui_string('app.dialog.button.ok'))
-        ui.buttons.button(QDialogButtonBox.Cancel).setText(get_ui_string('app.dialog.button.cancel'))
-        # tooltips 
-        ui.btn_add.setToolTip(get_ui_string('dlg.attr.button.add'))
-        ui.btn_delete.setToolTip(get_ui_string('dlg.attr.button.delete'))

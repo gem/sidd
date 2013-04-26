@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qt\wdg_result.ui'
 #
-# Created: Wed Mar 20 15:20:51 2013
+# Created: Thu Apr 25 17:06:40 2013
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -77,7 +77,7 @@ class Ui_widgetResult(object):
         self.widget_map_menu_r.setGeometry(QtCore.QRect(180, 0, 451, 31))
         self.widget_map_menu_r.setObjectName(_fromUtf8("widget_map_menu_r"))
         self.lb_layer_selector = QtGui.QLabel(self.widget_map_menu_r)
-        self.lb_layer_selector.setGeometry(QtCore.QRect(0, 0, 181, 21))
+        self.lb_layer_selector.setGeometry(QtCore.QRect(0, 0, 171, 21))
         self.lb_layer_selector.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.lb_layer_selector.setObjectName(_fromUtf8("lb_layer_selector"))
         self.cb_layer_selector = QtGui.QComboBox(self.widget_map_menu_r)
@@ -87,7 +87,7 @@ class Ui_widgetResult(object):
         self.btn_theme.setGeometry(QtCore.QRect(360, 0, 31, 23))
         self.btn_theme.setText(_fromUtf8(""))
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/imgs/icons/cog.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/imgs/icons/pie_chart.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.btn_theme.setIcon(icon)
         self.btn_theme.setObjectName(_fromUtf8("btn_theme"))
         self.btn_info = QtGui.QPushButton(self.widget_map_menu_r)
@@ -100,7 +100,7 @@ class Ui_widgetResult(object):
         self.btn_zoom_to_feature = QtGui.QPushButton(self.widget_map_menu_r)
         self.btn_zoom_to_feature.setGeometry(QtCore.QRect(390, 0, 31, 23))
         icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap(_fromUtf8(":/imgs/icons/hourglass.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon2.addPixmap(QtGui.QPixmap(_fromUtf8(":/imgs/icons/help.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.btn_zoom_to_feature.setIcon(icon2)
         self.btn_zoom_to_feature.setObjectName(_fromUtf8("btn_zoom_to_feature"))
         self.btn_zoom_layer = QtGui.QPushButton(self.widget_map_menu_r)
@@ -154,6 +154,26 @@ class Ui_widgetResult(object):
         QtCore.QMetaObject.connectSlotsByName(widgetResult)
 
     def retranslateUi(self, widgetResult):
-        pass
+        widgetResult.setWindowTitle(QtGui.QApplication.translate("widgetResult", "Form", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_export_select_path.setText(QtGui.QApplication.translate("widgetResult", "...", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_export_select_path.setText(QtGui.QApplication.translate("widgetResult", "Select location to save output:", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_export_title.setText(QtGui.QApplication.translate("widgetResult", "Export Exposure", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_export.setText(QtGui.QApplication.translate("widgetResult", "Export", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_export_format.setText(QtGui.QApplication.translate("widgetResult", "Select Export Data Format", None, QtGui.QApplication.UnicodeUTF8))
+        self.lbl_dq_test_title.setText(QtGui.QApplication.translate("widgetResult", "Data Quality Tests", None, QtGui.QApplication.UnicodeUTF8))
+        self.txt_dq_test_details.setHtml(QtGui.QApplication.translate("widgetResult", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:8pt;\"></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_layer_selector.setText(QtGui.QApplication.translate("widgetResult", "Select Layer", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_theme.setToolTip(QtGui.QApplication.translate("widgetResult", "Edit Layer Thematics", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_info.setToolTip(QtGui.QApplication.translate("widgetResult", "Query Feature in Layer", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_zoom_layer.setToolTip(QtGui.QApplication.translate("widgetResult", "Zoom to Layer", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_zoom_in.setToolTip(QtGui.QApplication.translate("widgetResult", "Zoom In", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_pan.setToolTip(QtGui.QApplication.translate("widgetResult", "Pan", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_zoom_out.setToolTip(QtGui.QApplication.translate("widgetResult", "Zoom Out", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_zoom_full.setToolTip(QtGui.QApplication.translate("widgetResult", "Zoom to Full Extent", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_panel_title.setText(QtGui.QApplication.translate("widgetResult", "Preview", None, QtGui.QApplication.UnicodeUTF8))
 
 import SIDDResource_rc

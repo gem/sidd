@@ -9,7 +9,7 @@ SIDD operators
 """
 
 from data import OperatorData, OperatorDataTypes
-from operator import Operator
+from operator import Operator, EmptyOperator
 from exception import OperatorError, OperatorDataError
 
 from loaders import *

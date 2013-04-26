@@ -12,7 +12,7 @@ from PyQt4.QtCore import pyqtSlot, Qt, QObject, QSize, QVariant
 
 from sidd.ms import StatisticNode
 
-from ui.constants import logUICall, get_ui_string, UI_PADDING 
+from ui.constants import logUICall, UI_PADDING 
 from ui.qt.dlg_mod_input_ui import Ui_modifierInputDialog
 from ui.helper.ms_level_table import MSLevelTableModel
 from ui.helper.ms_tree import MSTreeModel
@@ -29,7 +29,6 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
         super(DialogModInput, self).__init__()
         self.ui = Ui_modifierInputDialog()
         self.ui.setupUi(self)
-        self.retranslateUi(self.ui)
         
         self.ms = None
         
@@ -126,6 +125,9 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
         node = index.internalPointer()
         if isinstance(node, StatisticNode):
             self.node = node
+            if self.addNew:
+                self.ui.cb_attributes.clear()
+                self.ui.cb_attributes.addItem(node.name)
         else:
             self.node = None
     
@@ -140,6 +142,7 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
         if index.column() == 0:
             edit_dlg = DialogEditAttributes(self.ms.taxonomy, 
                                             str(self.ui.cb_attributes.currentText()),
+                                            self.node.value,
                                             str(index.data().toString()))
             if edit_dlg.exec_() == QDialog.Accepted:                
                 try:
@@ -167,7 +170,6 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
         # construct mapping scheme tree
         self.tree_model = MSTreeModel(ms)        
         self.ui.tree_ms.setModel(self.tree_model)
-        self.ui.tree_ms.setSelectionMode(QAbstractItemView.SingleSelection)
         self.ui.tree_ms.setEnabled(True)
         
         self.ui.cb_attributes.clear()
@@ -185,7 +187,7 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
                     index = self.tree_model.parent(index)
             # set node as selected            
             self.ui.tree_ms.selectionModel().select(indices[0], QItemSelectionModel.ClearAndSelect | QItemSelectionModel.Rows)
-            
+            self.ui.tree_ms.setSelectionMode(QAbstractItemView.NoSelection)
             # create reference for use once dialog box returns
             self.node = src_node
             self.modidx = modidx
@@ -200,9 +202,10 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
             self.ui.txt_total_weights.setText('%.1f' % (sum(self.weights)))            
             self.ui.cb_attributes.addItem(modifier.name)
         else:
+            self.ui.tree_ms.setSelectionMode(QAbstractItemView.SingleSelection)
             # no modfier given
             # create event handler for selected node 
-            self.ui.tree_ms.selectionModel().selectionChanged.connect(self.nodeSelected)
+            self.ui.tree_ms.selectionModel().selectionChanged.connect(self.nodeSelected)            
             
             # create reference for use once dialog box returns
             self.modifier_name = 'Custom'
@@ -210,8 +213,8 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
             
             # update additional UI elements based on given modifier 
             self.ui.txt_total_weights.setText('%.1f' % (0))
-            for attr in self.ms.taxonomy.attributes:
-                self.ui.cb_attributes.addItem(attr.name)
+            #for attr in self.ms.taxonomy.attributes:
+            #    self.ui.cb_attributes.addItem(attr.name)
             
             # cannot apply until values are set and node is selected
             self.ui.btn_apply.setEnabled(False)
@@ -245,20 +248,4 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
             QMessageBox.warning(self, 'Invalid Node', 'Select node does not support this function.')
             return None
         return selectedIndexes[0]
-        
-    def retranslateUi(self, ui):
-        """ set text for ui elements """
-        # dialog title
-        self.setWindowTitle(get_ui_string("dlg.mod.window.title"))
-        # ui elements
-        ui.lb_title.setText(get_ui_string("dlg.mod.title"))
-        ui.lb_mod_values.setText(get_ui_string("dlg.mod.mod_values"))
-        ui.lb_ms_tree.setText(get_ui_string("dlg.mod.ms_tree"))
-        ui.lb_attribute.setText(get_ui_string("dlg.mod.attributes"))
-        ui.lb_total_weights.setText(get_ui_string("dlg.mod.totalweights"))
-        ui.lb_percent.setText("%")
-        ui.btn_apply.setText(get_ui_string("app.dialog.button.apply"))
-        ui.btn_cancel.setText(get_ui_string("app.dialog.button.close"))
-        # tooltip
-        ui.btn_add.setToolTip(get_ui_string("dlg.mod.button.add"))
-        ui.btn_delete.setToolTip(get_ui_string("dlg.mod.button.delete"))
+       

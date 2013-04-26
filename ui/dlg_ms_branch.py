@@ -12,8 +12,10 @@ from PyQt4.QtCore import Qt, pyqtSlot, QObject
 
 from sidd.ms import MappingScheme, MappingSchemeZone, Statistics, StatisticNode 
 
-from ui.constants import logUICall, get_ui_string
+from ui.constants import logUICall
 from ui.dlg_save_ms import DialogSaveMS
+from ui.dlg_attr_range import DialogAttrRanges
+
 from ui.qt.dlg_ms_branch_ui import Ui_editMSDialog
 from ui.helper.ms_level_table import MSLevelTableModel
 from ui.helper.ms_attr_delegate import MSAttributeItemDelegate
@@ -29,7 +31,6 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
         super(DialogEditMS, self).__init__()
         self.ui = Ui_editMSDialog()
         self.ui.setupUi(self)
-        self.retranslateUi(self.ui)
 
         self.setFixedSize(self.size())  # no resize
         
@@ -40,6 +41,8 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
         self.dlgSave = DialogSaveMS(self.app)
         self.dlgSave.setModal(True)
         
+        self.dlgAttrRange = DialogAttrRanges()
+        
         # connect slots (ui events)
         self.ui.btn_apply.clicked.connect(self.updateWeights)
         self.ui.btn_add.clicked.connect(self.addValue)
@@ -47,7 +50,8 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
         self.ui.cb_attributes.currentIndexChanged[str].connect(self.attributeUpdated)        
         self.ui.btn_save.clicked.connect(self.saveMSBranch)
         self.ui.btn_close.clicked.connect(self.reject)
-
+        
+        self.initialized = True
     # public properties
     ###############################
 
@@ -123,18 +127,41 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
         event handler for cb_attributes
         - update list of possible values according to attribute selected
         """
+        if not self.initialized:
+            return
         attribute_name = new_attribute
+        
+        attribute = None
+        for attr in self.taxonomy.attributes:
+            if attr.name == attribute_name:
+                attribute = attr
+                break
+        
         self.valid_codes = {}
-        for code_name, code in self.taxonomy.codes.iteritems():                
-            if code.attribute.name == attribute_name and code.level == 1:
-                self.valid_codes[code.description]=code_name                                    
+        if attribute.type == 20000:
+            if self._ranges.has_key(str(attribute_name)):
+                ranges = self._ranges[attribute_name]
+                self.dlgAttrRange.set_values(attribute_name, ranges['min_values'], ranges['max_values'])
+            else:
+                self.dlgAttrRange.set_values(attribute_name, [], [])
+            if self.dlgAttrRange.exec_() == QDialog.Accepted:
+                self._ranges[attribute_name] = {'min_values':self.dlgAttrRange.min_values,
+                                                'max_values':self.dlgAttrRange.max_values}
+                for min, max in map(None, self.dlgAttrRange.min_values, self.dlgAttrRange.max_values):                
+                    print min, max
+            else:
+                return
+        else:
+            for code_name, code in self.taxonomy.codes.iteritems():                
+                if code.attribute.name == attribute_name and code.level == 1:
+                    self.valid_codes[code.description]=code_name                                    
         attr_editor = MSAttributeItemDelegate(self.ui.table_ms_level, self.valid_codes, len(self.node.children))
         self.ui.table_ms_level.setItemDelegateForColumn(0, attr_editor)
 
     # public methods    
     #############################            
     @logUICall
-    def setNode(self, node, addNew=False):
+    def setNode(self, node, ranges, addNew=False):
         """ 
         shows values/weights in table_ms_level for given node
         if addNew values/weights correspond to node's children (if any)
@@ -146,6 +173,7 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
         values = []
         weights = []
         
+        self._ranges = ranges
         if not addNew:
             self.node = node.parent
             attribute_name = node.name
@@ -227,21 +255,4 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
         if not selectedIndexes[0].isValid():
             QMessageBox.warning(self, 'Invalid Node', 'Select node does not support this function.')
             return None
-        return selectedIndexes[0]
-    
-    def retranslateUi(self, ui):
-        """ set text for ui elements """
-        # dialog title
-        self.setWindowTitle(get_ui_string("dlg.msbranch.edit.window.title"))
-        # ui elements
-        ui.lb_title.setText(get_ui_string("dlg.msbranch.edit.title"))
-        ui.lb_attribute.setText(get_ui_string("dlg.msbranch.edit.attribute.name"))
-        ui.lb_total_weights.setText(get_ui_string("dlg.msbranch.edit.weight.total"))
-        ui.lb_percent.setText("%")
-        ui.btn_apply.setText(get_ui_string("app.dialog.button.apply"))
-        ui.btn_close.setText(get_ui_string("app.dialog.button.close"))    
-        # tooltip
-        ui.btn_add.setToolTip(get_ui_string("dlg.msbranch.button.add"))
-        ui.btn_delete.setToolTip(get_ui_string("dlg.msbranch.button.delete"))
-        ui.btn_save.setToolTip(get_ui_string("dlg.msbranch.button.save"))
-
+        return selectedIndexes[0]    

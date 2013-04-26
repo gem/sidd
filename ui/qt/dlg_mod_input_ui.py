@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
 # Form implementation generated from reading ui file 'qt\dlg_mod_input.ui'
-# Created: Tue Feb 19 17:03:10 2013
+#
+# Created: Thu Apr 25 17:06:39 2013
 #      by: PyQt4 UI code generator 4.8.3
+#
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
@@ -96,4 +98,16 @@ class Ui_modifierInputDialog(object):
         QtCore.QMetaObject.connectSlotsByName(modifierInputDialog)
 
     def retranslateUi(self, modifierInputDialog):
-        pass
+        modifierInputDialog.setWindowTitle(QtGui.QApplication.translate("modifierInputDialog", "Edit Modifier", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_ms_tree.setText(QtGui.QApplication.translate("modifierInputDialog", "Mapping Scheme", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_mod_values.setText(QtGui.QApplication.translate("modifierInputDialog", "Modifier Detail", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_apply.setText(QtGui.QApplication.translate("modifierInputDialog", "OK", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_cancel.setText(QtGui.QApplication.translate("modifierInputDialog", "Cancel", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_title.setText(QtGui.QApplication.translate("modifierInputDialog", "Edit Building Distribution Modifier", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_percent.setText(QtGui.QApplication.translate("modifierInputDialog", "%", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_total_weights.setText(QtGui.QApplication.translate("modifierInputDialog", "Total", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_add.setToolTip(QtGui.QApplication.translate("modifierInputDialog", "Add Modifier", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_delete.setToolTip(QtGui.QApplication.translate("modifierInputDialog", "Delete Selected Modifier", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_attribute.setText(QtGui.QApplication.translate("modifierInputDialog", "Attribute", None, QtGui.QApplication.UnicodeUTF8))
+
+import SIDDResource_rc

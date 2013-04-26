@@ -26,7 +26,6 @@ class DialogSaveMS(Ui_saveMSDialog, QDialog):
         super(DialogSaveMS, self).__init__()
         self.ui = Ui_saveMSDialog()
         self.ui.setupUi(self)
-        self.retranslateUi(self.ui)
         
         self.app =  app
         for region in self.app.msdb_dao.get_regions():
@@ -83,23 +82,4 @@ class DialogSaveMS(Ui_saveMSDialog, QDialog):
             self.ui.txt_ms_type.setText(get_ui_string("app.mslibrary.user.multilevel"))      
 
         self.ui.txt_ms_type.setReadOnly(True)
-
-    # internal helper methods
-    ###############################
-            
-    def retranslateUi(self, ui):
-        """ set text for ui elements """
-        # dialog title
-        self.setWindowTitle(get_ui_string("dlg.savems.window.title"))
-        # ui elements        
-        ui.lb_ms_create_date.setText(get_ui_string("dlg.savems.date"))
-        ui.lb_ms_source.setText(get_ui_string("dlg.savems.source"))
-        ui.lb_ms_quality.setText(get_ui_string("dlg.savems.quality"))
-        ui.lb_ms_notes.setText(get_ui_string("dlg.savems.notes"))
-        ui.lb_ms_name.setText(get_ui_string("dlg.savems.name"))
-        ui.lb_ms_type.setText(get_ui_string("dlg.savems.type"))
-        ui.lb_ms_region.setText(get_ui_string("dlg.savems.region"))
-        ui.btn_save.setText(get_ui_string("app.dialog.button.ok"))
-        ui.btn_close.setText(get_ui_string("app.dialog.button.close"))
-
         

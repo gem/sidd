@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
 # Form implementation generated from reading ui file 'qt\dlg_ms_branch.ui'
-# Created: Fri Mar 08 15:55:24 2013
+#
+# Created: Thu Apr 25 17:06:39 2013
 #      by: PyQt4 UI code generator 4.8.3
+#
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
@@ -79,4 +81,15 @@ class Ui_editMSDialog(object):
         QtCore.QMetaObject.connectSlotsByName(editMSDialog)
 
     def retranslateUi(self, editMSDialog):
-        pass
+        editMSDialog.setWindowTitle(QtGui.QApplication.translate("editMSDialog", "Edit Mapping Scheme Branch", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_title.setText(QtGui.QApplication.translate("editMSDialog", "Edit Mapping Scheme Branch", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_add.setToolTip(QtGui.QApplication.translate("editMSDialog", "Add Value", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_delete.setToolTip(QtGui.QApplication.translate("editMSDialog", "Delete Selected Value", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_apply.setText(QtGui.QApplication.translate("editMSDialog", "Apply", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_close.setText(QtGui.QApplication.translate("editMSDialog", "Close", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_save.setToolTip(QtGui.QApplication.translate("editMSDialog", "Save Mapping Scheme Branch", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_attribute.setText(QtGui.QApplication.translate("editMSDialog", "Attribute Name", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_total_weights.setText(QtGui.QApplication.translate("editMSDialog", "Some of Weights", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_percent.setText(QtGui.QApplication.translate("editMSDialog", "%", None, QtGui.QApplication.UnicodeUTF8))
+
+import SIDDResource_rc

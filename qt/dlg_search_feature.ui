@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Zoom to Feature</string>
   </property>
   <widget class="QLabel" name="lb_title">
    <property name="geometry">
@@ -30,7 +30,7 @@
     </font>
    </property>
    <property name="text">
-    <string>Find Feature</string>
+    <string>Zoom to Feature</string>
    </property>
   </widget>
   <widget class="QPushButton" name="btn_find">
@@ -43,7 +43,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Find Feature</string>
+    <string>Zoom to</string>
    </property>
   </widget>
   <widget class="QPushButton" name="btn_close">

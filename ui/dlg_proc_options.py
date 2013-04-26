@@ -9,7 +9,6 @@ dialog for editing secondary modifiers
 """
 from PyQt4.QtGui import QDialog
 
-from ui.constants import get_ui_string 
 from sidd.constants import ExtrapolateOptions
 from ui.qt.dlg_proc_options_ui import Ui_procOptionsDialog
 
@@ -22,7 +21,6 @@ class DialogProcessingOptions(Ui_procOptionsDialog, QDialog):
         super(DialogProcessingOptions, self).__init__()
         self.ui = Ui_procOptionsDialog()
         self.ui.setupUi(self)
-        self.retranslateUi(self.ui)
         self.setFixedSize(self.size())        
         
         self.app = app        
@@ -57,17 +55,3 @@ class DialogProcessingOptions(Ui_procOptionsDialog, QDialog):
         else:
             # default case
             self.ui.radio_random.setChecked(True)
-
-    # internal helper methods
-    ###############################    
-    def retranslateUi(self, ui):
-        """ set text for ui elements """
-        # dialog title
-        self.setWindowTitle(get_ui_string('dlg.options.ep.window.title'))
-        # ui elements
-        ui.box_extrapolate_options.setTitle(get_ui_string('dlg.options.ep.title'))
-        ui.radio_random.setText(get_ui_string('dlg.options.ep.random'))
-        ui.radio_actual.setText(get_ui_string('dlg.options.ep.fraction'))
-        ui.radio_actual_rounded.setText(get_ui_string('dlg.options.ep.fraction.rounded'))        
-        ui.btn_ok.setText(get_ui_string('app.dialog.button.ok'))
-        ui.btn_close.setText(get_ui_string('app.dialog.button.close'))        

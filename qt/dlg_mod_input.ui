@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Secondary Modifier Input</string>
+   <string>Edit Modifier</string>
   </property>
   <widget class="QLabel" name="lb_ms_tree">
    <property name="geometry">
@@ -29,7 +29,7 @@
     </font>
    </property>
    <property name="text">
-    <string>Zone</string>
+    <string>Mapping Scheme</string>
    </property>
   </widget>
   <widget class="QLabel" name="lb_mod_values">
@@ -48,7 +48,7 @@
     </font>
    </property>
    <property name="text">
-    <string>Values</string>
+    <string>Modifier Detail</string>
    </property>
   </widget>
   <widget class="QTableView" name="table_mod_values">
@@ -110,7 +110,7 @@
     </font>
    </property>
    <property name="text">
-    <string>Edit Modifier</string>
+    <string>Edit Building Distribution Modifier</string>
    </property>
   </widget>
   <widget class="QLineEdit" name="txt_total_weights">
@@ -152,7 +152,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Some of Weights</string>
+    <string>Total</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -186,6 +186,9 @@
       <height>23</height>
      </rect>
     </property>
+    <property name="toolTip">
+     <string>Add Modifier</string>
+    </property>
     <property name="text">
      <string/>
     </property>
@@ -202,6 +205,9 @@
       <width>31</width>
       <height>23</height>
      </rect>
+    </property>
+    <property name="toolTip">
+     <string>Delete Selected Modifier</string>
     </property>
     <property name="text">
      <string/>
@@ -238,7 +244,7 @@
     </font>
    </property>
    <property name="text">
-    <string>Attrbitue</string>
+    <string>Attribute</string>
    </property>
   </widget>
  </widget>

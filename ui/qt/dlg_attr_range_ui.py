@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
 # Form implementation generated from reading ui file 'qt\dlg_attr_range.ui'
-# Created: Fri Mar 08 16:01:19 2013
+#
+# Created: Thu Apr 25 17:06:38 2013
 #      by: PyQt4 UI code generator 4.8.3
+#
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
@@ -62,4 +64,12 @@ class Ui_attrRangesDialog(object):
         QtCore.QMetaObject.connectSlotsByName(attrRangesDialog)
 
     def retranslateUi(self, attrRangesDialog):
-        pass
+        attrRangesDialog.setWindowTitle(QtGui.QApplication.translate("attrRangesDialog", "Set Value Grouping", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_title.setText(QtGui.QApplication.translate("attrRangesDialog", "Attribute Value Groups", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_attribute.setText(QtGui.QApplication.translate("attrRangesDialog", "Attribute", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_add.setToolTip(QtGui.QApplication.translate("attrRangesDialog", "Add value group", None, QtGui.QApplication.UnicodeUTF8))
+        self.table_ranges.horizontalHeaderItem(0).setText(QtGui.QApplication.translate("attrRangesDialog", "Minimum Value", None, QtGui.QApplication.UnicodeUTF8))
+        self.table_ranges.horizontalHeaderItem(1).setText(QtGui.QApplication.translate("attrRangesDialog", "Maximum Value", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_delete.setToolTip(QtGui.QApplication.translate("attrRangesDialog", "Remove last value group", None, QtGui.QApplication.UnicodeUTF8))
+
+import SIDDResource_rc

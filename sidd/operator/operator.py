@@ -192,4 +192,51 @@ class Operator(object):
     def _test_layer_field_exists(self, layer, field):
         if layer_field_index(layer, field) == -1:
             raise OperatorDataError("field %s not found in input layer" % field, self.__class__)          
+
+class EmptyOperator(Operator):
+    '''
+    Empty Operator implements all the abstract methods from Operator      
+    '''
+    def __init__(self, options=None, name="Empty Operator"):
+        super(EmptyOperator, self).__init__(options, name)
+
+    # self documenting methods
+    ###########################    
+    @property
+    def input_types(self):
+        return []
+        
+    @property    
+    def input_names(self):
+        return []      
+
+    @property
+    def input_descriptions(self):
+        return []      
+
+    @property
+    def output_types(self):
+        return []      
+        
+    @property    
+    def output_names(self):
+        return []      
     
+    @property
+    def output_descriptions(self):
+        return []
+
+    # public methods signature
+    ###########################
+    
+    def do_operation(self):        
+        pass      
+
+    # protected methods signature
+    ###########################
+
+    def _verify_inputs(self, inputs):
+        pass
+
+    def _verify_outputs(self, outputs):
+        pass

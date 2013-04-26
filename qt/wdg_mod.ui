@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>922</width>
-    <height>655</height>
+    <height>660</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -23,7 +23,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Apply Mapping Scheme</string>
+    <string>Build Exposure</string>
    </property>
   </widget>
   <widget class="QTableView" name="table_mod">
@@ -59,7 +59,7 @@
     </font>
    </property>
    <property name="text">
-    <string>Assign Secondary Modifiers</string>
+    <string>Manage Modifiers</string>
    </property>
   </widget>
   <widget class="QWidget" name="widget_buttons" native="true">
@@ -80,6 +80,9 @@
       <height>23</height>
      </rect>
     </property>
+    <property name="toolTip">
+     <string>Delete Selected Modifier</string>
+    </property>
     <property name="text">
      <string/>
     </property>
@@ -97,6 +100,9 @@
       <height>23</height>
      </rect>
     </property>
+    <property name="toolTip">
+     <string>Edit Selected Modifier</string>
+    </property>
     <property name="text">
      <string/>
     </property>
@@ -113,6 +119,9 @@
       <width>31</width>
       <height>23</height>
      </rect>
+    </property>
+    <property name="toolTip">
+     <string>Add Modifier</string>
     </property>
     <property name="text">
      <string/>

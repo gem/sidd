@@ -84,7 +84,7 @@
      </font>
     </property>
     <property name="text">
-     <string>Export Results</string>
+     <string>Export Exposure</string>
     </property>
    </widget>
    <widget class="QPushButton" name="btn_export">
@@ -126,7 +126,7 @@
      </font>
     </property>
     <property name="text">
-     <string>Export Data Format</string>
+     <string>Select Export Data Format</string>
     </property>
    </widget>
   </widget>
@@ -200,12 +200,12 @@ p, li { white-space: pre-wrap; }
       <rect>
        <x>0</x>
        <y>0</y>
-       <width>181</width>
+       <width>171</width>
        <height>21</height>
       </rect>
      </property>
      <property name="text">
-      <string>Selected Layer</string>
+      <string>Select Layer</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -238,7 +238,7 @@ p, li { white-space: pre-wrap; }
      </property>
      <property name="icon">
       <iconset resource="resources/SIDDResource.qrc">
-       <normaloff>:/imgs/icons/cog.png</normaloff>:/imgs/icons/cog.png</iconset>
+       <normaloff>:/imgs/icons/pie_chart.png</normaloff>:/imgs/icons/pie_chart.png</iconset>
      </property>
     </widget>
     <widget class="QPushButton" name="btn_info">
@@ -272,7 +272,7 @@ p, li { white-space: pre-wrap; }
      </property>
      <property name="icon">
       <iconset resource="resources/SIDDResource.qrc">
-       <normaloff>:/imgs/icons/hourglass.png</normaloff>:/imgs/icons/hourglass.png</iconset>
+       <normaloff>:/imgs/icons/help.png</normaloff>:/imgs/icons/help.png</iconset>
      </property>
     </widget>
     <widget class="QPushButton" name="btn_zoom_layer">
@@ -404,7 +404,7 @@ p, li { white-space: pre-wrap; }
     </font>
    </property>
    <property name="text">
-    <string>Preview Data</string>
+    <string>Preview</string>
    </property>
   </widget>
  </widget>

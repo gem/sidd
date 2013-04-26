@@ -10,8 +10,8 @@ import logging
 # import sidd packages for testing
 from sidd.ms import MappingScheme
 from sidd.operator import *
-from utils.shapefile import remove_shapefile, layer_fields_stats, load_shapefile
-from sidd.constants import AREA_FIELD_NAME, HT_FIELD_NAME
+from utils.shapefile import remove_shapefile, layer_fields_stats, load_shapefile, layer_features, layer_field_index
+from sidd.constants import AREA_FIELD_NAME, HT_FIELD_NAME, CNT_FIELD_NAME
 
 from common import SIDDTestCase
 
@@ -42,6 +42,7 @@ class OperatorTestCase(SIDDTestCase):
         self.gemdb3_path = self.test_data_dir +  "survey3.gemdb"
         self.zone3_path = self.test_data_dir +  "zones3.shp"
         self.zone3_field = "ZONE"
+        self.zone3_bldgcount_field = 'NumBldgs'
         
         self.grid_path = self.test_data_dir +  "grid.shp"
         self.grid2_path = self.test_data_dir +  "grid2.shp"
@@ -142,14 +143,25 @@ class OperatorTestCase(SIDDTestCase):
         self._clean_layer(loader.outputs)  
 
     
-    def test_LoadZone2(self, skipTest=False):
+    def test_LoadZone2(self, skipTest=False, zone=2):
         logging.debug('test_LoadZoneCount %s' % skipTest)
+        
+        if zone == 2:
+            zone_path = self.zone2_path
+            zone_field = self.zone2_field
+            zone_count_field = self.zone2_bldgcount_field
+        elif zone==3: 
+            zone_path = self.zone3_path
+            zone_field = self.zone3_field
+            zone_count_field = self.zone3_bldgcount_field
+        else:
+            raise Exception("zone not supported")
         
         loader = ZoneCountLoader(self.operator_options)
         loader.inputs = [
-            OperatorData(OperatorDataTypes.Shapefile, self.zone2_path),
-            OperatorData(OperatorDataTypes.StringAttribute, self.zone2_field),
-            OperatorData(OperatorDataTypes.StringAttribute, self.zone2_bldgcount_field),
+            OperatorData(OperatorDataTypes.Shapefile, zone_path),
+            OperatorData(OperatorDataTypes.StringAttribute, zone_field),
+            OperatorData(OperatorDataTypes.StringAttribute, zone_count_field),
         ]
         loader.outputs = [
             OperatorData(OperatorDataTypes.Zone),
@@ -307,7 +319,7 @@ class OperatorTestCase(SIDDTestCase):
     def test_ZoneGridJoin(self, skipTest=False):
         logging.debug('test_ZoneGridJoin %s' % skipTest)
         
-        zone_data = self.test_LoadZone2(True)
+        zone_data = self.test_LoadZone2(True, 2)
         grid_data = self.test_MakeGridFromRegion(True)
         
         join = ZoneGridMerger(self.operator_options)
@@ -392,7 +404,105 @@ class OperatorTestCase(SIDDTestCase):
         self.assertTrue(os.path.exists(merger.outputs[1].value))
         # cleanup        
         self._clean_layer(merger.outputs)
+
+    def test_ZoneToGridJoin(self, skipTest=False):
+        logging.debug('test_ZoneFootprintJoin %s' % skipTest)
         
+        # load data
+        zone_data = self.test_LoadZone2(True, 2)
+        
+        # test 1
+        merger = ZoneToGrid(self.operator_options)
+        merger.inputs = [
+            zone_data[0],
+            OperatorData(OperatorDataTypes.StringAttribute, self.zone2_field),
+            OperatorData(OperatorDataTypes.StringAttribute, self.zone2_bldgcount_field),            
+        ]
+        merger.outputs = [
+            OperatorData(OperatorDataTypes.Grid),
+            OperatorData(OperatorDataTypes.Shapefile)
+        ]
+        merger.do_operation()
+
+        if skipTest:
+            # clean up intermediate data            
+            self._clean_layer(zone_data)
+            return merger.outputs
+        
+        self.assertTrue(os.path.exists(merger.outputs[1].value))
+        cnt_idx = layer_field_index(merger.outputs[0].value, CNT_FIELD_NAME)
+        total_cnt = 0
+        for _f in layer_features(merger.outputs[0].value):
+            cnt = _f.attributeMap()[cnt_idx].toDouble()[0]
+            total_cnt+= cnt
+        self.assertAlmostEqual(total_cnt, 292400, places=-2)
+        
+        # cleanup
+        self._clean_layer(zone_data)
+        self._clean_layer(merger.outputs)
+
+    def test_ZoneFootprintToGridJoin(self, skipTest=False):
+        logging.debug('test_ZoneFootprintJoin %s' % skipTest)
+        
+        # load data
+        zone_data = self.test_LoadZone2(True, 3)
+        fp_opdata = self.test_LoadFootprint(True, 3)
+        
+        # test 1
+        merger = FootprintZoneToGrid(self.operator_options)
+        merger.inputs = [
+            fp_opdata[0],
+            zone_data[0],
+            OperatorData(OperatorDataTypes.StringAttribute, self.zone3_field),
+            OperatorData(OperatorDataTypes.StringAttribute, self.zone3_bldgcount_field),            
+        ]
+        merger.outputs = [
+            OperatorData(OperatorDataTypes.Grid),
+            OperatorData(OperatorDataTypes.Shapefile)
+        ]
+        merger.do_operation()
+
+        if skipTest:
+            # clean up intermediate data
+            self._clean_layer(fp_opdata)
+            self._clean_layer(zone_data)
+            return merger.outputs
+        
+        self.assertTrue(os.path.exists(merger.outputs[1].value))
+        cnt_idx = layer_field_index(merger.outputs[0].value, CNT_FIELD_NAME)
+        total_cnt = 0
+        for _f in layer_features(merger.outputs[0].value):
+            cnt = _f.attributeMap()[cnt_idx].toDouble()[0]
+            total_cnt+= cnt
+        self.assertAlmostEqual(total_cnt, 850, places=2)
+        self._clean_layer(merger.outputs)
+
+        # test 2        
+        merger = FootprintZoneToGrid(self.operator_options)
+        merger.inputs = [
+            fp_opdata[0],
+            zone_data[0],
+            OperatorData(OperatorDataTypes.StringAttribute, self.zone3_field),
+            OperatorData(OperatorDataTypes.StringAttribute, ''),            
+        ]
+        merger.outputs = [
+            OperatorData(OperatorDataTypes.Grid),
+            OperatorData(OperatorDataTypes.Shapefile)
+        ]
+        merger.do_operation()
+        self.assertTrue(os.path.exists(merger.outputs[1].value))
+        cnt_idx = layer_field_index(merger.outputs[0].value, CNT_FIELD_NAME)
+        total_cnt = 0
+        for _f in layer_features(merger.outputs[0].value):
+            cnt = _f.attributeMap()[cnt_idx].toDouble()[0]
+            total_cnt+= cnt
+        self.assertAlmostEqual(total_cnt, 785, places=2)
+        
+        # cleanup
+        self._clean_layer(fp_opdata)
+        self._clean_layer(zone_data)
+        self._clean_layer(merger.outputs)        
+
     # test mapping scheme creator
     ##################################
     
@@ -516,7 +626,7 @@ class OperatorTestCase(SIDDTestCase):
         logging.debug('test_ApplyMS')
         
         # load zone with count
-        zone_data = self.test_LoadZone2(True)
+        zone_data = self.test_LoadZone2(True, 2)
         
         # load ms
         ms_opdata = self.test_LoadMS(True)
@@ -627,7 +737,10 @@ class OperatorTestCase(SIDDTestCase):
         #print report.value
         self.assertEquals(report.value['total_source'], report.value['total_exposure'])
     
+    
     def _clean_layer(self, output):
         del output[0].value
         remove_shapefile(output[1].value)
 
+
+    

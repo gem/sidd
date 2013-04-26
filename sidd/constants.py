@@ -18,7 +18,7 @@ logAPICall = SIDDLogging('core')
 ###########################
 SIDD_COMPANY = "GEM"
 SIDD_APP_NAME = "SIDD"
-SIDD_VERSION = 'Beta 2'
+SIDD_VERSION = 'Beta 1'
 
 # maximum number of items before swithcing from in-memory algorithms
 # to file-based algorithms
@@ -56,5 +56,7 @@ ProjectStatus = Enum('NotVerified', 'ReadyForExposure', 'ReadyForMS')
 # processing options
 ExtrapolateOptions = Enum('RandomWalk', 'Fraction', 'FractionRounded')
 
+# exception constants
+ProjectErrors = Enum("FileNotSet", "FileFormatError")
 # workflow related
 WorkflowErrors = Enum("NeedsCount", "NeedsZone", "NeedsHeight", "NeedsMS", "NeedSurvey", "NeedExposure", "NoActionDefined")

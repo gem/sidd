@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
 # Form implementation generated from reading ui file 'qt\dlg_apply.ui'
-# Created: Mon Oct 15 17:11:15 2012
+#
+# Created: Thu Apr 25 17:06:38 2013
 #      by: PyQt4 UI code generator 4.8.3
+#
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
@@ -33,5 +35,7 @@ class Ui_DialogApply(object):
         QtCore.QMetaObject.connectSlotsByName(DialogApply)
 
     def retranslateUi(self, DialogApply):
-        pass
+        DialogApply.setWindowTitle(QtGui.QApplication.translate("DialogApply", "Building Exposure", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_description.setText(QtGui.QApplication.translate("DialogApply", "SIDD is applying mapping schemes and generating exposure.\n"
+"This may takes some time. Plese check the console below to see what is being processed.", None, QtGui.QApplication.UnicodeUTF8))
 

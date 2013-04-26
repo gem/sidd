@@ -13,7 +13,7 @@ from operator import itemgetter
 
 from sidd.constants import logAPICall, CNT_FIELD_NAME
 
-from ui.constants import logUICall, UI_PADDING, get_ui_string
+from ui.constants import logUICall, UI_PADDING
 from ui.qt.dlg_res_detail_ui import Ui_tablePreviewDialog
 
 class DialogResult(Ui_tablePreviewDialog, QDialog):
@@ -26,7 +26,6 @@ class DialogResult(Ui_tablePreviewDialog, QDialog):
         super(DialogResult, self).__init__()
         self.ui = Ui_tablePreviewDialog()        
         self.ui.setupUi(self)
-        self.retranslateUi(self.ui)
         
         self.ui.table_result.setSelectionMode(QAbstractItemView.SingleSelection)
         self.ui.table_result.setSortingEnabled(True)
@@ -85,15 +84,6 @@ class DialogResult(Ui_tablePreviewDialog, QDialog):
         # hide exposure specific ui elements 
         self.ui.txt_bldgcount.setVisible(False) 
         self.ui.lb_bldgcount.setVisible(False)
-
-    def retranslateUi(self, ui):
-        """ set text for ui elements """
-        # dialog title
-        self.setWindowTitle(get_ui_string('dlg.result.window.title'))
-        # ui elements        
-        ui.lb_title.setText(get_ui_string('dlg.result.title'))
-        ui.lb_bldgcount.setText(get_ui_string('dlg.result.bldgcount'))
-        ui.btn_ok.setText(get_ui_string('app.dialog.button.ok'))
 
 class ResultDetailTableModel(QAbstractTableModel):
     """

@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Processing Options</string>
   </property>
   <widget class="QGroupBox" name="box_extrapolate_options">
    <property name="geometry">
@@ -35,7 +35,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Random Walk</string>
+     <string>Monte-Carlo Simulation</string>
     </property>
     <property name="checked">
      <bool>true</bool>
@@ -51,7 +51,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Actual Ratio </string>
+     <string>Building Distribution Fraction</string>
     </property>
    </widget>
    <widget class="QRadioButton" name="radio_actual_rounded">
@@ -64,7 +64,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Actual Ratio (Rounded)</string>
+     <string>Building Distribution Fraction Rounded</string>
     </property>
    </widget>
   </widget>

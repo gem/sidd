@@ -10,7 +10,7 @@ dialog for editing secondary modifiers
 from PyQt4.QtGui import QDialog, QAbstractItemView
 from PyQt4.QtCore import pyqtSlot
 
-from ui.constants import logUICall, get_ui_string 
+from ui.constants import logUICall 
 from ui.qt.dlg_build_ms_ui import Ui_msOptionsDialog
 from ui.dlg_attr_range import DialogAttrRanges
 
@@ -25,7 +25,6 @@ class DialogMSOptions(Ui_msOptionsDialog, QDialog):
         super(DialogMSOptions, self).__init__()
         self.ui = Ui_msOptionsDialog()
         self.ui.setupUi(self)
-        self.retranslateUi(self.ui)
 
         self.dlgAttrRange = DialogAttrRanges()        
         
@@ -271,24 +270,3 @@ class DialogMSOptions(Ui_msOptionsDialog, QDialog):
                 self._attr_names.index(_attr.name)
             except:
                 self.ui.lst_attributes_not_included.addItem(_attr.name)        
-    
-    def retranslateUi(self, ui):
-        """ set text for ui elements """
-        # dialog title
-        self.setWindowTitle(get_ui_string("dlg.buildms.title"))
-        # ui elements
-        ui.lb_title.setText(get_ui_string("dlg.buildms.title"))
-        ui.lb_attributes.setText(get_ui_string("dlg.buildms.attributes"))
-        ui.lb_attributes_not_included.setText(get_ui_string("dlg.buildms.attributes.not_included"))
-        ui.lb_notes.setText(get_ui_string("dlg.buildms.notes"))        
-        ui.radioEmptyMS.setText(get_ui_string("dlg.buildms.option.empty"))
-        ui.radioBuildMS.setText(get_ui_string("dlg.buildms.option.survey"))
-        ui.ck_use_sampling.setText(get_ui_string("dlg.buildms.use.sampling"))
-        # tooltips
-        self.ui.btn_move_up.setToolTip(get_ui_string("dlg.buildms.button.moveup"))
-        self.ui.btn_move_down.setToolTip(get_ui_string("dlg.buildms.button.movedown"))
-        self.ui.btn_move_top.setToolTip(get_ui_string("dlg.buildms.button.movetop"))
-        self.ui.btn_move_bottom.setToolTip(get_ui_string("dlg.buildms.button.movebottom"))
-        self.ui.btn_range.setToolTip(get_ui_string("dlg.buildms.button.range"))
-        
-        

@@ -2,8 +2,9 @@
 
 # Form implementation generated from reading ui file 'qt\dlg_build_ms.ui'
 #
-# Created: Wed Feb 27 17:26:26 2013
+# Created: Thu Apr 25 17:06:38 2013
 #      by: PyQt4 UI code generator 4.8.3
+#
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
@@ -16,7 +17,12 @@ except AttributeError:
 class Ui_msOptionsDialog(object):
     def setupUi(self, msOptionsDialog):
         msOptionsDialog.setObjectName(_fromUtf8("msOptionsDialog"))
-        msOptionsDialog.resize(548, 339)
+        msOptionsDialog.resize(543, 340)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(msOptionsDialog.sizePolicy().hasHeightForWidth())
+        msOptionsDialog.setSizePolicy(sizePolicy)
         self.buttons = QtGui.QDialogButtonBox(msOptionsDialog)
         self.buttons.setGeometry(QtCore.QRect(360, 300, 171, 32))
         self.buttons.setOrientation(QtCore.Qt.Horizontal)
@@ -110,9 +116,28 @@ class Ui_msOptionsDialog(object):
         self.ck_use_sampling = QtGui.QCheckBox(msOptionsDialog)
         self.ck_use_sampling.setGeometry(QtCore.QRect(320, 70, 211, 17))
         self.ck_use_sampling.setObjectName(_fromUtf8("ck_use_sampling"))
+        self.lb_notes1 = QtGui.QLabel(msOptionsDialog)
+        self.lb_notes1.setGeometry(QtCore.QRect(30, 300, 291, 16))
+        self.lb_notes1.setObjectName(_fromUtf8("lb_notes1"))
 
         self.retranslateUi(msOptionsDialog)
         QtCore.QMetaObject.connectSlotsByName(msOptionsDialog)
 
     def retranslateUi(self, msOptionsDialog):
-        pass
+        msOptionsDialog.setWindowTitle(QtGui.QApplication.translate("msOptionsDialog", "Create Mapping Scheme", None, QtGui.QApplication.UnicodeUTF8))
+        self.radioEmptyMS.setText(QtGui.QApplication.translate("msOptionsDialog", "Create Empty Mapping Scheme", None, QtGui.QApplication.UnicodeUTF8))
+        self.radioBuildMS.setText(QtGui.QApplication.translate("msOptionsDialog", "Build from Survey Data", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_title.setText(QtGui.QApplication.translate("msOptionsDialog", "Create Mapping Scheme", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_attributes.setText(QtGui.QApplication.translate("msOptionsDialog", "Attributes to include", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_range.setToolTip(QtGui.QApplication.translate("msOptionsDialog", "Edit Grouping", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_move_up.setToolTip(QtGui.QApplication.translate("msOptionsDialog", "Move up", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_move_bottom.setToolTip(QtGui.QApplication.translate("msOptionsDialog", "Move to Bottom", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_move_down.setToolTip(QtGui.QApplication.translate("msOptionsDialog", "Move Down", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_move_top.setToolTip(QtGui.QApplication.translate("msOptionsDialog", "Move to Top", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_attributes_not_included.setText(QtGui.QApplication.translate("msOptionsDialog", "Attributes not included", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_move_right.setToolTip(QtGui.QApplication.translate("msOptionsDialog", "Exclude Selected Attribute", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_move_left.setToolTip(QtGui.QApplication.translate("msOptionsDialog", "Include selected Attribute", None, QtGui.QApplication.UnicodeUTF8))
+        self.ck_use_sampling.setText(QtGui.QApplication.translate("msOptionsDialog", "Use Stratified Sampling Method", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_notes1.setText(QtGui.QApplication.translate("msOptionsDialog", "Attribute with * symbol can be grouped into ranges", None, QtGui.QApplication.UnicodeUTF8))
+
+import SIDDResource_rc

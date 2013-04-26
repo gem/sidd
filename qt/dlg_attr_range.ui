@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Set Value Grouping</string>
   </property>
   <widget class="QDialogButtonBox" name="buttons">
    <property name="geometry">
@@ -43,7 +43,7 @@
     </font>
    </property>
    <property name="text">
-    <string>Attribute Range</string>
+    <string>Attribute Value Groups</string>
    </property>
   </widget>
   <widget class="QLabel" name="lb_attribute">
@@ -67,6 +67,9 @@
      <width>31</width>
      <height>23</height>
     </rect>
+   </property>
+   <property name="toolTip">
+    <string>Add value group</string>
    </property>
    <property name="text">
     <string/>
@@ -104,6 +107,9 @@
      <width>31</width>
      <height>23</height>
     </rect>
+   </property>
+   <property name="toolTip">
+    <string>Remove last value group</string>
    </property>
    <property name="text">
     <string/>

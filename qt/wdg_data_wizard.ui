@@ -1,0 +1,898 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>widgetDataWizard</class>
+ <widget class="QWizard" name="widgetDataWizard">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>776</width>
+    <height>410</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Wizard</string>
+  </property>
+  <property name="modal">
+   <bool>true</bool>
+  </property>
+  <property name="wizardStyle">
+   <enum>QWizard::ModernStyle</enum>
+  </property>
+  <widget class="QWizardPage" name="wizardPageZones">
+   <property name="title">
+    <string>Zone</string>
+   </property>
+   <property name="subTitle">
+    <string>Homogenous Zone data</string>
+   </property>
+   <attribute name="pageId">
+    <string notr="true">page_zone</string>
+   </attribute>
+   <widget class="QWidget" name="widgetZones" native="true">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>411</width>
+      <height>291</height>
+     </rect>
+    </property>
+    <widget class="QRadioButton" name="radio_zones_count">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>70</y>
+       <width>391</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Land use zones with building count</string>
+     </property>
+    </widget>
+    <widget class="QRadioButton" name="radio_zones_only">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>50</y>
+       <width>391</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Land use zones</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_zones_proj">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>240</y>
+       <width>151</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Select/verify projection:</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_zones_select_file">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>95</y>
+       <width>71</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Select file:</string>
+     </property>
+    </widget>
+    <widget class="QRadioButton" name="radio_zones_no_data">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>30</y>
+       <width>391</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>No Data</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="cb_zones_class_field">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>170</y>
+       <width>171</width>
+       <height>22</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_zones_class_field">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>146</y>
+       <width>281</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Select field containing land use/class attributes:</string>
+     </property>
+    </widget>
+    <widget class="QToolButton" name="btn_zones_select_file">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>380</x>
+       <y>121</y>
+       <width>21</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="cursor">
+      <cursorShape>ArrowCursor</cursorShape>
+     </property>
+     <property name="text">
+      <string>...</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="cb_zones_proj">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>260</y>
+       <width>171</width>
+       <height>22</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txt_zones_select_file">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>120</y>
+       <width>361</width>
+       <height>20</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_zones_desc">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>251</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>What type of data do you have for zones?</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_zones_count_field">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>200</y>
+       <width>271</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Select field containing building count</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="cb_zones_count_field">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>220</y>
+       <width>171</width>
+       <height>22</height>
+      </rect>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QTextEdit" name="txt_zones_desc">
+    <property name="geometry">
+     <rect>
+      <x>430</x>
+      <y>10</y>
+      <width>321</width>
+      <height>290</height>
+     </rect>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QWizardPage" name="wizardPageFoortprints">
+   <property name="title">
+    <string>Footprint</string>
+   </property>
+   <property name="subTitle">
+    <string>Building Footprint Data</string>
+   </property>
+   <attribute name="pageId">
+    <string notr="true">page_fp</string>
+   </attribute>
+   <widget class="QWidget" name="widgetFootprint" native="true">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>411</width>
+      <height>290</height>
+     </rect>
+    </property>
+    <widget class="QComboBox" name="cb_fp_story_field">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>280</x>
+       <y>146</y>
+       <width>121</width>
+       <height>22</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QRadioButton" name="radio_fp_height">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>70</y>
+       <width>381</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Building footprints with height</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txt_fp_select_file">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>121</y>
+       <width>361</width>
+       <height>20</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_fp_select_file">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>95</y>
+       <width>71</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Select file:</string>
+     </property>
+    </widget>
+    <widget class="QRadioButton" name="radio_fp_only">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>50</y>
+       <width>381</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Building footprints without height</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_fp_desc">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>305</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>What type of data do you have for building footprints?</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="cb_fp_proj">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>280</x>
+       <y>171</y>
+       <width>121</width>
+       <height>22</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_fp_proj">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>171</y>
+       <width>151</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Select/verify projection:</string>
+     </property>
+    </widget>
+    <widget class="QToolButton" name="btn_fp_select_file">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>380</x>
+       <y>121</y>
+       <width>21</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="cursor">
+      <cursorShape>ArrowCursor</cursorShape>
+     </property>
+     <property name="text">
+      <string>...</string>
+     </property>
+    </widget>
+    <widget class="QRadioButton" name="radio_fp_no_data">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>30</y>
+       <width>381</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>No Data</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_fp_story_field">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>146</y>
+       <width>241</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Select field containing number of stories:</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QTextEdit" name="txt_fp_desc">
+    <property name="geometry">
+     <rect>
+      <x>430</x>
+      <y>10</y>
+      <width>321</width>
+      <height>290</height>
+     </rect>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QWizardPage" name="wizardPageSurveys">
+   <property name="title">
+    <string>Survey</string>
+   </property>
+   <property name="subTitle">
+    <string>Field survey data</string>
+   </property>
+   <attribute name="pageId">
+    <string notr="true">page_survey</string>
+   </attribute>
+   <widget class="QWidget" name="widgetSurvey" native="true">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>411</width>
+      <height>290</height>
+     </rect>
+    </property>
+    <widget class="QLabel" name="lb_svy_select_file">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>95</y>
+       <width>71</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Select file:</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_svy_desc">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>261</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>What type of survey / field data do you have?</string>
+     </property>
+    </widget>
+    <widget class="QToolButton" name="btn_svy_select_file">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>380</x>
+       <y>121</y>
+       <width>21</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="cursor">
+      <cursorShape>ArrowCursor</cursorShape>
+     </property>
+     <property name="text">
+      <string>...</string>
+     </property>
+    </widget>
+    <widget class="QRadioButton" name="radio_svy_sampled">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>50</y>
+       <width>381</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Sampled buildings from survey area</string>
+     </property>
+    </widget>
+    <widget class="QRadioButton" name="radio_svy_no_data">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>30</y>
+       <width>381</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>No Data</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QRadioButton" name="radio_svy_complete">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>70</y>
+       <width>381</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Complete building stock/survey area</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txt_svy_select_file">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>121</y>
+       <width>361</width>
+       <height>20</height>
+      </rect>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QTextEdit" name="txt_survey_desc">
+    <property name="geometry">
+     <rect>
+      <x>430</x>
+      <y>10</y>
+      <width>321</width>
+      <height>290</height>
+     </rect>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QWizardPage" name="wizardPageAggr">
+   <property name="title">
+    <string>Output</string>
+   </property>
+   <property name="subTitle">
+    <string>Output Aggregation Format</string>
+   </property>
+   <attribute name="pageId">
+    <string notr="true">page_aggr</string>
+   </attribute>
+   <widget class="QWidget" name="widgetAggr" native="true">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>411</width>
+      <height>290</height>
+     </rect>
+    </property>
+    <widget class="QRadioButton" name="radio_aggr_grid">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>50</y>
+       <width>381</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>GED Compatible 30 arc-second grid</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_aggr_desc">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>281</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>How do you wish to aggregate your output data?</string>
+     </property>
+    </widget>
+    <widget class="QRadioButton" name="radio_aggr_zones">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>30</y>
+       <width>381</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Output into defined zones </string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QTextEdit" name="txt_aggr_desc">
+    <property name="geometry">
+     <rect>
+      <x>430</x>
+      <y>10</y>
+      <width>321</width>
+      <height>290</height>
+     </rect>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QWizardPage" name="wizardPageVerify">
+   <property name="title">
+    <string>Review</string>
+   </property>
+   <property name="subTitle">
+    <string>Review input data</string>
+   </property>
+   <attribute name="pageId">
+    <string notr="true">page_verify</string>
+   </attribute>
+   <widget class="QWidget" name="widgetResult" native="true">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>411</width>
+      <height>290</height>
+     </rect>
+    </property>
+    <widget class="QLabel" name="lb_verify_title">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>301</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>You have supplied the following types of data:</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="img_lb_verify_fp">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>38</y>
+       <width>21</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="img_lb_verify_zones">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>59</y>
+       <width>21</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_verify_fp">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>38</y>
+       <width>111</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Footprint</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_verify_svy">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>80</y>
+       <width>111</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Survey</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_verify_zones">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>59</y>
+       <width>111</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Zones</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="img_lb_verify_svy">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>80</y>
+       <width>21</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_verify_aggregation">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>113</y>
+       <width>171</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>With aggregation</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="img_lb_verify_agg_grid">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>150</y>
+       <width>21</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="img_lb_verify_agg_zone">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>130</y>
+       <width>21</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_verify_agg_zone">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>130</y>
+       <width>131</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Zone</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_verify_agg_grid">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>150</y>
+       <width>131</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>GED Compatible Grid</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QTextBrowser" name="txt_verify_text">
+    <property name="geometry">
+     <rect>
+      <x>430</x>
+      <y>10</y>
+      <width>321</width>
+      <height>290</height>
+     </rect>
+    </property>
+    <property name="html">
+     <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:8pt;&quot;&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+   </widget>
+  </widget>
+ </widget>
+ <resources>
+  <include location="resources/SIDDResource.qrc"/>
+ </resources>
+ <connections/>
+</ui>

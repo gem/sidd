@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Feature Details</string>
+   <string>Feature Information</string>
   </property>
   <widget class="QTableView" name="table_result">
    <property name="geometry">
@@ -40,20 +40,20 @@
     </font>
    </property>
    <property name="text">
-    <string>Exposure Distribution for Selected Region</string>
+    <string>Detailed Information for Selected Feature</string>
    </property>
   </widget>
   <widget class="QLabel" name="lb_bldgcount">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>340</y>
+     <y>320</y>
      <width>111</width>
      <height>25</height>
     </rect>
    </property>
    <property name="text">
-    <string>Total Building Count</string>
+    <string>Building Count</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -63,7 +63,7 @@
    <property name="geometry">
     <rect>
      <x>130</x>
-     <y>340</y>
+     <y>320</y>
      <width>81</width>
      <height>20</height>
     </rect>

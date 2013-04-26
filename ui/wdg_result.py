@@ -20,7 +20,7 @@ from qgis.core import QGis, QgsMapLayerRegistry, QgsCoordinateReferenceSystem, \
                       QgsStyleV2, QgsFeatureRendererV2
 
 from utils.shapefile import load_shapefile, layer_field_index, layer_features
-from sidd.constants import ExportTypes, ExtrapolateOptions, OutputTypes
+from sidd.constants import ExportTypes, ExtrapolateOptions
 
 from ui.constants import logUICall, get_ui_string, UI_PADDING
 from ui.dlg_result import DialogResult
@@ -41,18 +41,16 @@ class WidgetResult(Ui_widgetResult, QWidget):
         #get_ui_string("app.extension.nrml"):ExportTypes.NRML,
         get_ui_string("app.extension.csv"):ExportTypes.CSV,
     };
-    ''' ennumaration of Layer to be previewed '''
-    EXPOSURE, EXPOSURE_GRID, SURVEY, FOOTPRINT, ZONES = range(5);
+    ''' enumeration of Layer to be previewed '''
+    EXPOSURE, SURVEY, FOOTPRINT, ZONES = range(4);
     ''' name for Layer to be previewed '''
     LAYER_NAMES = [
-        get_ui_string("widget.result.layer.exposure"),
-        get_ui_string("widget.result.layer.exposure_grid"),
+        get_ui_string("widget.result.layer.exposure"),        
         get_ui_string("widget.result.layer.survey"),
         get_ui_string("widget.result.layer.footprint"),
         get_ui_string("widget.result.layer.zones"),
     ];    
     LAYER_STYLES = [
-        '<!DOCTYPE renderer><renderer-v2 symbollevels="0" type="singleSymbol"><symbols><symbol outputUnit="MM" alpha="1" type="marker" name="0"><layer pass="0" class="SimpleMarker" locked="0"><prop k="angle" v="0"/><prop k="color" v="255,170,0,255"/><prop k="color_border" v="255,170,0,255"/><prop k="name" v="regular_star"/><prop k="offset" v="0,0"/><prop k="size" v="3"/></layer></symbol></symbols><rotation field=""/><sizescale field=""/></renderer-v2>',         
         '<!DOCTYPE renderer><renderer-v2 symbollevels="0" type="singleSymbol"><symbols><symbol outputUnit="MM" alpha="1" type="fill" name="0"><layer pass="0" class="SimpleLine" locked="0"><prop k="capstyle" v="square"/><prop k="color" v="0,0,0,255"/><prop k="customdash" v="5;2"/><prop k="joinstyle" v="bevel"/><prop k="offset" v="0"/><prop k="penstyle" v="solid"/><prop k="use_custom_dash" v="0"/><prop k="width" v="0.26"/></layer></symbol></symbols><rotation field=""/><sizescale field=""/></renderer-v2>',
         '<!DOCTYPE renderer><renderer-v2 symbollevels="0" type="singleSymbol"><symbols><symbol outputUnit="MM" alpha="1" type="marker" name="0"><layer pass="0" class="SimpleMarker" locked="0"><prop k="angle" v="0"/><prop k="color" v="0,0,255,255"/><prop k="color_border" v="0,0,255,255"/><prop k="name" v="circle"/><prop k="offset" v="0,0"/><prop k="size" v="2"/></layer></symbol></symbols><rotation field=""/><sizescale field=""/></renderer-v2>',
         '<!DOCTYPE renderer><renderer-v2 symbollevels="0" type="singleSymbol"><symbols><symbol outputUnit="MM" alpha="1" type="fill" name="0"><layer pass="0" class="SimpleFill" locked="0"><prop k="color" v="170,250,170,255"/><prop k="color_border" v="0,0,0,255"/><prop k="offset" v="0,0"/><prop k="style" v="solid"/><prop k="style_border" v="solid"/><prop k="width_border" v="0.26"/></layer></symbol></symbols><rotation field=""/><sizescale field=""/></renderer-v2>',
@@ -67,8 +65,7 @@ class WidgetResult(Ui_widgetResult, QWidget):
         QWidget.__init__(self)
         self.ui = Ui_widgetResult()
         self.ui.setupUi(self)
-        self.retranslateUi(self.ui)
-        
+                
         # create canvas
         self.canvas = QgsMapCanvas(self.ui.widget_map)
         self.canvas.setGeometry(
@@ -221,7 +218,7 @@ class WidgetResult(Ui_widgetResult, QWidget):
                     self.zoomToExtent(extent)
                 else:
                     QMessageBox.information(self, get_ui_string("app.warning.title"),get_ui_string("widget.result.info.notfound"))
-            dlg_search.destroy()            
+            dlg_search.destroy()
         except Exception as err:
             logUICall.log(str(err), logUICall.INFO)
             
@@ -316,7 +313,7 @@ class WidgetResult(Ui_widgetResult, QWidget):
 
             if len(selected)>0:
                 # display result
-                if cur_layer_idx == self.EXPOSURE or cur_layer_idx == self.EXPOSURE_GRID:
+                if cur_layer_idx == self.EXPOSURE:
                     self.dlgResultDetail.showExposureData(provider.fields(), selected)                    
                 else:
                     self.dlgResultDetail.showInfoData(provider.fields(), selected)
@@ -326,7 +323,7 @@ class WidgetResult(Ui_widgetResult, QWidget):
                                         get_ui_string("app.warning.title"), 
                                         get_ui_string("widget.result.info.notfound"))
         except Exception as err:
-            print err       
+            print err     
         
     # public methods
     ###############################
@@ -378,15 +375,10 @@ class WidgetResult(Ui_widgetResult, QWidget):
         self.refreshResult()
 
     def refreshResult(self):
-        if self.project.output_type == OutputTypes.Zone:
-            exposure = getattr(self._project, 'exposure', None)
-            exposure_layer = self.EXPOSURE
-            exposure_renderer = self.EXPOSURE_GRID
-        else:
-            exposure = getattr(self._project, 'exposure_grid', None)
-            exposure_layer = self.EXPOSURE_GRID
-            exposure_renderer = self.EXPOSURE_GRID
-    
+        exposure = getattr(self._project, 'exposure', None)
+        exposure_layer = self.EXPOSURE
+        exposure_renderer = self.EXPOSURE
+                
         if exposure is not None:
             self.map_layers[exposure_layer] = exposure 
             self.showDataLayer(self.map_layers[exposure_layer], self.map_layer_renderer[exposure_renderer])
@@ -435,7 +427,6 @@ class WidgetResult(Ui_widgetResult, QWidget):
     @logUICall
     def closeResult(self):
         self.removeDataLayer(self.EXPOSURE)
-        self.removeDataLayer(self.EXPOSURE_GRID)
 
     @logUICall
     def closeAll(self):
@@ -535,23 +526,4 @@ class WidgetResult(Ui_widgetResult, QWidget):
         self.canvas.setLayerSet(layerSet)
         self.canvas.refresh()
 
-    def retranslateUi(self, ui):
-        """ set text for ui elements """
-        # ui elements    
-        ui.lb_panel_title.setText(get_ui_string("widget.result.title"))
-        ui.lb_layer_selector.setText(get_ui_string("widget.result.layers.selector"))
-        ui.lb_export_title.setText(get_ui_string("widget.result.export.title"))
-        ui.lb_export_format.setText(get_ui_string("widget.result.export.format"))
-        ui.lb_export_select_path.setText(get_ui_string("app.folder.select"))
-        ui.lbl_dq_test_title.setText(get_ui_string("widget.result.dq.title"))
-        ui.btn_export_select_path.setText(get_ui_string("app.file.button"))
-        ui.btn_export.setText(get_ui_string("widget.result.export.button"))
-        # tooltip for icon buttons
-        ui.btn_zoom_in.setToolTip(get_ui_string("widget.result.button.zoomin"))
-        ui.btn_zoom_out.setToolTip(get_ui_string("widget.result.button.zoomout"))
-        ui.btn_zoom_layer.setToolTip(get_ui_string("widget.result.button.zoomlayer"))
-        ui.btn_pan.setToolTip(get_ui_string("widget.result.button.pan"))
-        ui.btn_zoom_full.setToolTip(get_ui_string("widget.result.button.zoomfull"))
-        ui.btn_theme.setToolTip(get_ui_string("widget.result.button.theme"))
-        ui.btn_info.setToolTip(get_ui_string("widget.result.button.info"))
         

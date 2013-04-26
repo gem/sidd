@@ -2,8 +2,9 @@
 
 # Form implementation generated from reading ui file 'qt\wdg_ms.ui'
 #
-# Created: Mon Mar 04 10:52:49 2013
+# Created: Thu Apr 25 17:06:40 2013
 #      by: PyQt4 UI code generator 4.8.3
+#
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
@@ -62,14 +63,14 @@ class Ui_widgetMappingSchemes(object):
         self.btn_expand_tree.setGeometry(QtCore.QRect(0, 0, 31, 23))
         self.btn_expand_tree.setText(_fromUtf8(""))
         icon3 = QtGui.QIcon()
-        icon3.addPixmap(QtGui.QPixmap(_fromUtf8(":/imgs/icons/magnify_plus.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon3.addPixmap(QtGui.QPixmap(_fromUtf8(":/imgs/icons/folder_open.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.btn_expand_tree.setIcon(icon3)
         self.btn_expand_tree.setObjectName(_fromUtf8("btn_expand_tree"))
         self.btn_collapse_tree = QtGui.QPushButton(self.widget_ms_buttons_r)
         self.btn_collapse_tree.setGeometry(QtCore.QRect(30, 0, 31, 23))
         self.btn_collapse_tree.setText(_fromUtf8(""))
         icon4 = QtGui.QIcon()
-        icon4.addPixmap(QtGui.QPixmap(_fromUtf8(":/imgs/icons/magnify_minus.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon4.addPixmap(QtGui.QPixmap(_fromUtf8(":/imgs/icons/folder_close.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.btn_collapse_tree.setIcon(icon4)
         self.btn_collapse_tree.setObjectName(_fromUtf8("btn_collapse_tree"))
         self.tree_ms = QtGui.QTreeView(self.widget_ms_tree)
@@ -203,7 +204,7 @@ class Ui_widgetMappingSchemes(object):
         self.btn_del_lib_ms.setIcon(icon1)
         self.btn_del_lib_ms.setObjectName(_fromUtf8("btn_del_lib_ms"))
         self.widget_ms_leaves = QtGui.QWidget(widgetMappingSchemes)
-        self.widget_ms_leaves.setGeometry(QtCore.QRect(350, 30, 561, 531))
+        self.widget_ms_leaves.setGeometry(QtCore.QRect(890, 30, 561, 531))
         self.widget_ms_leaves.setObjectName(_fromUtf8("widget_ms_leaves"))
         self.table_ms_leaves = QtGui.QTableView(self.widget_ms_leaves)
         self.table_ms_leaves.setGeometry(QtCore.QRect(40, 50, 521, 441))
@@ -239,6 +240,31 @@ class Ui_widgetMappingSchemes(object):
         QtCore.QMetaObject.connectSlotsByName(widgetMappingSchemes)
 
     def retranslateUi(self, widgetMappingSchemes):
-        pass
+        widgetMappingSchemes.setWindowTitle(QtGui.QApplication.translate("widgetMappingSchemes", "Form", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_secondary_mod.setText(QtGui.QApplication.translate("widgetMappingSchemes", "Modifiers", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_build_exposure.setText(QtGui.QApplication.translate("widgetMappingSchemes", "Build Exposure", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_panel_title.setText(QtGui.QApplication.translate("widgetMappingSchemes", "Manage Mapping Schemes", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_edit_level.setToolTip(QtGui.QApplication.translate("widgetMappingSchemes", "Edit Level", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_del_child.setToolTip(QtGui.QApplication.translate("widgetMappingSchemes", "Delete Selected Node ", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_add_child.setToolTip(QtGui.QApplication.translate("widgetMappingSchemes", "Add/Edit Child Nodes", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_expand_tree.setToolTip(QtGui.QApplication.translate("widgetMappingSchemes", "Expand Mapping Scheme Tree", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_collapse_tree.setToolTip(QtGui.QApplication.translate("widgetMappingSchemes", "Collapse Mapping Scheme Tree", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_save_ms.setToolTip(QtGui.QApplication.translate("widgetMappingSchemes", "Save Mapping Scheme", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_create_ms.setToolTip(QtGui.QApplication.translate("widgetMappingSchemes", "Create New Mapping Scheme", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_add_branch.setToolTip(QtGui.QApplication.translate("widgetMappingSchemes", "Append Selected Mapping Scheme from Library to Zone", None, QtGui.QApplication.UnicodeUTF8))
+        self.box_ms_library.setTitle(QtGui.QApplication.translate("widgetMappingSchemes", "Mapping Scheme Library", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_ms_library_regions.setText(QtGui.QApplication.translate("widgetMappingSchemes", "Regions", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_ms_library_types.setText(QtGui.QApplication.translate("widgetMappingSchemes", "Types", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_ms_library_msnames.setText(QtGui.QApplication.translate("widgetMappingSchemes", "Available Mapping Schemes", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_ms_library_date.setText(QtGui.QApplication.translate("widgetMappingSchemes", "Date Created", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_ms_library_notes.setText(QtGui.QApplication.translate("widgetMappingSchemes", "Use Notes", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_ms_library_datasource.setText(QtGui.QApplication.translate("widgetMappingSchemes", "Data Source", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_ms_library_quality.setText(QtGui.QApplication.translate("widgetMappingSchemes", "Data Measured", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_ms_library_ms.setText(QtGui.QApplication.translate("widgetMappingSchemes", "Mapping Scheme", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_del_lib_ms.setToolTip(QtGui.QApplication.translate("widgetMappingSchemes", "Delete Selected Mapping Scheme", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_ms_zones.setText(QtGui.QApplication.translate("widgetMappingSchemes", "Select zone", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_leaves_total.setText(QtGui.QApplication.translate("widgetMappingSchemes", "Total", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_ms_leaves.setText(QtGui.QApplication.translate("widgetMappingSchemes", "Building Distribution", None, QtGui.QApplication.UnicodeUTF8))
+        self.ck_use_modifier.setText(QtGui.QApplication.translate("widgetMappingSchemes", "Include Modifiers", None, QtGui.QApplication.UnicodeUTF8))
 
 import SIDDResource_rc

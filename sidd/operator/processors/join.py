@@ -9,24 +9,25 @@ module contains class for creating mapping scheme from survey data
 """
 import bsddb
 import os
+from math import floor, ceil
 
 from PyQt4.QtCore import QVariant, QString
-from qgis.core import QGis, QgsVectorFileWriter, QgsFeature, QgsField, QgsGeometry, QgsPoint
+from qgis.core import QGis, QgsVectorFileWriter, QgsFeature, QgsField, QgsGeometry, \
+                      QgsPoint, QgsRectangle, QgsCoordinateReferenceSystem, QgsCoordinateTransform
 from qgis.analysis import QgsOverlayAnalyzer
 
 from utils.shapefile import load_shapefile, layer_features, layer_field_index, remove_shapefile, \
                             layer_multifields_stats, layer_fields_stats, load_shapefile_verify 
 from utils.system import get_unique_filename
-
-from sidd.constants import logAPICall, GID_FIELD_NAME, MAX_FEATURES_IN_MEMORY, DEFAULT_GRID_SIZE
-from sidd.operator import Operator, OperatorError
+from utils.grid import latlon_to_grid, grid_to_latlon
+from sidd.constants import logAPICall, GID_FIELD_NAME, AREA_FIELD_NAME, CNT_FIELD_NAME, \
+                           MAX_FEATURES_IN_MEMORY, DEFAULT_GRID_SIZE
+from sidd.operator import EmptyOperator, OperatorError
 from sidd.operator.data import OperatorDataTypes
 
-
-class ZoneGridMerger(Operator):
+class ZoneGridMerger(EmptyOperator):
     """
     """
-
     # construction / destructor
     ###########################
     
@@ -216,17 +217,8 @@ class ZoneGridMerger(Operator):
         self.outputs[0].value = grid_layer
         self.outputs[1].value = grid_file
 
-    # protected method override
+    # protected methods
     ###########################
-
-    def _verify_inputs(self, inputs):
-        """ perform operator specific input validation """
-        pass
-        
-    def _verify_outputs(self, outputs):
-        """ perform operator specific output validation """
-        pass
-
     def _make_key(self, zone_str, gid, lon, lat):
         return '%s,%s,%.5f,%.5f' % (zone_str, gid, lon, lat)
     
@@ -244,9 +236,8 @@ class ZoneGridMerger(Operator):
         f.addAttribute(2, QVariant(zone))            
         f.addAttribute(3, QVariant(zone_ratio))
         writer.addFeature(f)
-        
 
-class ZoneFootprintMerger(Operator):
+class ZoneFootprintMerger(EmptyOperator):
     def __init__(self, options=None, name='Zone & Footprint Merger'):
         super(ZoneFootprintMerger, self).__init__(options, name)
         self._tmp_dir = options['tmp_dir']
@@ -343,18 +334,10 @@ class ZoneFootprintMerger(Operator):
         self.outputs[0].value = fp_layer
         self.outputs[1].value = fp_file
 
-    # protected method override
+    # protected methods
     ###########################
 
-    def _verify_inputs(self, inputs):
-        """ perform operator specific input validation """
-        pass
-        
-    def _verify_outputs(self, outputs):
-        """ perform operator specific output validation """
-        pass    
-
-class ZoneFootprintCounter(Operator):
+class ZoneFootprintCounter(EmptyOperator):
     
     def __init__(self, options=None, name='Zone & Footprint Counter'):
         super(ZoneFootprintCounter, self).__init__(options, name)
@@ -460,13 +443,4 @@ class ZoneFootprintCounter(Operator):
         self.outputs[0].value = output_layer
         self.outputs[1].value = output_file
 
-    # protected method override
-    ###########################
 
-    def _verify_inputs(self, inputs):
-        """ perform operator specific input validation """
-        pass
-        
-    def _verify_outputs(self, outputs):
-        """ perform operator specific output validation """
-        pass                   

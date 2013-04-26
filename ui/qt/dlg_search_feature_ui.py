@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qt\dlg_search_feature.ui'
 #
-# Created: Fri Mar 15 10:56:34 2013
+# Created: Thu Apr 25 17:06:39 2013
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -49,5 +49,10 @@ class Ui_searchFeatureDialog(object):
         QtCore.QMetaObject.connectSlotsByName(searchFeatureDialog)
 
     def retranslateUi(self, searchFeatureDialog):
-        pass
+        searchFeatureDialog.setWindowTitle(QtGui.QApplication.translate("searchFeatureDialog", "Zoom to Feature", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_title.setText(QtGui.QApplication.translate("searchFeatureDialog", "Zoom to Feature", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_find.setText(QtGui.QApplication.translate("searchFeatureDialog", "Zoom to", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_close.setText(QtGui.QApplication.translate("searchFeatureDialog", "Close", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_attribute.setText(QtGui.QApplication.translate("searchFeatureDialog", "Attribute", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_value.setText(QtGui.QApplication.translate("searchFeatureDialog", "Value", None, QtGui.QApplication.UnicodeUTF8))
 

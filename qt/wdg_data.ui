@@ -44,8 +44,8 @@
    <widget class="QLabel" name="img_lb_svy_desc_help">
     <property name="geometry">
      <rect>
-      <x>320</x>
-      <y>30</y>
+      <x>240</x>
+      <y>5</y>
       <width>16</width>
       <height>21</height>
      </rect>
@@ -95,11 +95,11 @@
      <string>...</string>
     </property>
    </widget>
-   <widget class="QRadioButton" name="radio_svy_op3">
+   <widget class="QRadioButton" name="radio_svy_sampled">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>95</y>
+      <y>75</y>
       <width>381</width>
       <height>17</height>
      </rect>
@@ -108,7 +108,7 @@
      <string>Sampled buildings from survey area</string>
     </property>
    </widget>
-   <widget class="QRadioButton" name="radio_svy_op1">
+   <widget class="QRadioButton" name="radio_svy_no_data">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -124,11 +124,11 @@
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QRadioButton" name="radio_svy_op2">
+   <widget class="QRadioButton" name="radio_svy_complete">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>75</y>
+      <y>95</y>
       <width>381</width>
       <height>17</height>
      </rect>
@@ -170,6 +170,15 @@
      <string>Survey &amp; field data</string>
     </property>
    </widget>
+   <zorder>lb_svy_title</zorder>
+   <zorder>lb_svy_select_file</zorder>
+   <zorder>img_lb_svy_desc_help</zorder>
+   <zorder>lb_svy_desc</zorder>
+   <zorder>btn_svy_select_file</zorder>
+   <zorder>radio_svy_sampled</zorder>
+   <zorder>radio_svy_no_data</zorder>
+   <zorder>radio_svy_complete</zorder>
+   <zorder>txt_svy_select_file</zorder>
   </widget>
   <widget class="QWidget" name="widgetResult" native="true">
    <property name="geometry">
@@ -196,7 +205,7 @@
      </font>
     </property>
     <property name="text">
-     <string>You have supplied the following types of data:</string>
+     <string>You have supplied the following types of data</string>
     </property>
    </widget>
    <widget class="QLabel" name="img_lb_verify_fp">
@@ -282,7 +291,7 @@
      <rect>
       <x>10</x>
       <y>113</y>
-      <width>171</width>
+      <width>161</width>
       <height>16</height>
      </rect>
     </property>
@@ -293,7 +302,7 @@
      </font>
     </property>
     <property name="text">
-     <string>With aggregation</string>
+     <string>Output data aggregation</string>
     </property>
    </widget>
    <widget class="QLabel" name="img_lb_verify_agg_grid">
@@ -345,7 +354,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>GED Compatible Grid</string>
+     <string>GED Grid</string>
     </property>
    </widget>
    <widget class="QTextBrowser" name="txt_verify_text">
@@ -394,7 +403,7 @@ p, li { white-space: pre-wrap; }
      <height>111</height>
     </rect>
    </property>
-   <widget class="QRadioButton" name="radio_aggr_op2">
+   <widget class="QRadioButton" name="radio_aggr_grid">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -446,7 +455,7 @@ p, li { white-space: pre-wrap; }
      <string>Aggregation</string>
     </property>
    </widget>
-   <widget class="QRadioButton" name="radio_aggr_op1">
+   <widget class="QRadioButton" name="radio_aggr_zones">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -462,8 +471,8 @@ p, li { white-space: pre-wrap; }
    <widget class="QLabel" name="img_lb_aggr_desc_help">
     <property name="geometry">
      <rect>
-      <x>320</x>
-      <y>30</y>
+      <x>130</x>
+      <y>5</y>
       <width>16</width>
       <height>21</height>
      </rect>
@@ -475,12 +484,6 @@ p, li { white-space: pre-wrap; }
      <pixmap resource="resources/SIDDResource.qrc">:/imgs/icons/help.png</pixmap>
     </property>
    </widget>
-   <zorder>radio_aggr_op2</zorder>
-   <zorder>lb_aggr_desc</zorder>
-   <zorder>lb_aggr_title</zorder>
-   <zorder>radio_aggr_op1</zorder>
-   <zorder>img_lb_aggr_desc_help</zorder>
-   <zorder>widgetResult</zorder>
   </widget>
   <widget class="QWidget" name="widgetFootprint" native="true">
    <property name="geometry">
@@ -504,17 +507,17 @@ p, li { white-space: pre-wrap; }
      </rect>
     </property>
    </widget>
-   <widget class="QRadioButton" name="radio_fp_op2">
+   <widget class="QRadioButton" name="radio_fp_height">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>75</y>
+      <y>95</y>
       <width>381</width>
       <height>17</height>
      </rect>
     </property>
     <property name="text">
-     <string>Building footprints with height</string>
+     <string>Building footprints with number of stories</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="txt_fp_select_file">
@@ -549,17 +552,17 @@ p, li { white-space: pre-wrap; }
      <string>Select file:</string>
     </property>
    </widget>
-   <widget class="QRadioButton" name="radio_fp_op3">
+   <widget class="QRadioButton" name="radio_fp_only">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>95</y>
+      <y>75</y>
       <width>381</width>
       <height>17</height>
      </rect>
     </property>
     <property name="text">
-     <string>Building footprints without height</string>
+     <string>Building footprints without number of stories</string>
     </property>
    </widget>
    <widget class="QLabel" name="lb_fp_title">
@@ -630,7 +633,7 @@ p, li { white-space: pre-wrap; }
      </font>
     </property>
     <property name="text">
-     <string>Select/verify projection:</string>
+     <string>Verify projection:</string>
     </property>
    </widget>
    <widget class="QToolButton" name="btn_fp_select_file">
@@ -652,7 +655,7 @@ p, li { white-space: pre-wrap; }
      <string>...</string>
     </property>
    </widget>
-   <widget class="QRadioButton" name="radio_fp_op1">
+   <widget class="QRadioButton" name="radio_fp_no_data">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -690,8 +693,8 @@ p, li { white-space: pre-wrap; }
    <widget class="QLabel" name="img_lb_fp_desc_help">
     <property name="geometry">
      <rect>
-      <x>320</x>
-      <y>30</y>
+      <x>240</x>
+      <y>5</y>
       <width>16</width>
       <height>21</height>
      </rect>
@@ -730,7 +733,7 @@ p, li { white-space: pre-wrap; }
      </font>
     </property>
     <property name="text">
-     <string>Define study region</string>
+     <string>Define required input data</string>
     </property>
    </widget>
    <widget class="QTextEdit" name="txt_panel_description">
@@ -738,16 +741,19 @@ p, li { white-space: pre-wrap; }
      <rect>
       <x>10</x>
       <y>30</y>
-      <width>761</width>
+      <width>731</width>
       <height>41</height>
      </rect>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
     </property>
     <property name="html">
      <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Tahoma'; font-size:8pt;&quot;&gt;Study region automatically aggregated from input building footprint&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Specify input data &lt;br /&gt;Different combination of data can be used toward generating mapping schemes and exposure. &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
    </widget>
   </widget>
@@ -760,7 +766,7 @@ p, li { white-space: pre-wrap; }
      <height>231</height>
     </rect>
    </property>
-   <widget class="QRadioButton" name="radio_zones_op3">
+   <widget class="QRadioButton" name="radio_zones_count">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -770,10 +776,10 @@ p, li { white-space: pre-wrap; }
      </rect>
     </property>
     <property name="text">
-     <string>Land use zones with building count</string>
+     <string>Homogeneous zones with building count</string>
     </property>
    </widget>
-   <widget class="QRadioButton" name="radio_zones_op2">
+   <widget class="QRadioButton" name="radio_zones_only">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -783,7 +789,7 @@ p, li { white-space: pre-wrap; }
      </rect>
     </property>
     <property name="text">
-     <string>Land use zones</string>
+     <string>Homogeneous zones</string>
     </property>
    </widget>
    <widget class="QLabel" name="lb_zones_proj">
@@ -802,7 +808,7 @@ p, li { white-space: pre-wrap; }
      </font>
     </property>
     <property name="text">
-     <string>Select/verify projection:</string>
+     <string>Verify projection:</string>
     </property>
    </widget>
    <widget class="QLabel" name="lb_zones_select_file">
@@ -824,7 +830,7 @@ p, li { white-space: pre-wrap; }
      <string>Select file:</string>
     </property>
    </widget>
-   <widget class="QRadioButton" name="radio_zones_op1">
+   <widget class="QRadioButton" name="radio_zones_no_data">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -869,7 +875,7 @@ p, li { white-space: pre-wrap; }
      </font>
     </property>
     <property name="text">
-     <string>Select field containing land use/class attributes:</string>
+     <string>Select field containing zone identifier</string>
     </property>
    </widget>
    <widget class="QLabel" name="lb_zones_title">
@@ -889,7 +895,7 @@ p, li { white-space: pre-wrap; }
      </font>
     </property>
     <property name="text">
-     <string>Zonal data</string>
+     <string>Homogeneous zonesl data</string>
     </property>
    </widget>
    <widget class="QToolButton" name="btn_zones_select_file">
@@ -959,8 +965,8 @@ p, li { white-space: pre-wrap; }
    <widget class="QLabel" name="img_lb_zones_desc_help">
     <property name="geometry">
      <rect>
-      <x>280</x>
-      <y>30</y>
+      <x>240</x>
+      <y>5</y>
       <width>16</width>
       <height>21</height>
      </rect>
@@ -1007,23 +1013,23 @@ p, li { white-space: pre-wrap; }
   </widget>
  </widget>
  <tabstops>
-  <tabstop>radio_fp_op1</tabstop>
-  <tabstop>radio_fp_op2</tabstop>
-  <tabstop>radio_fp_op3</tabstop>
+  <tabstop>radio_fp_no_data</tabstop>
+  <tabstop>radio_fp_height</tabstop>
+  <tabstop>radio_fp_only</tabstop>
   <tabstop>txt_fp_select_file</tabstop>
   <tabstop>btn_fp_select_file</tabstop>
   <tabstop>cb_fp_story_field</tabstop>
   <tabstop>cb_fp_proj</tabstop>
-  <tabstop>radio_svy_op1</tabstop>
-  <tabstop>radio_svy_op2</tabstop>
-  <tabstop>radio_svy_op3</tabstop>
+  <tabstop>radio_svy_no_data</tabstop>
+  <tabstop>radio_svy_complete</tabstop>
+  <tabstop>radio_svy_sampled</tabstop>
   <tabstop>txt_svy_select_file</tabstop>
   <tabstop>btn_svy_select_file</tabstop>
-  <tabstop>radio_aggr_op1</tabstop>
-  <tabstop>radio_aggr_op2</tabstop>
-  <tabstop>radio_zones_op1</tabstop>
-  <tabstop>radio_zones_op2</tabstop>
-  <tabstop>radio_zones_op3</tabstop>
+  <tabstop>radio_aggr_zones</tabstop>
+  <tabstop>radio_aggr_grid</tabstop>
+  <tabstop>radio_zones_no_data</tabstop>
+  <tabstop>radio_zones_only</tabstop>
+  <tabstop>radio_zones_count</tabstop>
   <tabstop>txt_zones_select_file</tabstop>
   <tabstop>btn_zones_select_file</tabstop>
   <tabstop>cb_zones_class_field</tabstop>

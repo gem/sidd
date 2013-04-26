@@ -7,10 +7,10 @@
 """
 dialog for editing secondary modifiers
 """
-from PyQt4.QtGui import QApplication, QDialog, QDialogButtonBox
+from PyQt4.QtGui import QDialog
 from PyQt4.QtCore import pyqtSlot
 
-from ui.constants import logUICall, get_ui_string, UI_PADDING 
+from ui.constants import logUICall, UI_PADDING 
 from ui.qt.dlg_edit_attributes_ui import Ui_editAttributesDialog
 from ui.wdg_sel_attributes import WidgetSelectAttribute
 
@@ -20,7 +20,7 @@ class DialogEditAttributes(Ui_editAttributesDialog, QDialog):
     """
     BUILD_EMPTY, BUILD_FROM_SURVEY=range(2)
     
-    def __init__(self, taxonomy, attribute, attribute_value):
+    def __init__(self, taxonomy, attribute, attribute_value, modifier_value):
         """ constructor """
         super(DialogEditAttributes, self).__init__()
         self.ui = Ui_editAttributesDialog()
@@ -31,13 +31,11 @@ class DialogEditAttributes(Ui_editAttributesDialog, QDialog):
         self.ui.buttonBox.accepted.connect(self.accept)
         self.ui.buttonBox.rejected.connect(self.reject)
 
-        self.retranslateUi(self.ui)
-
         self._taxonomy = taxonomy        
-        self.set_attribute(attribute, attribute_value)
+        self.set_modifier_value(attribute, attribute_value, modifier_value)
     
     @property
-    def attribute_value(self):
+    def modifier_value(self):
         """ return attribute value from combining the selection of all input widget """
         codes = []
         for _widget in self._code_widgets:
@@ -58,25 +56,27 @@ class DialogEditAttributes(Ui_editAttributesDialog, QDialog):
     
     def updateAttributeValue(self):
         """ event handler for attribute value combo box """
-        self.ui.txt_attribute_value.setText(self.attribute_value)
+        self.ui.txt_attribute_value.setText(self.modifier_value)
 
     # public methods
     ###############################
     @logUICall
-    def set_attribute(self, attribute, attribute_value):
+    def set_modifier_value(self, attribute, attribute_value, modifier_value):
         """ 
         set data to display 
         - attribute: name of the attribute
-        - attribute_value: attribute value 
+        - modifier_value: attribute value 
         """
         self._attribute = attribute
-        self.ui.txt_attribute.setText(attribute)
-        self.ui.txt_attribute_value.setText(attribute_value)
+        self._attribute_value = attribute_value
+        self.ui.txt_attribute_name.setText(attribute)
+        self.ui.txt_attribute.setText(attribute_value)        
+        self.ui.txt_modifier_value.setText(modifier_value)
 
         self._code_widgets = []
         try:
-            if attribute_value is not None and attribute_value != "":
-                _str_values = attribute_value.split(self._taxonomy.level_separator)
+            if modifier_value is not None and modifier_value != "":
+                _str_values = modifier_value.split(self._taxonomy.level_separator)
             else:
                 _str_values = ['']
             for _value in _str_values:                
@@ -121,14 +121,3 @@ class DialogEditAttributes(Ui_editAttributesDialog, QDialog):
         self.ui.boxAttributes.resize(self.ui.boxAttributes.width(), _widget_y)
         self.ui.buttonBox.move(self.ui.buttonBox.x(), self.ui.boxAttributes.y()+self.ui.boxAttributes.height()+UI_PADDING)
         self.resize(self.width(), self.ui.buttonBox.y()+self.ui.buttonBox.height()+2*UI_PADDING)
-    
-    def retranslateUi(self, ui):
-        """ set UI labels """
-        self.setWindowTitle(QApplication.translate("editAttributesDialog", "Edit Attribute", None, QApplication.UnicodeUTF8))
-        ui.lb_attribute.setText(QApplication.translate("editAttributesDialog", "Attribute", None, QApplication.UnicodeUTF8))
-        ui.lb_title.setText(QApplication.translate("editAttributesDialog", "Edit Attribute", None, QApplication.UnicodeUTF8))
-        ui.boxAttributes.setTitle(QApplication.translate("editAttributesDialog", "Values", None, QApplication.UnicodeUTF8))
-        ui.lb_attribute_value.setText(QApplication.translate("editAttributesDialog", "Attribute Value", None, QApplication.UnicodeUTF8))
-
-        ui.buttonBox.button(QDialogButtonBox.Ok).setText(get_ui_string('app.dialog.button.ok'))
-        ui.buttonBox.button(QDialogButtonBox.Cancel).setText(get_ui_string('app.dialog.button.cancel'))

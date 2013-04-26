@@ -81,7 +81,8 @@ class FootprintLoader(Operator):
             transform_required = False
         
         mercator_crs = QgsCoordinateReferenceSystem()
-        mercator_crs.createFromProj4("+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs")        
+        #mercator_crs.createFromProj4("+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs")
+        mercator_crs.createFromEpsg(3395)        
         mercator_transform = QgsCoordinateTransform(tmp_fp_layer.crs(), mercator_crs)
         
         # output grid
