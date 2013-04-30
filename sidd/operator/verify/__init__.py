@@ -1,0 +1,12 @@
+# Copyright (c) 2011-2013, ImageCat Inc.
+#
+# SIDD is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+#
+"""
+package contains verification operators
+verification operators are read only operator that perform tests 
+and provide reports
+"""
+from exposure import ExposureZoneCountAnalyzer, ExposureFootprintCountAnalyzer, ExposureFragmentationAnalyzer
