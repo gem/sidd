@@ -40,7 +40,7 @@ def suite():
     #suite.addTest(OperatorTestCase('test_MakeGridGeometry'))
     #suite.addTest(OperatorTestCase('test_StratifiedSampleMS'))
     suite.addTest(OperatorTestCase('test_ZoneFootprintToGridJoin'))
-    suite.addTest(OperatorTestCase('test_ZoneToGridJoin'))
+    #suite.addTest(OperatorTestCase('test_ZoneToGridJoin'))
     
     # taxonomy tests
     #suite.addTest(TaxonomyTestCase('test_Parse'))

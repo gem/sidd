@@ -13,7 +13,7 @@ from PyQt4.QtGui import QWidget, QMessageBox, QDialog, QAbstractItemView, QFileD
 from PyQt4.QtCore import QObject, QSize, QPoint, pyqtSlot, QString, Qt
 
 from utils.system import get_app_dir
-from sidd.ms import MappingScheme, MappingSchemeZone, StatisticNode 
+from sidd.ms import MappingScheme, MappingSchemeZone, Statistics  
 from sidd.exception import SIDDException
 
 from ui.exception import SIDDUIException
@@ -21,6 +21,7 @@ from ui.constants import logUICall, get_ui_string, UI_PADDING
 from ui.dlg_ms_branch import DialogEditMS
 from ui.dlg_save_ms import DialogSaveMS
 from ui.dlg_build_ms import DialogMSOptions 
+from ui.dlg_edit_zone import DialogEditZoneName
 from ui.helper.ms_tree import MSTreeModel
 from ui.helper.vlabel import VerticalQLabel
 from ui.helper.ms_level_table import MSLevelTableModel
@@ -45,11 +46,11 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
                     logUICall.log('function call %s from module %s' % (f.__name__, f.__module__), logUICall.DEBUG)                    
                     retval =  f(*args, **kw)
                     return retval                
-                except SIDDUIException:
+                except SIDDUIException as err:
                     logUICall.log(get_ui_string("app.error.unexpected"), logUICall.WARNING)
-                except SIDDException:
+                except SIDDException as err:
                     logUICall.log(get_ui_string("app.error.model"), logUICall.WARNING)
-                except Exception:
+                except Exception as err:
                     logUICall.log(get_ui_string("app.error.ui"), logUICall.ERROR)
             return wrapper
         
@@ -97,6 +98,8 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         self.dlgSaveMS.setModal(True)        
         self.dlgMSOptions = DialogMSOptions(self.app.taxonomy.attributes, {})
         self.dlgMSOptions.setModal(True)
+        self.dlgEditZone = DialogEditZoneName()
+        self.dlgEditZone.setModal(True)
 
         # connect slots (ui event)
         self.ui.btn_create_ms.clicked.connect(self.createMS)        
@@ -104,6 +107,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         self.ui.btn_expand_tree.clicked.connect(self.expandTree)
         self.ui.btn_collapse_tree.clicked.connect(self.collapseTree)
         
+        self.ui.btn_add_zone.clicked.connect(self.addZone)
         self.ui.btn_add_child.clicked.connect(self.addBranch)
         self.ui.btn_del_child.clicked.connect(self.removeBranch)
         self.ui.btn_edit_level.clicked.connect(self.editBranch)
@@ -214,7 +218,22 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
             self.ui.tree_ms.collapseAll()            
         else:
             self.recursiveExpand(self.ui.tree_ms, selectedIndexes[0], False)
-        
+    
+    @uiCallChecker
+    @pyqtSlot()
+    def addZone(self):
+        ans = self.dlgEditZone.exec_()
+        if ans == QDialog.Accepted:
+            new_zone_name = self.dlgEditZone.get_zone_name()
+            for zone in self.ms.get_zones():
+                if zone.name == new_zone_name:
+                    raise SIDDException('zone already exists')
+            
+            statistics = Statistics(self.app.taxonomy)
+            zone = MappingSchemeZone(new_zone_name)
+            self.ms.assign(zone, statistics)
+            self.showMappingScheme(self.ms)        
+    
     @uiCallChecker
     @pyqtSlot()
     def addBranch(self):
@@ -258,37 +277,54 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
     def editBranch(self):
         """ edit a branch from mapping scheme tree """
         node = self.getSelectedNode(self.ui.tree_ms)
-        if type(node) != StatisticNode:
-            # cannot continue if if zone or tree model root node 
-            # (not statistic tree root node)
-            QMessageBox.warning(self, 
-                                get_ui_string("app.warning.title"),
-                                get_ui_string("widget.ms.warning.node.required"))
-            return        
-        # not zone / not root, good to continue
-        
-        # show save dialogbox for selected node
-        self.dlgEditMS.setNode(node, self.app.project.operator_options)
-        ans = self.dlgEditMS.exec_()
-
-        # accepted means apply change        
-        if ans == QDialog.Accepted:
-            # NOTE: dlgEditMS should already have performed all the checks on 
-            #       values/weights pair, we can safely assume that data is clean 
-            #       to be used    
+        if type(node) == MappingSchemeZone:
+            # node correspond to zone, edit name
+            zone_to_edit = None
+            zone_names = []
+            for zone in self.ms.get_zones():
+                if zone.name == node.name:
+                    zone_to_edit = zone
+                zone_names.append(zone.name)
+            if zone_to_edit is None:
+                raise SIDDException('zone not found')
             
-            # some children were deleted confirm again
-            if len(self.dlgEditMS.values) < len(node.children): 
-                answer = QMessageBox.warning(self,
-                                             get_ui_string("app.popup.delete.confirm"),
-                                             get_ui_string("widget.ms.warning.deletebranch"),
-                                             QMessageBox.Yes | QMessageBox.No)
-                if answer == QMessageBox.No:
-                    return
-            # TODO: refactor call into main controller            
-            node.parent.update_children(self.dlgEditMS.current_attribute, self.dlgEditMS.values, self.dlgEditMS.weights)            
-            self.refreshTree()
-            self.refreshLeaves(self.ui.cb_ms_zones.currentText())
+            self.dlgEditZone.set_zone_name(node.name)
+            ans = self.dlgEditZone.exec_()
+            if ans == QDialog.Accepted:
+                new_zone_name = self.dlgEditZone.get_zone_name()
+                try:
+                    zone_names.index(new_zone_name)
+                    raise SIDDException('zone already exists')
+                    return 
+                except:
+                    pass
+                zone_to_edit.name = new_zone_name
+                self.showMappingScheme(self.ms)
+        else:
+            # node correspond to mapping scheme node, edit tree level
+            
+            # show save dialogbox for selected node
+            self.dlgEditMS.setNode(node, self.app.project.operator_options)
+            ans = self.dlgEditMS.exec_()
+    
+            # accepted means apply change        
+            if ans == QDialog.Accepted:
+                # NOTE: dlgEditMS should already have performed all the checks on 
+                #       values/weights pair, we can safely assume that data is clean 
+                #       to be used    
+                
+                # some children were deleted confirm again
+                if len(self.dlgEditMS.values) < len(node.children): 
+                    answer = QMessageBox.warning(self,
+                                                 get_ui_string("app.popup.delete.confirm"),
+                                                 get_ui_string("widget.ms.warning.deletebranch"),
+                                                 QMessageBox.Yes | QMessageBox.No)
+                    if answer == QMessageBox.No:
+                        return
+                # TODO: refactor call into main controller            
+                node.parent.update_children(self.dlgEditMS.current_attribute, self.dlgEditMS.values, self.dlgEditMS.weights)            
+                self.refreshTree()
+                self.refreshLeaves(self.ui.cb_ms_zones.currentText())
 
     @uiCallChecker
     @pyqtSlot()
@@ -299,7 +335,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         """
         # get selected node from working mapping scheme tree
         node = self.getSelectedNode(self.ui.tree_ms)
-        branch = self.getSelectedNode(self.ui.tree_ms_library)        
+        branch = self.getSelectedNode(self.ui.tree_ms_library)
         self.app.appendMSBranch(node, branch)
         
     @uiCallChecker
@@ -435,11 +471,17 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
     @uiCallChecker
     @pyqtSlot()
     def saveMSLeaves(self):
-        folder = QFileDialog.getExistingDirectory(self,
-                                                  get_ui_string("widget.result.export.folder.open"),
-                                                  get_app_dir())
-        if not folder.isNull():
-            self.app.exportMSLeaves(folder)
+        #folder = QFileDialog.getExistingDirectory(self,
+        #                                          get_ui_string("widget.result.export.folder.open"),
+        #                                          get_app_dir())        
+        #if not folder.isNull():
+        #    self.app.exportMSLeaves(folder)
+        filename = QFileDialog.getSaveFileName(self, 
+                                               get_ui_string("widget.result.export.folder.open"),
+                                               get_app_dir(),
+                                               "*.csv")
+        if not filename.isNull(): 
+            self.app.exportMSLeaves(filename)
     
     # public methods
     ###############################
@@ -464,7 +506,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         for index in indices:
             if self.ui.tree_ms.isExpanded(index):
                 self.ui.tree_ms.setExpanded(index, False)             
-                self.ui.tree_ms.setExpanded(index, True)            
+                self.ui.tree_ms.setExpanded(index, True)
         
     @logUICall
     def clearMappingScheme(self):

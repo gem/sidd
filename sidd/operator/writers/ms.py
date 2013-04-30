@@ -39,16 +39,16 @@ class MSLeavesCSVWriter(NullWriter):
     def do_operation(self):
         """ perform export operation """
         ms = self.inputs[0].value
-        folder = self.inputs[1].value
+        output_file = self.inputs[1].value
         
         #test for output folder
-        if not path.exists(folder):
-            raise OperatorError("destination folder %s does not exist" % folder,
-                                self.__class__)
-                        
+        #if not path.exists(folder):
+        #    raise OperatorError("destination folder %s does not exist" % folder,
+        #                        self.__class__)
+        base_name = output_file[:-3]
         for zone, stats in ms.assignments():
             # create writer 
-            with open('%s/zone_%s.csv' % (folder, zone.name), 'wb') as csvfile:
+            with open('%s_%s.csv' % (base_name, zone.name), 'wb') as csvfile:
                 csvwriter = csv.writer(csvfile, delimiter=',',
                                       quotechar='"', quoting=csv.QUOTE_NONNUMERIC)
                 csvwriter.writerow(['Building Type', 'Building Fraction'])

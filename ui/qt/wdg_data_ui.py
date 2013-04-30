@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qt\wdg_data.ui'
 #
-# Created: Thu Apr 25 17:06:39 2013
+# Created: Mon Apr 29 16:50:15 2013
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -398,7 +398,7 @@ class Ui_widgetDataInput(object):
         self.lb_zones_select_file.setText(QtGui.QApplication.translate("widgetDataInput", "Select file:", None, QtGui.QApplication.UnicodeUTF8))
         self.radio_zones_no_data.setText(QtGui.QApplication.translate("widgetDataInput", "No Data", None, QtGui.QApplication.UnicodeUTF8))
         self.lb_zones_class_field.setText(QtGui.QApplication.translate("widgetDataInput", "Select field containing zone identifier", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_zones_title.setText(QtGui.QApplication.translate("widgetDataInput", "Homogeneous zonesl data", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_zones_title.setText(QtGui.QApplication.translate("widgetDataInput", "Homogeneous zones data", None, QtGui.QApplication.UnicodeUTF8))
         self.btn_zones_select_file.setText(QtGui.QApplication.translate("widgetDataInput", "...", None, QtGui.QApplication.UnicodeUTF8))
         self.lb_zones_desc.setText(QtGui.QApplication.translate("widgetDataInput", "What type of data do you have for zones?", None, QtGui.QApplication.UnicodeUTF8))
         self.lb_zones_count_field.setText(QtGui.QApplication.translate("widgetDataInput", "Select field containing building count", None, QtGui.QApplication.UnicodeUTF8))

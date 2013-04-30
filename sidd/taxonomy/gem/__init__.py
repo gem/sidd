@@ -1,1 +1,1 @@
-from taxonomy import GemTaxonomy
+from taxonomy import GemTaxonomy, GemTaxonomyAttribute

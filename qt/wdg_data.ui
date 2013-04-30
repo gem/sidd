@@ -895,7 +895,7 @@ p, li { white-space: pre-wrap; }
      </font>
     </property>
     <property name="text">
-     <string>Homogeneous zonesl data</string>
+     <string>Homogeneous zones data</string>
     </property>
    </widget>
    <widget class="QToolButton" name="btn_zones_select_file">

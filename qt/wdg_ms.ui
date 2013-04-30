@@ -114,7 +114,7 @@
      </property>
      <property name="icon">
       <iconset resource="resources/SIDDResource.qrc">
-       <normaloff>:/imgs/icons/minus.png</normaloff>:/imgs/icons/minus.png</iconset>
+       <normaloff>:/imgs/icons/delete.png</normaloff>:/imgs/icons/delete.png</iconset>
      </property>
     </widget>
     <widget class="QPushButton" name="btn_add_child">
@@ -137,44 +137,24 @@
        <normaloff>:/imgs/icons/add.png</normaloff>:/imgs/icons/add.png</iconset>
      </property>
     </widget>
-    <widget class="QPushButton" name="btn_expand_tree">
+    <widget class="QPushButton" name="btn_add_zone">
      <property name="geometry">
       <rect>
-       <x>0</x>
+       <x>50</x>
        <y>0</y>
        <width>31</width>
        <height>23</height>
       </rect>
      </property>
      <property name="toolTip">
-      <string>Expand Mapping Scheme Tree</string>
+      <string>Add New Zone</string>
      </property>
      <property name="text">
       <string/>
      </property>
      <property name="icon">
       <iconset resource="resources/SIDDResource.qrc">
-       <normaloff>:/imgs/icons/folder_open.png</normaloff>:/imgs/icons/folder_open.png</iconset>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="btn_collapse_tree">
-     <property name="geometry">
-      <rect>
-       <x>30</x>
-       <y>0</y>
-       <width>31</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="toolTip">
-      <string>Collapse Mapping Scheme Tree</string>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-     <property name="icon">
-      <iconset resource="resources/SIDDResource.qrc">
-       <normaloff>:/imgs/icons/folder_close.png</normaloff>:/imgs/icons/folder_close.png</iconset>
+       <normaloff>:/imgs/icons/element_clouds.png</normaloff>:/imgs/icons/element_clouds.png</iconset>
      </property>
     </widget>
    </widget>
@@ -237,6 +217,66 @@
        <normaloff>:/imgs/icons/new.png</normaloff>:/imgs/icons/new.png</iconset>
      </property>
     </widget>
+   </widget>
+   <widget class="QPushButton" name="btn_refresh_tree">
+    <property name="geometry">
+     <rect>
+      <x>100</x>
+      <y>0</y>
+      <width>31</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>Expand Mapping Scheme Tree</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset resource="resources/SIDDResource.qrc">
+      <normaloff>:/imgs/icons/refresh.png</normaloff>:/imgs/icons/refresh.png</iconset>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_collapse_tree">
+    <property name="geometry">
+     <rect>
+      <x>160</x>
+      <y>0</y>
+      <width>31</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>Collapse Mapping Scheme Tree</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset resource="resources/SIDDResource.qrc">
+      <normaloff>:/imgs/icons/magnify_minus.png</normaloff>:/imgs/icons/magnify_minus.png</iconset>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_expand_tree">
+    <property name="geometry">
+     <rect>
+      <x>130</x>
+      <y>0</y>
+      <width>31</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>Expand Mapping Scheme Tree</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset resource="resources/SIDDResource.qrc">
+      <normaloff>:/imgs/icons/magnify_plus.png</normaloff>:/imgs/icons/magnify_plus.png</iconset>
+    </property>
    </widget>
   </widget>
   <widget class="QWidget" name="widget_ms_library" native="true">
@@ -563,25 +603,6 @@
        <normaloff>:/imgs/icons/minus.png</normaloff>:/imgs/icons/minus.png</iconset>
      </property>
     </widget>
-    <zorder>list_ms_library_regions</zorder>
-    <zorder>lb_ms_library_regions</zorder>
-    <zorder>lb_ms_library_types</zorder>
-    <zorder>list_ms_library_types</zorder>
-    <zorder>list_ms_library_msnames</zorder>
-    <zorder>lb_ms_library_msnames</zorder>
-    <zorder>tree_ms_library</zorder>
-    <zorder>lb_tree_ms_library</zorder>
-    <zorder>lb_ms_library_date</zorder>
-    <zorder>lb_ms_library_notes</zorder>
-    <zorder>txt_ms_library_date</zorder>
-    <zorder>txt_ms_library_notes</zorder>
-    <zorder>txt_ms_library_datasource</zorder>
-    <zorder>lb_ms_library_datasource</zorder>
-    <zorder>lb_ms_library_quality</zorder>
-    <zorder>txt_ms_library_quality</zorder>
-    <zorder>lb_ms_library_ms</zorder>
-    <zorder>btn_del_lib_ms</zorder>
-    <zorder>widget_ms_leaves</zorder>
    </widget>
   </widget>
   <widget class="QWidget" name="widget_ms_leaves" native="true">

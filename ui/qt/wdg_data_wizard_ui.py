@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qt\wdg_data_wizard.ui'
 #
-# Created: Thu Apr 25 17:06:39 2013
+# Created: Mon Apr 29 16:47:36 2013
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -208,6 +208,7 @@ class Ui_widgetDataWizard(object):
         self.widgetAggr.setObjectName(_fromUtf8("widgetAggr"))
         self.radio_aggr_grid = QtGui.QRadioButton(self.widgetAggr)
         self.radio_aggr_grid.setGeometry(QtCore.QRect(10, 50, 381, 17))
+        self.radio_aggr_grid.setChecked(True)
         self.radio_aggr_grid.setObjectName(_fromUtf8("radio_aggr_grid"))
         self.lb_aggr_desc = QtGui.QLabel(self.widgetAggr)
         self.lb_aggr_desc.setGeometry(QtCore.QRect(10, 10, 281, 16))

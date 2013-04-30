@@ -275,13 +275,13 @@ class Project (object):
             return False
     
     @logAPICall
-    def export_ms_leaves(self, folder):
+    def export_ms_leaves(self, path):
         if self.ms is None:
             raise SIDDException('Mapping Scheme is required for this action')
         
         builder= WorkflowBuilder(self.operator_options)
         try:
-            export_workflow = builder.build_export_distribution_workflow(self, folder)
+            export_workflow = builder.build_export_distribution_workflow(self, path)
             # process workflow
             for step in export_workflow.nextstep():
                 step.do_operation()

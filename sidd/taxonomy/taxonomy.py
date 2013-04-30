@@ -40,8 +40,11 @@ class Taxonomy(object):
     @property
     def codes(self):
         raise NotImplementedError("abstract method not implemented")
-    
-    def get_codes_for_attribute(self, attribute, level=None):
+
+    def get_attribute_by_name(self, name):
+        raise NotImplementedError("abstract method not implemented")
+
+    def get_code_by_name(self, name):
         raise NotImplementedError("abstract method not implemented")
     
     def parse(self, string):
@@ -51,9 +54,6 @@ class Taxonomy(object):
         raise NotImplementedError("abstract method not implemented")
     
     def to_string(self, attributes):
-        raise NotImplementedError("abstract method not implemented")
-    
-    def make_tax_string(self, attribute, value):
         raise NotImplementedError("abstract method not implemented")
     
     def is_valid_string(self, tax_string):
@@ -101,6 +101,12 @@ class TaxonomyAttribute(object):
     @property
     def type(self):
         return self.__type
+
+    def get_valid_codes(self, parent=None, levels=None):
+        raise NotImplementedError("abstract method not implemented")
+    
+    def make_string(self, values, qualifier=None):
+        raise NotImplementedError("abstract method not implemented")
     
 class TaxonomyAttributeValue(object):
     """

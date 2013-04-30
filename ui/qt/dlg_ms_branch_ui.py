@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qt\dlg_ms_branch.ui'
 #
-# Created: Thu Apr 25 17:06:39 2013
+# Created: Mon Apr 29 16:49:29 2013
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -30,14 +30,14 @@ class Ui_editMSDialog(object):
         self.table_ms_level.setGeometry(QtCore.QRect(10, 99, 381, 201))
         self.table_ms_level.setObjectName(_fromUtf8("table_ms_level"))
         self.btn_add = QtGui.QPushButton(editMSDialog)
-        self.btn_add.setGeometry(QtCore.QRect(280, 70, 31, 23))
+        self.btn_add.setGeometry(QtCore.QRect(270, 70, 31, 23))
         self.btn_add.setText(_fromUtf8(""))
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/imgs/icons/add.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.btn_add.setIcon(icon)
         self.btn_add.setObjectName(_fromUtf8("btn_add"))
         self.btn_delete = QtGui.QPushButton(editMSDialog)
-        self.btn_delete.setGeometry(QtCore.QRect(310, 70, 31, 23))
+        self.btn_delete.setGeometry(QtCore.QRect(300, 70, 31, 23))
         self.btn_delete.setText(_fromUtf8(""))
         icon1 = QtGui.QIcon()
         icon1.addPixmap(QtGui.QPixmap(_fromUtf8(":/imgs/icons/minus.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
@@ -62,7 +62,7 @@ class Ui_editMSDialog(object):
         self.lb_attribute.setGeometry(QtCore.QRect(10, 42, 291, 21))
         self.lb_attribute.setObjectName(_fromUtf8("lb_attribute"))
         self.cb_attributes = QtGui.QComboBox(editMSDialog)
-        self.cb_attributes.setGeometry(QtCore.QRect(10, 70, 251, 22))
+        self.cb_attributes.setGeometry(QtCore.QRect(10, 70, 241, 22))
         self.cb_attributes.setObjectName(_fromUtf8("cb_attributes"))
         self.lb_total_weights = QtGui.QLabel(editMSDialog)
         self.lb_total_weights.setGeometry(QtCore.QRect(130, 310, 171, 20))
@@ -76,6 +76,13 @@ class Ui_editMSDialog(object):
         self.lb_percent = QtGui.QLabel(editMSDialog)
         self.lb_percent.setGeometry(QtCore.QRect(370, 310, 21, 20))
         self.lb_percent.setObjectName(_fromUtf8("lb_percent"))
+        self.btn_range = QtGui.QPushButton(editMSDialog)
+        self.btn_range.setGeometry(QtCore.QRect(330, 70, 30, 23))
+        self.btn_range.setText(_fromUtf8(""))
+        icon3 = QtGui.QIcon()
+        icon3.addPixmap(QtGui.QPixmap(_fromUtf8(":/imgs/icons/cog.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.btn_range.setIcon(icon3)
+        self.btn_range.setObjectName(_fromUtf8("btn_range"))
 
         self.retranslateUi(editMSDialog)
         QtCore.QMetaObject.connectSlotsByName(editMSDialog)
@@ -91,5 +98,6 @@ class Ui_editMSDialog(object):
         self.lb_attribute.setText(QtGui.QApplication.translate("editMSDialog", "Attribute Name", None, QtGui.QApplication.UnicodeUTF8))
         self.lb_total_weights.setText(QtGui.QApplication.translate("editMSDialog", "Some of Weights", None, QtGui.QApplication.UnicodeUTF8))
         self.lb_percent.setText(QtGui.QApplication.translate("editMSDialog", "%", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_range.setToolTip(QtGui.QApplication.translate("editMSDialog", "Edit Value Grouping", None, QtGui.QApplication.UnicodeUTF8))
 
 import SIDDResource_rc

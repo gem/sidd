@@ -49,8 +49,8 @@ class ExposureSHPWriter(NullWriter):
         """ perform export operation """        
         # input/output data checking already done during property set
         input_file = self.inputs[0].value
-        output_folder = self.inputs[1].value
-        
+        output_file = self.inputs[1].value
+        output_dbf = '%s_attr.dbf' % output_file[:-3]
         try:
             exp_layer = load_shapefile(input_file, 'exposure_%s' % get_unique_filename())
             
@@ -72,7 +72,7 @@ class ExposureSHPWriter(NullWriter):
             fields = {
                 0: QgsField(GID_FIELD_NAME, QVariant.Int),
             }            
-            writer = QgsVectorFileWriter('%s/exposure.shp' % output_folder, "utf-8", fields, 
+            writer = QgsVectorFileWriter(output_file, "utf-8", fields, 
                                          exp_layer.dataProvider().geometryType(), 
                                          exp_layer.crs(), "ESRI Shapefile")
             out_feature = QgsFeature()
@@ -91,11 +91,11 @@ class ExposureSHPWriter(NullWriter):
             if use_db:
                 db.close()
                 os.remove(tmp_db_file)
-                
+
+            # copy associated attribute file            
+            copy_shapefile(input_file, output_dbf, extensions=['.dbf'])
         except Exception as err:
             raise OperatorError("error creating shapefile: %s" % err, self.__class__)
-        # copy associated attribute file
-        copy_shapefile(input_file, '%s/exposure_attribute.dbf'%output_folder, extensions=['.dbf'])
 
 class ExposureCSVWriter(ExposureSHPWriter):
     def __init__(self, options=None, name="Grid Writer"):
@@ -106,13 +106,13 @@ class ExposureCSVWriter(ExposureSHPWriter):
         """ perform export operation """        
         # input/output data checking already done during property set
         input_file = self.inputs[0].value
-        output_folder = self.inputs[1].value
+        output_file = self.inputs[1].value
                 
         try:
             exp_layer = load_shapefile(input_file, 'exposure_%s' % get_unique_filename())
             # get field headers/types
             fields = exp_layer.dataProvider().fields()
-            csvfile = open('%s/exposure.csv' % output_folder, 'wb')
+            csvfile = open(output_file, 'wb')
             csvwriter = csv.writer(csvfile, delimiter=',',
                                    quotechar='"', quoting=csv.QUOTE_NONNUMERIC)
             csvwriter.writerow([f.name() for f in fields.values()])
@@ -140,9 +140,9 @@ class ExposureKMLWriter(ExposureSHPWriter):
         """ perform export operation """        
         # input/output data checking already done during property set
         input_file = self.inputs[0].value
-        output_folder = self.inputs[1].value
+        output_file = self.inputs[1].value
         
-        shapefile_to_kml(input_file, '%s/exposure.kml'%output_folder)
+        shapefile_to_kml(input_file, output_file)
 
 class ExposureNRMLWriter(ExposureSHPWriter):
     def __init__(self, options=None, name="Grid Writer"):

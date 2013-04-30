@@ -20,7 +20,7 @@ from utils.shapefile import load_shapefile, layer_features, layer_field_index, r
 from utils.system import get_unique_filename
 from utils.grid import latlon_to_grid, grid_to_latlon
 from sidd.constants import logAPICall, GID_FIELD_NAME, AREA_FIELD_NAME, CNT_FIELD_NAME, \
-                           MAX_FEATURES_IN_MEMORY, DEFAULT_GRID_SIZE
+                           MAX_FEATURES_IN_MEMORY, DEFAULT_GRID_SIZE, DEFAULT_HALF_GRID_SIZE
 from sidd.operator import Operator, OperatorError
 from sidd.operator.data import OperatorDataTypes
 
@@ -58,10 +58,17 @@ class ToGrid(Operator):
     def _outputGeometryType(self):
         return QGis.WKBPolygon
     
-    def _outputGeometryFromLatLon(self, lon, lat, x_off, y_off):
-        lon = floor(lon / x_off) * x_off
-        lat = ceil(lat / x_off) * x_off              
-        return QgsGeometry.fromRect(QgsRectangle(lon, lat, lon+x_off, lat+y_off))
+    def _outputGeometryFromLatLon(self, lat, lon):
+        #lon = floor(lon / DEFAULT_GRID_SIZE) * DEFAULT_GRID_SIZE
+        #lat = ceil(lat / DEFAULT_GRID_SIZE) * DEFAULT_GRID_SIZE              
+        #return QgsGeometry.fromRect(QgsRectangle(lon-DEFAULT_HALF_GRID_SIZE, lat-DEFAULT_HALF_GRID_SIZE,
+        #                                         lon+DEFAULT_HALF_GRID_SIZE, lat+DEFAULT_HALF_GRID_SIZE))
+        return self._outputGeometryFromGridId(latlon_to_grid(lat, lon)) 
+
+    def _outputGeometryFromGridId(self, grid_id):
+        [lat, lon] = grid_to_latlon(int(grid_id))    
+        return QgsGeometry.fromRect(QgsRectangle(lon-DEFAULT_HALF_GRID_SIZE, lat-DEFAULT_HALF_GRID_SIZE,
+                                                 lon+DEFAULT_HALF_GRID_SIZE, lat+DEFAULT_HALF_GRID_SIZE))
 
     def _update_stat(self, stats, key, count, area):
         if not stats.has_key(key):
@@ -71,8 +78,7 @@ class ToGrid(Operator):
         stat[FootprintZoneToGrid.STAT_AREA_IDX] +=area
             
     def _create_grid(self, grid_name, grid_file, x_min, y_min, x_max, y_max, x_off, y_off):
-        x_off = x_off        
-        y_off = y_off
+        x_off2, y_off2 = x_off / 2.0, y_off / 2.0
         x_min = floor(x_min / x_off) * x_off
         x_max = ceil(x_max / x_off) * x_off
         y_min = floor(y_min / y_off) * y_off
@@ -91,11 +97,11 @@ class ToGrid(Operator):
         f = QgsFeature()
         for x in range(xtotal):
             for y in range(ytotal):
-                lon = x_min + (x * x_off) + (x_off/2.0)
-                lat = y_min + (y * y_off) + (y_off/2.0)                
-                out_geom = QgsGeometry.fromRect(QgsRectangle(lon, lat,
-                                                             lon+x_off, lat+y_off))
-                f.setGeometry(out_geom)
+                lon = x_min + (x * x_off) + (x_off2)
+                lat = y_min + (y * y_off) + (y_off2)                
+                #out_geom = QgsGeometry.fromRect(QgsRectangle(lon-x_off2, lat-y_off2,
+                #                                             lon+x_off2, lat+y_off2))                                
+                f.setGeometry(self._outputGeometryFromLatLon(lat, lon))                
                 f.addAttribute(0, QVariant(latlon_to_grid(lat, lon)))                
                 writer.addFeature(f)
         del writer 
@@ -233,9 +239,7 @@ class ZoneToGrid(ToGrid):
             count = stat[cnt_idx]*(area/stat[area_idx])
                         
             # create output record
-            [lat, lon] = grid_to_latlon(int(grid_gid))    
-            f.setGeometry(QgsGeometry.fromRect(QgsRectangle(lon, lat, 
-                                                            lon+DEFAULT_GRID_SIZE, lat+DEFAULT_GRID_SIZE)))
+            f.setGeometry(self._outputGeometryFromGridId(grid_gid))
             f.addAttribute(0, grid_gid)
             f.addAttribute(1, zone_names[QString(zone_gid)])
             f.addAttribute(2, count)
@@ -393,13 +397,19 @@ class FootprintZoneToGrid(ZoneToGrid):
         output_layername = 'grid_%s' % get_unique_filename()
         output_file = '%s%s.shp' % (self._tmp_dir, output_layername)                
         writer = QgsVectorFileWriter(output_file, "utf-8", fields, QGis.WKBPolygon, self._crs, "ESRI Shapefile")
-        f = QgsFeature()         
+        f = QgsFeature()             
         for key in zone_stat2.keys():
             (grid_gid, zone_gid) = str(key).split("|")
-            s_zone = zone_stat[QString(zone_gid)]
-            s_total = zone_totals[QString(zone_gid)]
-            s_zone_grid = zone_stat2[key]
-            s_fp = zone_fp_stat[key]
+            s_zone = zone_stat[QString(zone_gid)]           # overall statistics for the zone from zone file (always exists)
+            s_zone_grid = zone_stat2[key]                   # grid specific statistic from from zone file    (always exists)            
+            if zone_totals.has_key(QString(zone_gid)):      # overall statistics for the zone from footprints
+                s_total = zone_totals[QString(zone_gid)]       
+            else:
+                s_total = [0,0] # set to zero if missing
+            if zone_fp_stat.has_key(key):                   # grid specific statistic from from footprint
+                s_fp = zone_fp_stat[key]                        
+            else:
+                s_fp = [0, 0]   # set to zero if missing
 
             zone_leftover_count = s_zone[cnt_idx] - s_total[cnt_idx]
             if zone_leftover_count > 0:
@@ -412,9 +422,7 @@ class FootprintZoneToGrid(ZoneToGrid):
             else:
                 grid_count = s_fp[cnt_idx]
 
-            [lat, lon] = grid_to_latlon(int(grid_gid))    
-            f.setGeometry(QgsGeometry.fromRect(QgsRectangle(lon, lat, 
-                                                            lon+DEFAULT_GRID_SIZE, lat+DEFAULT_GRID_SIZE)))
+            f.setGeometry(self._outputGeometryFromGridId(grid_gid))
             f.addAttribute(0, grid_gid)
             f.addAttribute(1, zone_names[QString(zone_gid)])
             f.addAttribute(2, grid_count)

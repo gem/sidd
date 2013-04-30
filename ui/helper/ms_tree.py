@@ -133,7 +133,7 @@ class MSTreeModel(QAbstractItemModel):
             # root node
             # get zone
             logUICall.log("\tparent is root, child is zone", logUICall.DEBUG_L2)
-            childItem = self.zones[row] 
+            childItem = self.zones[row]
         elif isinstance(parentItem, MappingSchemeZone):
             # zone node
             # get top level from zone's statistical tree            

@@ -34,8 +34,8 @@ class GemTaxonomy(Taxonomy):
     __initialized = False
     
     Separators = Enum("Attribute", "Level")
-
-    def __init__(self):
+    
+    def __init__(self):        
         db_path = os.path.dirname( __file__ ) + os.path.sep + self.__GEM_TAXONOMY_FILE
         if not os.path.exists(db_path):
             raise TaxonomyError("gem taxonomy db not found")
@@ -81,12 +81,17 @@ class GemTaxonomy(Taxonomy):
     def codes(self):
         return GemTaxonomy.__codes
 
-    @logAPICall
-    def get_codes_for_attribute(self, attribute_name, level=None):        
-        for code in GemTaxonomy.__codes.itervalues():
-            if code.attribute.name == attribute_name:
-                if level is None or code.level == level:
-                    yield code
+    def get_attribute_by_name(self, name):
+        for _attr in GemTaxonomy.__attrs:
+            if _attr.name == name:
+                return _attr
+        return None 
+
+    def get_code_by_name(self, name):
+        if GemTaxonomy.__codes.has_key(name):
+            return GemTaxonomy.__codes[name]
+        else:
+            return None
 
     @logAPICall
     def parse(self, taxonomy_str):
@@ -148,21 +153,8 @@ class GemTaxonomy(Taxonomy):
                 
         return _attributes
 
-    def make_tax_string(self, attribute, value):
-        if attribute.type == 1:
-            if type(value) == list:
-                return str(self.separator(GemTaxonomy.Separators.Level)).join(value)
-            else:
-                return value
-        else:
-            if type(value) == list:
-                return ""
-            else:
-                return ""
-    
     def is_valid_string(self, tax_string):
         return True
-
 
     @logAPICall
     def separator(self, separator_type=Separators.Attribute):
@@ -200,7 +192,7 @@ class GemTaxonomy(Taxonomy):
         c.execute(sql)
         GemTaxonomy.__attrs = []
         for row in c:
-            _attr = TaxonomyAttribute(str(row[1]).strip(), int(row[0]), int(row[2]), str(row[3]).strip(), int(row[4]))
+            _attr = GemTaxonomyAttribute(str(row[1]).strip(), int(row[0]), int(row[2]), str(row[3]).strip(), int(row[4]))
             GemTaxonomy.__attrs.append(_attr)
             attr_format = int(row[4])
             if attr_format == 1:
@@ -220,16 +212,80 @@ class GemTaxonomy(Taxonomy):
                 self.__defaults.append(_attr_val)
             else:
                 raise TaxonomyParseError("attribute format not recognized for %s" % _attr)
-
+        
         GemTaxonomy.__attr_orders = [attr.name for attr in GemTaxonomy.__attrs]
         # load codes
         sql = "select c.type_id, c.description, a.gem_attribute_id, a.level from attribute a inner join code_lookup c on a.id=c.attribute_id"
         c.execute(sql)
         for row in c:
-            GemTaxonomy.__codes[row[0]] = TaxonomyAttributeCode(self.__attrs[row[2]-1], int(row[3]), str(row[0]).strip(), str(row[1]).strip())
-        
+            _code = TaxonomyAttributeCode(GemTaxonomy.__attrs[row[2]-1], int(row[3]), str(row[0]).strip(), str(row[1]).strip())
+            GemTaxonomy.__codes[row[0]] = _code
+            GemTaxonomy.__attrs[row[2]-1].add_valid_code(_code)
+                    
         _conn.close()
         GemTaxonomy.__initialized=True
+
+
+class GemTaxonomyAttribute(TaxonomyAttribute):
+    """
+    Gem taxonomy attribute. used to create range strings and validate strings
+    """
+    (EXACT, RANGE, AVERAGE) = range(3) 
+    
+    def __init__(self, name="", order=1, levels=1, default="", attribute_type=1):
+        super(GemTaxonomyAttribute, self).__init__(name, order, levels, default, attribute_type)
+        self._valid_codes = []    
+    
+    def add_valid_code(self, code):
+        self._valid_codes.append(code)
+        
+    @logAPICall
+    def get_valid_codes(self, parent=None, levels=None):
+        for code in self._valid_codes:            
+            if levels is None or code.level == levels:
+                yield code
+
+    def make_string(self, values, qualifier=None):
+        if self.type == 1:
+            return '+'.join([str(v) for v in values])
+        else:
+            if self.name == "Height":                
+                # construct valid height string from given values
+                if len(values) == 1:
+                    if values[0] is None:
+                        return "H99"
+                    else:
+                        return "H:%s" % (values[0])
+                elif len(values) == 2:
+                    if values[0] is None or values[1] is None :
+                        return "H99"
+                    if values[0] == 0 and values[1] == 0:
+                        return "H99"
+                    elif qualifier==GemTaxonomyAttribute.AVERAGE:                        
+                        return "H:%s" % ( int((values[0]+values[1])/2) )
+                    else:
+                        return "H:%s,%s" % (values[0], values[1])
+                else:
+                    return "H99"
+                                                        
+            elif self.name == "Date of Construction":
+                # construct valid date of construction string from given values                
+                if len(values) == 1:
+                    if values[0] is None:
+                        return "Y99"
+                    else:
+                        return "YN:%s" % (values[0])
+                elif len(values) == 2:
+                    if values[0] is None or values[1] is None :
+                        return "Y99"
+                    if values[0] == 0 and values[1] == 0:
+                        return "Y99"
+                    elif qualifier==GemTaxonomyAttribute.AVERAGE:
+                        return "YN:%s" % ( int((values[0]+values[1])/2) )
+                    else:
+                        return "YN:%s,%s" % (values[0], values[1])
+                else:
+                    return "Y99"
 
 class GemTaxonomyAttributeMulticodeValue(TaxonomyAttributeMulticodeValue):
     """
@@ -279,8 +335,11 @@ class GemTaxonomyAttributePairValue(TaxonomyAttributePairValue):
         TaxonomyAttributePairValue.__init__(self, attribute)
 
     def __str__(self):
-        """ string representation """
+        """ string representation """        
         if self.code is not None:
-            return self.code + ":" + self.value # + "/"
+            if self.value is not None and self.value != "":
+                return self.code + ":" + self.value
+            else:
+                return self.code 
         else:
             return ""

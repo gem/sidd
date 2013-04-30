@@ -261,7 +261,7 @@ class SurveyAggregator(GridMSApplier, ToGrid):
             for key, val in db.iteritems():
                 (tax_str, x, y) = key.split(' ')
                 lon, lat = int(x)*DEFAULT_GRID_SIZE, int(y)*DEFAULT_GRID_SIZE
-                outgeom = self._outputGeometryFromLatLon(lon, lat, DEFAULT_GRID_SIZE, DEFAULT_GRID_SIZE)
+                outgeom = self._outputGeometryFromLatLon(lat, lon)
                 f.setGeometry(QgsGeometry.fromPoint(outgeom))
                 f.addAttribute(0, QVariant(latlon_to_grid(lat, lon)))
                 f.addAttribute(1, QVariant(lat))

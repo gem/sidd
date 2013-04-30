@@ -119,12 +119,10 @@ class DialogMSOptions(Ui_msOptionsDialog, QDialog):
         if sender.isChecked():
             if sender == self.ui.radioEmptyMS:
                 self.build_option = self.BUILD_EMPTY
-                self.ui.widget_attributes.setEnabled(False)
-                self.ui.ck_use_sampling.setEnabled(False)
+                self.ui.widget_attributes.setEnabled(False)                
             elif sender == self.ui.radioBuildMS:
                 self.build_option = self.BUILD_FROM_SURVEY
-                self.ui.widget_attributes.setEnabled(True)
-                self.ui.ck_use_sampling.setEnabled(True)
+                self.ui.widget_attributes.setEnabled(True)                
             else:
                 logUICall.log('\tdo nothing. should not even be here',
                               logUICall.WARNING)

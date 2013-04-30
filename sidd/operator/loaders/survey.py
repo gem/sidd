@@ -19,6 +19,7 @@ from qgis.core import QGis, QgsVectorFileWriter, QgsFeature, QgsField, QgsGeomet
 from utils.shapefile import load_shapefile_verify, remove_shapefile
 from utils.system import get_unique_filename
 
+from sidd.taxonomy.gem import GemTaxonomyAttribute
 from sidd.constants import logAPICall, \
                            GID_FIELD_NAME, LON_FIELD_NAME, LAT_FIELD_NAME, TAX_FIELD_NAME, \
                            GRP_FIELD_NAME, AREA_FIELD_NAME, HT_FIELD_NAME
@@ -34,10 +35,7 @@ class GEMDBSurveyLoader(Operator):
         """ constructor """
         Operator.__init__(self, options, name)
         self._tmp_dir = options['tmp_dir']
-        if options.has_key('year_translator'):
-            self._make_year_string = (options['year_translator']).translate
-        if options.has_key('ht_translator'):   
-            self._make_year_string = (options['ht_translator']).translate 
+        self.taxonomy = options['taxonomy']
 
         # check if height/year range is requested
         # range is stored as dictionary {'min_values':min_values, 'max_values':max_values}
@@ -185,6 +183,9 @@ class GEMDBSurveyLoader(Operator):
          str_irreg, str_hzir_p, str_hzir_s, str_veir_p, str_veir_s, 
          occupcy, occupcy_dt) = [(x) for x in data]
         
+        # attribute names
+        # 'Material', 'Lateral Load-Resisting System', 'Roof', 'Floor', 'Height', 'Date of Construction', 'Irregularity', 'Occupancy'
+    
         separator = "+"
         
         # material
@@ -202,20 +203,67 @@ class GEMDBSurveyLoader(Operator):
         floor_string = self._coalesce(floor_mat) + self._append_not_null(floor_type,separator)
         
         # story
-        if getattr(self, 'ht_ranges', None) is None:
-            ht_string = self._make_height_string(self._coalesce(story_ag_q), 
-                                                 self._toint(story_ag_1), self._toint(story_ag_2))
+        attribute = self.taxonomy.get_attribute_by_name('Height')
+        _qualifier = self._coalesce(story_ag_q)
+        _story1, _story2 = self._toint(story_ag_1), self._toint(story_ag_2)
+        if getattr(self, 'ht_ranges', None) is None:            
+#            ht_string = self._make_height_string(self._coalesce(story_ag_q), 
+#                                                 self._toint(story_ag_1), self._toint(story_ag_2))            
+            if _qualifier == 'CIRCA':
+                _qualifier =  GemTaxonomyAttribute.RANGE
+            elif _qualifier == 'BETWEEN':
+                _qualifier = GemTaxonomyAttribute.AVERAGE
+            else:
+                _qualifier = GemTaxonomyAttribute.EXACT
+            ht_string = attribute.make_string([_story1, _story2], _qualifier)            
         else:
-            ht_string = self._make_range_height_string(self._coalesce(story_ag_q), 
-                                                       self._toint(story_ag_1), self._toint(story_ag_2))
+            if _qualifier == "BETWEEN":
+                ht_range = self._find_range((_story1 + _story2) / 2.0,
+                                             self.ht_ranges['min_values'], self.ht_ranges['max_values'])
+            else: # EXACT or CIRCA
+                ht_range = self._find_range(_story1, 
+                                            self.ht_ranges['min_values'], self.ht_ranges['max_values'])
+            if _story1 is None or _story1 == 0:
+                ht_range = [None, None]
+            elif ht_range[0] is None and ht_range[1] is not None:
+                self.ht_ranges['min_values'].insert(0, 1) 
+                self.ht_ranges['max_values'].insert(0, ht_range[1])
+            elif ht_range[1] is None and ht_range[0] is not None:
+                self.ht_ranges['min_values'].append(ht_range[0])
+                self.ht_ranges['max_values'].append(200)
+            ht_string = attribute.make_string(ht_range, GemTaxonomyAttribute.RANGE)          
+            
         # yr_built
+        attribute = self.taxonomy.get_attribute_by_name('Date of Construction')
+        _qualifier = self._coalesce(story_ag_q)
+        _year1, _year2 = self._toint(yr_built_1), self._toint(yr_built_2)
         if getattr(self, 'yr_ranges', None) is None:
-            yr_string = self._make_year_string(self._coalesce(yr_built_q), 
-                                               self._toint(yr_built_1), self._toint(yr_built_2))
+#            yr_string = self._make_year_string(self._coalesce(yr_built_q), 
+#                                               self._toint(yr_built_1), self._toint(yr_built_2))
+            if _qualifier == 'CIRCA':
+                _qualifier =  GemTaxonomyAttribute.RANGE
+            elif _qualifier == 'BETWEEN':
+                _qualifier = GemTaxonomyAttribute.AVERAGE
+            else:
+                _qualifier = GemTaxonomyAttribute.EXACT
+            yr_string = attribute.make_string([_year1, _year2], _qualifier)
         else:
-            yr_string = self._make_range_year_string(self._coalesce(yr_built_q), 
-                                                     self._toint(yr_built_1), self._toint(yr_built_2))
-
+            if _qualifier == "BETWEEN":
+                yr_ranges = self._find_range((_year1 + _year2) / 2.0,
+                                              self.yr_ranges['min_values'], self.yr_ranges['max_values'])
+            else: # EXACT or CIRCA
+                yr_ranges = self._find_range(_year1, 
+                                             self.yr_ranges['min_values'], self.yr_ranges['max_values'])
+            if _year1 is None or _year1 == 0:
+                yr_ranges = [None, None]
+            elif yr_ranges[0] is None and yr_ranges[1] is not None:
+                self.yr_ranges['min_values'].insert(0, 1) 
+                self.yr_ranges['max_values'].insert(0, yr_ranges[1])
+            elif yr_ranges[1] is None and yr_ranges[0] is not None:
+                self.yr_ranges['min_values'].append(yr_ranges[0])
+                self.yr_ranges['max_values'].append(datetime.date.today().year)
+            yr_string = attribute.make_string(yr_ranges, GemTaxonomyAttribute.RANGE)
+            
         # irregularity
         ir_string = self._coalesce(str_irreg) \
             + self._append_not_null(str_hzir_p,separator) + self._append_not_null(str_hzir_s,separator) \
@@ -247,13 +295,14 @@ class GEMDBSurveyLoader(Operator):
         return int(ht)
     
     def _coalesce(self, val):
-        return str(val) if (val is not None) else ""
+        return str(val).upper() if (val is not None) else ""
     
     def _toint(self, val):
         try:
             return int(val)
         except:
             return 0
+        
     def _tofloat(self, val):
         try:
             return float(val) 
@@ -291,49 +340,6 @@ class GEMDBSurveyLoader(Operator):
             yr_string = "YN:" + self._coalesce(yr_built_1)
         return yr_string
 
-    def _make_range_height_string(self, story_ag_q, story_ag_1, story_ag_2):
-        ht_string = "H99"
-        if story_ag_1 is None:
-            ht_string = "H99"
-        elif story_ag_q.upper() == "CIRCA":
-            ht_range = self._find_range(story_ag_1, 
-                                        self.ht_ranges['min_values'], self.ht_ranges['max_values'])
-        elif story_ag_q.upper() == "BETWEEN":
-            ht_range = self._find_range((story_ag_1 + story_ag_2) / 2.0, 
-                                        self.ht_ranges['min_values'], self.ht_ranges['max_values'])
-        else:
-            ht_range = self._find_range(story_ag_1, 
-                                        self.ht_ranges['min_values'], self.ht_ranges['max_values'])
-        if ht_range[0] is None:     # less than minimum
-            ht_string = "H:1,%s"%(ht_range[1])
-        elif ht_range[1] is None:   # larger than maximum
-            ht_string = "H:%s,"%(ht_range[0])
-        else:                       # in range
-            ht_string = "H:%s,%s"%(ht_range)
-        return ht_string
-
-    def _make_range_year_string(self, yr_built_q, yr_built_1, yr_built_2):
-        yr_string = "Y99"
-        if yr_built_1 is None:
-            yr_string = "Y99"
-        elif yr_built_q.upper() == "CIRCA":            
-            yr_range = self._find_range(yr_built_1, 
-                                        self.yr_ranges['min_values'], self.yr_ranges['max_values'])            
-        elif yr_built_q.upper() == "BETWEEN":
-            yr_range = self._find_range((yr_built_1 + yr_built_2)/2, 
-                                        self.yr_ranges['min_values'], self.yr_ranges['max_values'])            
-        else:
-            yr_range = self._find_range(yr_built_1, 
-                                        self.yr_ranges['min_values'], self.yr_ranges['max_values'])
-        if yr_range[0] is None:     # less than minimum
-            yr_string = "YP:%s"%(yr_range[1])
-        elif yr_range[1] is None:   # larger than maximum
-            yr_string = "YN:%s,%s"%(yr_range[1],datetime.date.today().year)
-        else:                       # in range
-            yr_string = "YN:%s,%s"%(yr_range)
-        return yr_string
-
-    
     def _find_range(self, value, min_values, max_values):
         # less than minimum
         if value < min_values[0]:
@@ -345,13 +351,6 @@ class GEMDBSurveyLoader(Operator):
         # larger than maximum
         return max_values[len(max_values)-1], None
         
-    def _range_year_string(self, yr_built_q, yr_built_1, yr_built_2):
-        input_val = '_get_val'
-        for min_val, max_val in map(None, self.yr_ranges['min_values'], self.yr_ranges['max_values']):
-            if input_val >= min_val and input_val <= max_val:
-                return 'label'
-        return None
-       
     
 class CSVSurveyLoader(GEMDBSurveyLoader):
     """ loading field survey data in CSV format"""

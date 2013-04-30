@@ -136,7 +136,7 @@ class MappingScheme (object):
             # add only the child nodes
             logAPICall.log('branch is zone, add children', logAPICall.DEBUG_L2)            
             for child in branch.stats.get_tree().children:                
-                stat_tree.add_branch(node_to_attach, child)
+                stat_tree.add_branch(node_to_attach, child, update_stats=False)
         else:
             # branch is from a tree
             # add branch as child node

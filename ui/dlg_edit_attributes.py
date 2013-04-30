@@ -31,7 +31,7 @@ class DialogEditAttributes(Ui_editAttributesDialog, QDialog):
         self.ui.buttonBox.accepted.connect(self.accept)
         self.ui.buttonBox.rejected.connect(self.reject)
 
-        self._taxonomy = taxonomy        
+        self._taxonomy = taxonomy
         self.set_modifier_value(attribute, attribute_value, modifier_value)
     
     @property

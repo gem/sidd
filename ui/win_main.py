@@ -143,7 +143,7 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         delete_folders_in_dir(get_temp_dir(), "tmp*")
 
         # enable following during development
-        #self._dev_short_cut()
+        # self._dev_short_cut()
         
     def _dev_short_cut(self):
         self.ui.mainTabs.setTabEnabled (1, True)
@@ -156,7 +156,11 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         project.sync(SyncModes.Read)
         self.setProject(project)
         
-        self.showTab(2)
+        self.project.build_exposure()
+        self.project.verify_result()
+        # show result
+        self.tab_result.refreshResult()        
+        self.showTab(3)
 
     # event handlers
     #############################
@@ -188,21 +192,28 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
     @pyqtSlot()     
     def createWizard(self):
         try:
-            # hide main window
+            # should not update preview while using wizard
             self.setVisible(False)
-            self.previewInput = False   # no need to
+            self.previewInput = False   
                         
             wizard = WidgetDataWizard(self, Project(self.app_config, self.taxonomy))            
             if wizard.exec_() == QDialog.Accepted:
+                # setProject makes call to GIS component that requires visibility 
+                self.setVisible(True)
+                self.previewInput = True                
                 self.setProject(wizard.project)
                 self.ui.statusbar.showMessage(get_ui_string("app.status.project.created"))
             # else
-            # do nothing?            
+            # do nothing?
+        except:
+            pass            
         finally:
             # return to normal window
-            # placed here just in case any exception occurs
+            # these calls are reached 
+            # 1. in case any exception occurs,
+            # 2. wizard cancelled  
             self.setVisible(True)
-            self.previewInput = True 
+            self.previewInput = True
     
     @logUICall 
     @pyqtSlot()   
@@ -411,16 +422,17 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         """ delete selected node and children from mapping scheme tree """
         self.ui.statusbar.showMessage(get_ui_string("app.status.ms.processing"))
         # invoke asynchronously        
-        invoke_async(get_ui_string("app.status.processing"), self.project.ms.delete_branch, node)
+        #invoke_async(get_ui_string("app.status.processing"), self.project.ms.delete_branch, node)
+        self.project.ms.delete_branch(node)
         self.visualizeMappingScheme(self.project.ms)
         self.ui.statusbar.showMessage(get_ui_string("app.status.ms.modified"))
 
     @apiCallChecker
-    def exportMSLeaves(self, folder):
+    def exportMSLeaves(self, path):
         """ export mapping scheme leaves as CSV """
         self.ui.statusbar.showMessage(get_ui_string("app.status.ms.processing"))
         # invoke asynchronously        
-        invoke_async(get_ui_string("app.status.processing"), self.project.export_ms_leaves, folder)
+        invoke_async(get_ui_string("app.status.processing"), self.project.export_ms_leaves, path)
         self.ui.statusbar.showMessage(get_ui_string("app.status.ms.exported"))
 
     @apiCallChecker

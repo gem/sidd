@@ -26,6 +26,7 @@ MAX_FEATURES_IN_MEMORY = 10000
 
 # 30 arc second
 DEFAULT_GRID_SIZE = 1 / 60. / 2.
+DEFAULT_HALF_GRID_SIZE = DEFAULT_GRID_SIZE / 2.
 
 # field names for GIS shapefiles
 GID_FIELD_NAME = "GID"

@@ -140,8 +140,15 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
     @pyqtSlot(QObject)
     def editModValue(self, index):
         if index.column() == 0:
+            attribute = None
+            for _attribute in self.taxonomy.attributes:
+                if _attribute.name == str(self.ui.cb_attributes.currentText()):
+                    attribute = _attribute
+                    break
+            if attribute is None:
+                return
             edit_dlg = DialogEditAttributes(self.ms.taxonomy, 
-                                            str(self.ui.cb_attributes.currentText()),
+                                            attribute,
                                             self.node.value,
                                             str(index.data().toString()))
             if edit_dlg.exec_() == QDialog.Accepted:                

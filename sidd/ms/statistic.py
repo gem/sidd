@@ -141,7 +141,7 @@ class Statistics (object):
         parent.delete_node(node)
     
     @logAPICall
-    def add_branch(self, node, branch, not_allow_repeat=True):
+    def add_branch(self, node, branch, not_allow_repeat=True, update_stats=True):
         """
         add branch to node as child
         only limitation is that the same attribute does not appear
@@ -180,14 +180,15 @@ class Statistics (object):
         branch_to_add.parent = node
         node.children.append(branch_to_add)
         # adjust weights proportionally
-        sum_weights = sum([child.weight for child in node.children])
-        total_children = len(node.children)                
-        adj_factor = sum_weights / 100
-        for child in node.children:
-            if adj_factor == 0:
-                child.weight = 100.0 / total_children
-            else:
-                child.weight = child.weight / adj_factor
+        if update_stats:
+            sum_weights = sum([child.weight for child in node.children])
+            total_children = len(node.children)                
+            adj_factor = sum_weights / 100
+            for child in node.children:
+                if adj_factor == 0:
+                    child.weight = 100.0 / total_children
+                else:
+                    child.weight = child.weight / adj_factor
     
     @logAPICall
     def delete_branch(self, node):

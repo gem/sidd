@@ -344,10 +344,10 @@ class WorkflowBuilder(object):
         return workflow
 
     @logAPICall
-    def build_export_distribution_workflow(self, project, export_folder):
+    def build_export_distribution_workflow(self, project, export_path):
         workflow = Workflow()
         workflow.operator_data['ms'] = OperatorData(OperatorDataTypes.MappingScheme, project.ms)
-        workflow.operator_data['export_folder'] = OperatorData(OperatorDataTypes.StringAttribute, export_folder)
+        workflow.operator_data['export_folder'] = OperatorData(OperatorDataTypes.StringAttribute, export_path)
         
         export_operator = MSLeavesCSVWriter(self._operator_options)
         export_operator.inputs = [workflow.operator_data['ms'],
@@ -660,12 +660,5 @@ class WorkflowBuilder(object):
         svy_agg.outputs = [workflow.operator_data['exposure'],
                            workflow.operator_data['exposure_file'],]
         workflow.operators.append(svy_agg)
-    
-        grid_geom_writer = ExposureGeometryWriter(self._operator_options)
-        grid_geom_writer.inputs = [workflow.operator_data['exposure']]
-        grid_geom_writer.outputs = [
-            workflow.operator_data['exposure_grid'],   
-            workflow.operator_data['exposure_grid_file'],
-        ]        
-        workflow.operators.append(grid_geom_writer)    
+
     

@@ -239,10 +239,16 @@ class WidgetResult(Ui_widgetResult, QWidget):
         event handler for btn_export_select_path 
         - open save file dialog box to select file name for export 
         """     
-        folder = QFileDialog.getExistingDirectory(self, get_ui_string("widget.result.export.path.dialog"))            
-        if not folder.isNull():
-            self.ui.txt_export_select_path.setText(folder)
-        
+        #folder = QFileDialog.getExistingDirectory(self, get_ui_string("widget.result.export.path.dialog"))            
+        #if not folder.isNull():
+        #    self.ui.txt_export_select_path.setText(folder)
+        filename = QFileDialog.getSaveFileName(self,
+                                               get_ui_string("widget.result.export.file.open"),
+                                               ".",
+                                               self.ui.cb_export_format.currentText())
+        if not filename.isNull():
+            self.ui.txt_export_select_path.setText(filename) 
+                    
     @logUICall
     @pyqtSlot(str)
     def exportFormatChanged(self, selected_val):
