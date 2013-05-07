@@ -17,26 +17,23 @@ class MSDBTestCase(SIDDTestCase):
     ##################################    
     def setUp(self):
         super(MSDBTestCase, self).setUp()
-        self.lib_ms_file = self.test_data_dir + 'mslib.db'
-        self.lib_ms_file2 = self.test_data_dir + 'mslib2.db'
+        self.lib_ms_file = self.test_data_dir + '/mslib.db'
+        self.lib_ms_file2 = self.test_tmp_dir + '/mslib2.db'
     
     def test_Read(self):
         ms_db_reader = MSDatabaseDAO(self.lib_ms_file)
         regions = ms_db_reader.get_regions()
-        self.assertEquals(len(regions), 1)
-        regions = ms_db_reader.get_regions(with_ms=True)
-        self.assertEquals(len(regions), 1)
+        self.assertEquals(len(regions), 2)
         
-        types = ms_db_reader.get_types_in_region(regions[0])
-        self.assertEquals(len(types), 1)        
-        ms_names = ms_db_reader.get_ms_in_region_type(regions[0], types[0])
+        types = ms_db_reader.get_types_in_region(regions[1])
+        self.assertEquals(len(types), 1)
+        ms_names = ms_db_reader.get_ms_in_region_type(regions[1], types[0])
         self.assertEquals(len(ms_names), 8)
         
-    def test_SaveDelete(self):        
+    def test_SaveDelete(self):
         if os.path.exists(self.lib_ms_file2):
             os.remove(self.lib_ms_file2)
         shutil.copyfile(self.lib_ms_file, self.lib_ms_file2)
-                
         ms_db_reader = MSDatabaseDAO(self.lib_ms_file2)
         
         region = 'REGION'
@@ -49,8 +46,8 @@ class MSDBTestCase(SIDDTestCase):
         ms_xml = 'MS_XML'
         ms_db_reader.save_ms(region, ms_name, source, date_created, datasource, quality, notes, ms_xml)
         
-        regions = ms_db_reader.get_regions(with_ms=True)
-        self.assertEquals(len(regions), 2)        
+        regions = ms_db_reader.get_regions()
+        self.assertEquals(len(regions), 3)        
         types = ms_db_reader.get_types_in_region(region)
         self.assertEquals(len(types), 1)
         ms_names = ms_db_reader.get_ms_in_region_type(region, source)
@@ -64,8 +61,8 @@ class MSDBTestCase(SIDDTestCase):
     
         ms_db_reader.delete_ms(region, source, ms_name)
 
-        regions = ms_db_reader.get_regions(with_ms=True)
-        self.assertEquals(len(regions), 1)        
+        regions = ms_db_reader.get_regions()
+        self.assertEquals(len(regions), 2)        
         types = ms_db_reader.get_types_in_region(region)
         self.assertEquals(len(types), 0)
         

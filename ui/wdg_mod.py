@@ -86,9 +86,7 @@ class WidgetSecondaryModifier(Ui_widgetSecondaryModifier, QWidget):
         mod = self.getSelectedModifier()
         # make sure there is mod selected
         if mod is None:
-            QMessageBox.warning(self, 
-                                get_ui_string("app.warning.title"),
-                                get_ui_string("widget.ms.warning.node.required"))
+            logUICall.log(get_ui_string("widget.ms.warning.node.required"), logUICall.WARNING)
             return
         # confirm delete 
         answer = QMessageBox.warning(self,
@@ -110,9 +108,7 @@ class WidgetSecondaryModifier(Ui_widgetSecondaryModifier, QWidget):
         mod = self.getSelectedModifier()
         # make sure there is mod selected
         if mod is None:
-            QMessageBox.warning(self, 
-                                get_ui_string("app.warning.title"),
-                                get_ui_string("widget.ms.warning.node.required"))
+            logUICall.log(get_ui_string("widget.ms.warning.node.required"), logUICall.WARNING)
             return
         
         # show edit dialog box for selected modifier

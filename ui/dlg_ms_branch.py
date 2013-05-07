@@ -7,7 +7,7 @@
 """
 dialog for editing mapping scheme branches
 """
-from PyQt4.QtGui import QDialog, QMessageBox, QAbstractItemView
+from PyQt4.QtGui import QDialog, QAbstractItemView
 from PyQt4.QtCore import Qt, pyqtSlot, QObject
 
 from sidd.ms import MappingScheme, MappingSchemeZone, Statistics, StatisticNode 
@@ -272,9 +272,9 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
         """ return selected cell in table_ms_level """
         selectedIndexes = self.ui.table_ms_level.selectedIndexes()
         if (len(selectedIndexes) <= 0):
-            QMessageBox.warning(self, 'Node Not Selected', 'Please select node first.')
+            logUICall.log('Please select node first.', logUICall.WARNING)            
             return None       
         if not selectedIndexes[0].isValid():
-            QMessageBox.warning(self, 'Invalid Node', 'Select node does not support this function.')
+            logUICall.log('Select node does not support this function.', logUICall.WARNING)
             return None
         return selectedIndexes[0]    

@@ -222,12 +222,13 @@ class TaxonomyAttributeCode(object):
     TaxonomyAttributeCode stores an acceptable code for the Taxonomy    
     """
     
-    def __init__(self, attribute, level, code, description):
+    def __init__(self, attribute, level, code, description, scope=''):
         """ constructor """
         self.__attribute = attribute
         self.__level = level
         self.__code = code
         self.__desc = description
+        self.__scope = scope
 
     def __str__(self):
         """ string representation """
@@ -256,3 +257,7 @@ class TaxonomyAttributeCode(object):
     @property
     def description(self):
         return self.__desc
+    
+    @property
+    def scope(self):
+        return self.__scope

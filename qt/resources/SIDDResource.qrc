@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="imgs">
+    <file>logo.png</file>
     <file>icons/arrow_bottom.png</file>
     <file>icons/arrow_top.png</file>
     <file>icons/add.png</file>
@@ -10,8 +11,6 @@
     <file>gem_logo_400x300.png</file>
     <file>globe-compass-icon.png</file>
     <file>imagecat_logo.gif</file>
-    <file>logo.png</file>
-    <file>logo.png</file>
     <file>icons/arrow_down.png</file>
     <file>icons/arrow_left.png</file>
     <file>icons/arrow_right.png</file>

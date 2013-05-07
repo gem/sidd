@@ -7,7 +7,7 @@
 """
 dialog for editing secondary modifiers
 """
-from PyQt4.QtGui import QDialog, QMessageBox, QAbstractItemView, QItemSelectionModel
+from PyQt4.QtGui import QDialog, QAbstractItemView, QItemSelectionModel
 from PyQt4.QtCore import pyqtSlot, Qt, QObject, QSize, QVariant
 
 from sidd.ms import StatisticNode
@@ -25,11 +25,12 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
     """
     # constructor
     ###############################    
-    def __init__(self, mainWin):
+    def __init__(self, app):
         super(DialogModInput, self).__init__()
         self.ui = Ui_modifierInputDialog()
         self.ui.setupUi(self)
         
+        self.app = app
         self.ms = None
         
         self.ui.table_mod_values.verticalHeader().hide()
@@ -127,7 +128,15 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
             self.node = node
             if self.addNew:
                 self.ui.cb_attributes.clear()
-                self.ui.cb_attributes.addItem(node.name)
+                attribute = self.ms.taxonomy.get_attribute_by_name(node.name)
+                if attribute.levels > 1:
+                    self.ui.cb_attributes.addItem(node.name)
+                    _allow_modifier=True                    
+                else:
+                    _allow_modifier=False                
+                self.ui.btn_add.setEnabled(_allow_modifier)
+                self.ui.btn_delete.setEnabled(_allow_modifier)
+                self.ui.cb_attributes.setEnabled(_allow_modifier)
         else:
             self.node = None
     
@@ -140,17 +149,19 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
     @pyqtSlot(QObject)
     def editModValue(self, index):
         if index.column() == 0:
-            attribute = None
-            for _attribute in self.taxonomy.attributes:
+            taxonomy = self.ms.taxonomy
+            attribute = taxonomy.get_attribute_by_name(str(self.ui.cb_attributes.currentText()))
+            """
+            for _attribute in taxonomy.attributes:
                 if _attribute.name == str(self.ui.cb_attributes.currentText()):
                     attribute = _attribute
                     break
+            """
             if attribute is None:
                 return
-            edit_dlg = DialogEditAttributes(self.ms.taxonomy, 
-                                            attribute,
-                                            self.node.value,
-                                            str(index.data().toString()))
+            edit_dlg = DialogEditAttributes(self.app,
+                                            taxonomy, attribute,
+                                            self.node.value, str(index.data().toString()))
             if edit_dlg.exec_() == QDialog.Accepted:                
                 try:
                     index.model().setData(index, QVariant(edit_dlg.attribute_value), Qt.EditRole)                  
@@ -249,10 +260,10 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
         """ return selected cell in table_mod_values """        
         selectedIndexes = self.ui.table_mod_values.selectedIndexes()
         if (len(selectedIndexes) <= 0):
-            QMessageBox.warning(self, 'Node Not Selected', 'Please select node first.')
+            logUICall.log('Please select node first.', logUICall.WARNING)
             return None
         if not selectedIndexes[0].isValid():
-            QMessageBox.warning(self, 'Invalid Node', 'Select node does not support this function.')
+            logUICall.log('Select node does not support this function.', logUICall.WARNING)
             return None
         return selectedIndexes[0]
        

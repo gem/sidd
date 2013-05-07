@@ -20,7 +20,7 @@ class SIDDUILogging(SIDDLogging):
                                                 # because SIDDUILogging object is defined in ui.constants module
                                                 # this line avoids the circular include
         super(SIDDUILogging, self).log(msg, level)                
-        if level == self.WARNING:            
+        if level == self.WARNING:
             QMessageBox.warning(None, get_ui_string("app.error.unexpected"), str(msg))
         if level == self.ERROR:            
             QMessageBox.critical(None, get_ui_string("app.error.ui"), str(msg))

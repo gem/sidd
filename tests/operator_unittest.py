@@ -12,6 +12,7 @@ from sidd.ms import MappingScheme
 from sidd.operator import *
 from utils.shapefile import remove_shapefile, layer_fields_stats, load_shapefile, layer_features, layer_field_index
 from sidd.constants import AREA_FIELD_NAME, HT_FIELD_NAME, CNT_FIELD_NAME
+from sidd.taxonomy import get_taxonomy
 
 from common import SIDDTestCase
 
@@ -22,6 +23,7 @@ class OperatorTestCase(SIDDTestCase):
     
     def setUp(self):
         super(OperatorTestCase, self).setUp()
+        self.taxonomy = get_taxonomy("gem")
         
         # test data set 1        
         self.ms_file = self.test_data_dir +  "ms.xml"
@@ -39,6 +41,7 @@ class OperatorTestCase(SIDDTestCase):
         # test data set 3
         self.fp3_path = self.test_data_dir +  "footprints3.shp"
         self.fp3_height_field = "HEIGHT"
+        self.fp3_feature_count = 785
         self.gemdb3_path = self.test_data_dir +  "survey3.gemdb"
         self.zone3_path = self.test_data_dir +  "zones3.shp"
         self.zone3_field = "ZONE"
@@ -107,7 +110,7 @@ class OperatorTestCase(SIDDTestCase):
         if skipTest:
             return loader.outputs
         layer = loader.outputs[0].value        
-        self.assertEquals(self.fp_feature_count, layer.dataProvider().featureCount())        
+        self.assertEquals(self.fp3_feature_count, layer.dataProvider().featureCount())        
         
         del layer
         self._clean_layer(loader.outputs)  

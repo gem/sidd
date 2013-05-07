@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qt\win_main.ui'
 #
-# Created: Thu Apr 25 17:06:40 2013
+# Created: Mon May 06 18:31:01 2013
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -90,7 +90,7 @@ class Ui_mainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(mainWindow)
 
     def retranslateUi(self, mainWindow):
-        mainWindow.setWindowTitle(QtGui.QApplication.translate("mainWindow", "SIDD", None, QtGui.QApplication.UnicodeUTF8))
+        mainWindow.setWindowTitle(QtGui.QApplication.translate("mainWindow", "Spatial Inventory Tool", None, QtGui.QApplication.UnicodeUTF8))
         self.menuFile.setTitle(QtGui.QApplication.translate("mainWindow", "File", None, QtGui.QApplication.UnicodeUTF8))
         self.menuCreate_New.setTitle(QtGui.QApplication.translate("mainWindow", "Create Project", None, QtGui.QApplication.UnicodeUTF8))
         self.menuHelp.setTitle(QtGui.QApplication.translate("mainWindow", "Help", None, QtGui.QApplication.UnicodeUTF8))

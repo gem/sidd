@@ -384,7 +384,7 @@ class Project (object):
 
             use_sampling = self._get_project_data('stratified.sampling')
             if use_sampling is None:
-                self.operator_options['stratified.sampling']=True   # default to use sampling method
+                self.operator_options['stratified.sampling']=False # default to not use sampling method
             else:
                 self.operator_options['stratified.sampling']= (use_sampling == "True")
                 

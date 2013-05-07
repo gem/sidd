@@ -10,7 +10,7 @@ Widget (Panel) for specifying data inputs
 
 import os
 
-from PyQt4.QtGui import QWidget, QMessageBox, QFileDialog, QPixmap
+from PyQt4.QtGui import QWidget, QFileDialog, QPixmap
 from PyQt4.QtCore import pyqtSlot
 
 from utils.shapefile import shapefile_fields, shapefile_projection
@@ -42,9 +42,6 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
             def wrapper(*args, **kw):
                 if self.project_is_required and self.project is None:
                     logUICall.log(get_ui_string("app.error.project.missing"), logUICall.ERROR)
-                    #QMessageBox.critical(None,
-                    #                     get_ui_string("app.error.title"),
-                    #                     get_ui_string("app.error.project.missing"))
                     return
                 try:
                     logUICall.log('function call %s from module %s' % (f.__name__, f.__module__), logUICall.DEBUG)
@@ -410,22 +407,16 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
             # file set
             path = self.ui.txt_fp_select_file.text() 
             if path == '':
-                QMessageBox.warning(self,
-                                    get_ui_string('app.warning.title'),
-                                    get_ui_string('widget.input.fp.file.missing'))
+                logUICall.log(get_ui_string('widget.input.fp.file.missing'), logUICall.WARNING)
                 return False
             # file must exist
             if not os.path.exists(path):
-                QMessageBox.warning(self,
-                                    get_ui_string('app.warning.title'),
-                                    get_ui_string('app.error.file.does.not.exist' % path))   
+                logUICall.log(get_ui_string('app.error.file.does.not.exist') % path, logUICall.WARNING)
                 return False
         if self.ui.radio_fp_only.isChecked():
             # story field set 
             if self.ui.cb_fp_story_field.currentText() == ' ':
-                QMessageBox.warning(self,
-                                    get_ui_string('app.warning.title'),
-                                    get_ui_string('widget.input.fp.storyfield.missing'))
+                logUICall.log(get_ui_string('widget.input.fp.storyfield.missing'), logUICall.WARNING)
                 return False
         # survey 
         if (self.ui.radio_svy_complete.isChecked() or
@@ -433,15 +424,11 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
             # file set
             path = self.ui.txt_svy_select_file.text() 
             if path == '':            
-                QMessageBox.warning(self,
-                                    get_ui_string('app.warning.title'),
-                                    get_ui_string('widget.input.survey.file.missing'))
+                logUICall.log(get_ui_string('widget.input.survey.file.missing'), logUICall.WARNING)
                 return False
             # file must exist
             if not os.path.exists(path):
-                QMessageBox.warning(self,
-                                    get_ui_string('app.warning.title'),
-                                    get_ui_string('app.error.file.does.not.exist' % path))                
+                logUICall.log(get_ui_string('app.error.file.does.not.exist') % path, logUICall.WARNING)
                 return False
         # zone 
         if (self.ui.radio_zones_only.isChecked() or
@@ -449,28 +436,20 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
             # file set
             path = self.ui.txt_zones_select_file.text() 
             if path == '':              
-                QMessageBox.warning(self,
-                                    get_ui_string('app.warning.title'),
-                                    get_ui_string('widget.input.zone.file.missing'))
+                logUICall.log(get_ui_string('widget.input.zone.file.missing'), logUICall.WARNING)
                 return False
             # file must exist
             if not os.path.exists(path):
-                QMessageBox.warning(self,
-                                    get_ui_string('app.warning.title'),
-                                    get_ui_string('app.error.file.does.not.exist' % path))
+                logUICall.log(get_ui_string('app.error.file.does.not.exist') % path, logUICall.WARNING)
                 return False
             # zone field must be set
             if self.ui.cb_zones_class_field.currentText() == ' ':
-                QMessageBox.warning(self,
-                                    get_ui_string('app.warning.title'),
-                                    get_ui_string('widget.input.zone.zonefield.missing'))
+                logUICall.log(get_ui_string('widget.input.zone.zonefield.missing'), logUICall.WARNING)
                 return False                  
         if (self.ui.radio_zones_count.isChecked()):
             # count field must be set
             if self.ui.cb_zones_count_field.currentText() == ' ':
-                QMessageBox.warning(self,
-                                    get_ui_string('app.warning.title'),
-                                    get_ui_string('widget.input.zone.countfield.missing'))
+                logUICall.log(get_ui_string('widget.input.zone.countfield.missing'), logUICall.WARNING)
                 return False            
         return True
     # internal helper methods

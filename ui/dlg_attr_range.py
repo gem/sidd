@@ -7,7 +7,7 @@
 """
 dialog for editing secondary modifiers
 """
-from PyQt4.QtGui import QDialog, QTableWidgetItem, QMessageBox, QDialogButtonBox
+from PyQt4.QtGui import QDialog, QTableWidgetItem, QDialogButtonBox
 from PyQt4.QtCore import pyqtSlot, Qt, QVariant, QObject
 
 from ui.constants import logUICall, get_ui_string 
@@ -96,7 +96,7 @@ class DialogAttrRanges(Ui_attrRangesDialog, QDialog):
         else:
             # not integer
             # restore
-            QMessageBox.warning(self, "Error", get_ui_string('dlg.attr.value.error'))
+            logUICall.log(get_ui_string('dlg.attr.value.error'), logUICall.WARNING)
             self.ui.table_ranges.setItem(row, col, QTableWidgetItem('%s'%self._values[col][row]))
 
     # public method

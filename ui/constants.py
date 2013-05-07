@@ -141,6 +141,7 @@ SIDD_UI_STRINGS = {
     "widget.mod.button.edit":QApplication.translate('app.mod', 'Edit Selected Modifier', None, QApplication.UnicodeUTF8),
     # main window / result tab
     ######################
+    "widget.result.renderer.settings":QApplication.translate('app.result', 'Layer Rendering Settings', None, QApplication.UnicodeUTF8),
     "widget.result.layer.exposure":QApplication.translate('app.result', 'Exposure', None, QApplication.UnicodeUTF8),
     "widget.result.layer.survey":QApplication.translate('app.result', 'Surveys', None, QApplication.UnicodeUTF8),
     "widget.result.layer.footprint":QApplication.translate('app.result', 'Footprints', None, QApplication.UnicodeUTF8),

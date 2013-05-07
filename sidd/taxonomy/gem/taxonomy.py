@@ -26,7 +26,7 @@ class GemTaxonomy(Taxonomy):
     """
     
     # protected member attributes
-    __GEM_TAXONOMY_FILE = 'gem_v1.0.1.db'
+    __GEM_TAXONOMY_FILE = 'gem_v1.0.2.db'
     __attrs = []
     __codes = {}
     __empty = []
@@ -87,7 +87,7 @@ class GemTaxonomy(Taxonomy):
                 return _attr
         return None 
 
-    def get_code_by_name(self, name):
+    def get_code_by_name(self, name):        
         if GemTaxonomy.__codes.has_key(name):
             return GemTaxonomy.__codes[name]
         else:
@@ -170,7 +170,7 @@ class GemTaxonomy(Taxonomy):
         for _attr_val in taxonomy_values:
             outstr = outstr + str(_attr_val) + "/"
         return outstr
-    
+ 
     def __initialize(self, db_path):
         """
         prepare parser
@@ -184,17 +184,32 @@ class GemTaxonomy(Taxonomy):
         
         # load attributes / code from DB for parsing
         _conn = sqlite3.connect(db_path)
-                
-        sql = """
-            select id, name, levels, default_value, format from gem_attribute order by id
-        """
+
         c = _conn.cursor()
+        
+        # load default values                
+        sql = """
+            select a.attribute, a.default_value from gem_attributes g inner join attributes a on g.attribute=a.attribute  where level=1 and order_in_basic <> ''
+        """        
+        c.execute(sql)
+        _default_values = {}
+        for row in c:
+            _default_values[str(row[0])]=str(row[1])
+        
+        sql = """
+            select g.order_in_basic as id, g.attribute, max(a.level) levels, g.format
+            from gem_attributes g
+            inner join attributes a on g.attribute=a.attribute 
+            where order_in_basic <> '' 
+            group by g.order_in_basic, g.attribute, g.format
+            order by order_in_basic
+        """
         c.execute(sql)
         GemTaxonomy.__attrs = []
         for row in c:
-            _attr = GemTaxonomyAttribute(str(row[1]).strip(), int(row[0]), int(row[2]), str(row[3]).strip(), int(row[4]))
+            attr_format = int(row[3])
+            _attr = GemTaxonomyAttribute(str(row[1]).strip(), int(row[0]), int(row[2]), _default_values[str(row[1])], attr_format)
             GemTaxonomy.__attrs.append(_attr)
-            attr_format = int(row[4])
             if attr_format == 1:
                 self.__empty.append(GemTaxonomyAttributeMulticodeValue(_attr))
                 _attr_val = GemTaxonomyAttributeMulticodeValue(_attr)
@@ -215,16 +230,22 @@ class GemTaxonomy(Taxonomy):
         
         GemTaxonomy.__attr_orders = [attr.name for attr in GemTaxonomy.__attrs]
         # load codes
-        sql = "select c.type_id, c.description, a.gem_attribute_id, a.level from attribute a inner join code_lookup c on a.id=c.attribute_id"
+        sql = """
+            select code, description, gem_attribute, level, scope 
+            from code_lookup c
+            inner join gem_attributes g on c.gem_attribute=g.attribute 
+            where g.order_in_basic <> ''
+        """
         c.execute(sql)
-        for row in c:
-            _code = TaxonomyAttributeCode(GemTaxonomy.__attrs[row[2]-1], int(row[3]), str(row[0]).strip(), str(row[1]).strip())
+        for row in c: 
+            _attribute = self.get_attribute_by_name(str(row[2]).strip())
+            _code = TaxonomyAttributeCode(_attribute, 
+                                          int(row[3]), str(row[0]).strip(), str(row[1]).strip(), str(row[4]).strip())
             GemTaxonomy.__codes[row[0]] = _code
-            GemTaxonomy.__attrs[row[2]-1].add_valid_code(_code)
+            _attribute.add_valid_code(_code)
                     
         _conn.close()
         GemTaxonomy.__initialized=True
-
 
 class GemTaxonomyAttribute(TaxonomyAttribute):
     """
@@ -240,10 +261,22 @@ class GemTaxonomyAttribute(TaxonomyAttribute):
         self._valid_codes.append(code)
         
     @logAPICall
-    def get_valid_codes(self, parent=None, levels=None):
-        for code in self._valid_codes:            
-            if levels is None or code.level == levels:
-                yield code
+    def get_valid_codes(self, parent=None, level=-1):
+        if parent is not None and type(parent) is not TaxonomyAttributeCode:
+            raise TaxonomyError('parent must be attribute code')
+        if level > self.levels:
+            raise TaxonomyError('attribute has only %d level ' % self.levels)        
+
+        for code in self._valid_codes:
+            # skip if condition does not match
+            if parent is not None:
+                if parent.scope != code.scope:
+                    continue
+                if parent.level >= code.level:
+                    continue
+            elif code.level != level:
+                continue
+            yield code
 
     def make_string(self, values, qualifier=None):
         if self.type == 1:

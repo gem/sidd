@@ -9,8 +9,8 @@ Widget (Panel) for result review
 """
 from os.path import exists  
 
-from PyQt4.QtGui import QWidget, QMessageBox, QFileDialog
-from PyQt4.QtCore import Qt, QObject, QPoint, pyqtSlot
+from PyQt4.QtGui import QWidget, QFileDialog, QDialog, QDialogButtonBox
+from PyQt4.QtCore import Qt, QObject, QPoint, QRect, pyqtSlot
 from PyQt4.QtXml import QDomDocument
 from qgis.gui import QgsMapCanvas, QgsMapCanvasLayer, \
                      QgsMapToolPan, QgsMapToolZoom, QgsMapToolEmitPoint, \
@@ -189,14 +189,14 @@ class WidgetResult(Ui_widgetResult, QWidget):
         try:
             cur_layer_idx = self.LAYER_NAMES.index(cur_layer)            
 
-            # create property dialog box for current layer
-            dlg_render = QgsRendererV2PropertiesDialog(self.map_layers[cur_layer_idx], self.style)            
+            dlg_render = self._getRenderPropertyDialog(cur_layer_idx)         
             answer = dlg_render.exec_()
-            if answer == QMessageBox.Accepted:
+            if answer == QDialog.Accepted:
                 self.map_layer_renderer[cur_layer_idx] = None
                 self.map_layer_renderer[cur_layer_idx] = self.map_layers[cur_layer_idx].rendererV2().clone()             
                 self.canvas.refresh()
-            dlg_render.destroy()            
+            dlg_render.destroy()
+            del dlg_render            
         except Exception as err:
             logUICall.log(str(err), logUICall.INFO)
 
@@ -212,12 +212,12 @@ class WidgetResult(Ui_widgetResult, QWidget):
                 fields.append(layer.dataProvider().fields()[fidx].name())
             dlg_search = DialogSearchFeature(fields)            
             answer = dlg_search.exec_()
-            if answer == QMessageBox.Accepted:
+            if answer == QDialog.Accepted:
                 extent = self.findFeatureExtentByAttribute(layer, dlg_search.attribute, dlg_search.value)
                 if extent is not None:
                     self.zoomToExtent(extent)
                 else:
-                    QMessageBox.information(self, get_ui_string("app.warning.title"),get_ui_string("widget.result.info.notfound"))
+                    logUICall.log(get_ui_string("widget.result.info.notfound"), logUICall.WARNING)
             dlg_search.destroy()
         except Exception as err:
             logUICall.log(str(err), logUICall.INFO)
@@ -267,9 +267,7 @@ class WidgetResult(Ui_widgetResult, QWidget):
         """
         export_path = str(self.ui.txt_export_select_path.text())
         if export_path == "":
-            QMessageBox.critical(self, 
-                                 get_ui_string("app.warning.title"), 
-                                 get_ui_string("app.error.path.is.null"))
+            logUICall.log(get_ui_string("app.error.path.is.null"), logUICall.WARNING)
             return
         self.app.exportResults(self.export_format, export_path)
 
@@ -325,9 +323,7 @@ class WidgetResult(Ui_widgetResult, QWidget):
                     self.dlgResultDetail.showInfoData(provider.fields(), selected)
                 self.dlgResultDetail.exec_()
             else:
-                QMessageBox.information(self, 
-                                        get_ui_string("app.warning.title"), 
-                                        get_ui_string("widget.result.info.notfound"))
+                logUICall.log(get_ui_string("widget.result.info.notfound"), logUICall.WARNING)
         except Exception as err:
             print err     
         
@@ -532,4 +528,20 @@ class WidgetResult(Ui_widgetResult, QWidget):
         self.canvas.setLayerSet(layerSet)
         self.canvas.refresh()
 
-        
+    def _getRenderPropertyDialog(self, cur_layer_idx):
+        dlg = QDialog()
+        dlg.setWindowTitle(get_ui_string('widget.result.renderer.settings'))
+        dlg.setModal(True)
+        dlg.setFixedSize(530, 370)
+        dlg.renderer = QgsRendererV2PropertiesDialog(self.map_layers[cur_layer_idx], self.style, True)
+        dlg.renderer.setParent(dlg)        
+        dlg.renderer.setGeometry(QRect(10, 10, 510, 325))
+        dlg.buttonBox = QDialogButtonBox(dlg)
+        dlg.buttonBox.setGeometry(QRect(10, 335, 510, 25))
+        dlg.buttonBox.setStandardButtons(QDialogButtonBox.Cancel|QDialogButtonBox.Ok)
+        dlg.buttonBox.accepted.connect(dlg.accept)
+        dlg.buttonBox.accepted.connect(dlg.renderer.onOK)
+        dlg.buttonBox.rejected.connect(dlg.reject)
+        dlg.setVisible(True)        
+        return dlg
+                

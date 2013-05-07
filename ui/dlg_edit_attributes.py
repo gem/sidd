@@ -7,7 +7,7 @@
 """
 dialog for editing secondary modifiers
 """
-from PyQt4.QtGui import QDialog
+from PyQt4.QtGui import QDialog, QDialogButtonBox
 from PyQt4.QtCore import pyqtSlot
 
 from ui.constants import logUICall, UI_PADDING 
@@ -20,11 +20,13 @@ class DialogEditAttributes(Ui_editAttributesDialog, QDialog):
     """
     BUILD_EMPTY, BUILD_FROM_SURVEY=range(2)
     
-    def __init__(self, taxonomy, attribute, attribute_value, modifier_value):
+    def __init__(self, app, taxonomy, attribute, attribute_value, modifier_value, allow_blank=True):
         """ constructor """
         super(DialogEditAttributes, self).__init__()
         self.ui = Ui_editAttributesDialog()
         self.ui.setupUi(self)
+        self.app = app
+        self.allow_blank=allow_blank
 
         self.ui.btn_add.clicked.connect(self.add_code)        
         self.ui.btn_delete.clicked.connect(self.del_code)
@@ -39,24 +41,48 @@ class DialogEditAttributes(Ui_editAttributesDialog, QDialog):
         """ return attribute value from combining the selection of all input widget """
         codes = []
         for _widget in self._code_widgets:
+            if _widget.selected_code == '':
+                continue
+            try:
+                # check for existing
+                codes.index(_widget.selected_code)
+                # no error means found, which is actually the error case                                
+                logUICall.log('value %s already exists' % _widget.selected_code, logUICall.WARNING)
+                self.ui.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
+                return ''
+            except:
+                # this means not found, no error
+                pass
             codes.append(_widget.selected_code)
+        self.ui.buttonBox.button(QDialogButtonBox.Ok).setEnabled(True)
         return str(self._taxonomy.level_separator).join(codes)
 
     def add_code(self):
         """ event handler for adding new empty attribute input widget """
+        has_blank=False
+        for _widget in self._code_widgets:
+            if _widget.selected_code == '':
+                has_blank=True
+                break  
+        if (not self.allow_blank) and has_blank:
+            logUICall.log('Please set values before adding additional modifiers', logUICall.WARNING)
+            return          
         self.add_blank()
         self.refreshUI()
     
     def del_code(self):
         """ event handler for deleting the last attribute input widget """
-        self._code_widgets.pop()
+        _widget = self._code_widgets.pop()
+        _widget.setParent(None)
+        _widget.destroy()
+        del _widget
         if len(self._code_widgets) == 0:
             self.add_blank()
         self.refreshUI()
     
     def updateAttributeValue(self):
         """ event handler for attribute value combo box """
-        self.ui.txt_attribute_value.setText(self.modifier_value)
+        self.ui.txt_modifier_value.setText(self.modifier_value)
 
     # public methods
     ###############################
@@ -69,8 +95,9 @@ class DialogEditAttributes(Ui_editAttributesDialog, QDialog):
         """
         self._attribute = attribute
         self._attribute_value = attribute_value
-        self.ui.txt_attribute_name.setText(attribute)
-        self.ui.txt_attribute.setText(attribute_value)        
+        self._attribute_code = self._taxonomy.get_code_by_name(attribute_value)
+        self.ui.txt_attribute_name.setText(attribute.name)
+        self.ui.txt_attribute.setText(attribute_value)
         self.ui.txt_modifier_value.setText(modifier_value)
 
         self._code_widgets = []
@@ -81,11 +108,10 @@ class DialogEditAttributes(Ui_editAttributesDialog, QDialog):
                 _str_values = ['']
             for _value in _str_values:                
                 if self._taxonomy.codes.has_key(_value):
-                    _code = self._taxonomy.codes[_value]
                     _valid_codes = {}
-                    for _valid_code in self._taxonomy.get_codes_for_attribute(_code.attribute.name, _code.level):
+                    for _valid_code in self._attribute.get_valid_codes(parent=self._attribute_code):
                         _valid_codes[_valid_code.code]=_valid_code.description    
-                    _widget = WidgetSelectAttribute(self.ui.boxAttributes, _code.attribute.name, _valid_codes, _value)
+                    _widget = WidgetSelectAttribute(self.ui.boxAttributes, self._attribute.name, _valid_codes, _value)
                     _widget.codeUpdated.connect(self.updateAttributeValue)                    
                     self._code_widgets.append(_widget)
                 else:
@@ -100,7 +126,8 @@ class DialogEditAttributes(Ui_editAttributesDialog, QDialog):
         """ add a blank row with new widget """ 
         _valid_codes = {}
         _valid_codes['']=''
-        for _valid_code in self._taxonomy.get_codes_for_attribute(self._attribute):
+        #for _valid_code in self._taxonomy.get_codes_for_attribute(self._attribute):
+        for _valid_code in self._attribute.get_valid_codes(parent=self._attribute_code):
             _valid_codes[_valid_code.code]=_valid_code.description        
         _widget = WidgetSelectAttribute(self.ui.boxAttributes, self._attribute, _valid_codes, "")
         _widget.codeUpdated.connect(self.updateAttributeValue)

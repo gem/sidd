@@ -435,9 +435,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         
         if (ms_type != get_ui_string('app.mslibrary.user.multilevel') and
             ms_type != get_ui_string('app.mslibrary.user.singlelevel')):
-            QMessageBox.critical(self, 
-                                 get_ui_string('app.warning.title'), 
-                                 get_ui_string('widget.ms.library.delete.denied'))
+            logUICall.log(get_ui_string('widget.ms.library.delete.denied'), logUICall.WARNING)
             return
         # deserialize mapping scheme object from XML in DB
         self.msdb_dao.delete_ms(region, ms_type, ms_name)

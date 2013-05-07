@@ -14,7 +14,6 @@ class UtilsTestCase(SIDDTestCase):
     ##################################    
     def setUp(self):
         super(UtilsTestCase, self).setUp()
-    
         
     def test_Grid(self):
         from utils.grid import latlon_to_grid, grid_to_latlon

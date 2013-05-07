@@ -8,12 +8,9 @@ import os
 import shutil
 import unittest
 
-from sidd.taxonomy import get_taxonomy
-
 class SIDDTestCase(unittest.TestCase):
     required_dirs = ['tests/tmp']
     def setUp(self):
-        self.taxonomy = get_taxonomy("gem")        
         self.test_data_dir = str(os.getcwd()) +  "/tests/data/"
         self.test_tmp_dir = str(os.getcwd()) +  "/tests/tmp/"
         

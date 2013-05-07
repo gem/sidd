@@ -40,15 +40,13 @@ class WidgetSelectAttribute(Ui_widgetSelectAttribute, QWidget):
     def updateDescription(self, code):
         try:
             description = self._valid_codes[str(code)]
-        except Exception as err:
-            print err
+        except:
             description = ""
         self.ui.lb_description.setText(description)
         self.codeUpdated.emit()
 
     # public methods
     ###############################
-    @logUICall
     def set_attribute(self, attribute_name, valid_codes, current):
         """ set data for display """        
         # store valid codes to be used
@@ -60,7 +58,7 @@ class WidgetSelectAttribute(Ui_widgetSelectAttribute, QWidget):
         
         # set data for combo box 
         keys = valid_codes.keys()
-        keys.sort()                
+        keys.sort()
         for idx, code in enumerate(keys):
             self.ui.cb_codes.addItem(code)            
             # set current value as selected from the drop-down

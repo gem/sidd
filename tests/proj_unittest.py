@@ -17,6 +17,7 @@ from sidd.constants import logAPICall, \
                            WorkflowErrors
 from sidd.project import Project
 from sidd.workflow import WorkflowBuilder
+from sidd.taxonomy import get_taxonomy
 
 from common import SIDDTestCase
 class ProjectTestCase(SIDDTestCase):
@@ -27,6 +28,7 @@ class ProjectTestCase(SIDDTestCase):
     def setUp(self):
         super(ProjectTestCase, self).setUp()
         
+        self.taxonomy = get_taxonomy("gem")
         self.test_config = SIDDConfig(self.test_data_dir + '/test.cfg')
         
         self.proj_file = self.test_data_dir +  'test.db'
@@ -54,7 +56,8 @@ class ProjectTestCase(SIDDTestCase):
         logging.debug('test_CreateProject %s' % skipTest)
         
         proj_file = '%stest.db' % self.test_tmp_dir
-        proj = Project(proj_file, self.test_config, self.taxonomy)
+        proj = Project(self.test_config, self.taxonomy)
+        proj.set_project_path(proj_file)
         proj.operator_options = self.operator_options        
         if skipTest:
             return (proj, proj_file)
@@ -66,7 +69,8 @@ class ProjectTestCase(SIDDTestCase):
     def test_LoadProject(self, skipTest=False):
         logging.debug('test_LoadProject %s' % skipTest)
         
-        proj = Project(self.proj_file, self.test_config, self.taxonomy)
+        proj = Project(self.test_config, self.taxonomy)
+        proj.set_project_path(self.proj_file)
         proj.sync(SyncModes.Read)
         if skipTest:
             return proj
@@ -165,7 +169,8 @@ class ProjectTestCase(SIDDTestCase):
         if not os.path.exists(proj_tmp_dir):
             os.mkdir(proj_tmp_dir)
         
-        proj = Project(self.proj_file3, self.test_config, self.taxonomy)
+        proj = Project(self.test_config, self.taxonomy)
+        proj.set_project_path(self.proj_file3)
         proj.sync(SyncModes.Read)
         
         proj.operator_options['tmp_dir'] = proj_tmp_dir

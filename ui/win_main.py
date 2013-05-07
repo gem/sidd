@@ -143,7 +143,7 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         delete_folders_in_dir(get_temp_dir(), "tmp*")
 
         # enable following during development
-        # self._dev_short_cut()
+        #self._dev_short_cut()
         
     def _dev_short_cut(self):
         self.ui.mainTabs.setTabEnabled (1, True)
@@ -454,9 +454,8 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         
         # can not proceed if project is not ready for exposure
         if self.project.status != ProjectStatus.ReadyForExposure:
-            QMessageBox.critical(self, 
-                                 get_ui_string("app.warning.title"), 
-                                 get_ui_string("project.error.NotEnoughData"))
+            logUICall.log(get_ui_string("project.error.NotEnoughData"), logUICall.WARNING)
+
             # show result 
             self.tab_datainput.showVerificationResults()
             self.ui.mainTabs.setCurrentIndex(0)
@@ -498,15 +497,11 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
             
         if error_occured:
             # processing cancelled
-            QMessageBox.information(self, 
-                                    get_ui_string("app.error.title"), 
-                                    error_message)            
+            logUICall.log(error_message, logUICall.WARNING)
             self.ui.statusbar.showMessage(get_ui_string("app.status.cancelled"))
         elif cancelled:
             # processing cancelled
-            QMessageBox.information(self, 
-                                    get_ui_string("app.warning.title"), 
-                                    get_ui_string("app.status.cancelled"))            
+            logUICall.log(get_ui_string("app.status.cancelled"), logUICall.WARNING)
             self.ui.statusbar.showMessage(get_ui_string("app.status.cancelled"))
         else:
             # processing completed            
@@ -518,7 +513,7 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
             self.ui.mainTabs.setTabEnabled(3, True)
             self.ui.mainTabs.setCurrentIndex(3)
             self.ui.statusbar.showMessage(get_ui_string("app.status.exposure.created"))       
-
+    
     # safe methods
     # methods below only makes UI change
     # no need to check call
@@ -540,3 +535,4 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         """ display the given mapping scheme in Mapping scheme and Modifier tabs"""
         self.tab_ms.showMappingScheme(ms)
         self.tab_mod.showMappingScheme(ms)
+    

@@ -9,6 +9,7 @@ import os
 # import sidd packages for testing
 from sidd.ms import MappingScheme, MappingSchemeZone, \
                     Statistics, StatisticNode, StatisticError
+from sidd.taxonomy import get_taxonomy
 
 from common import SIDDTestCase
  
@@ -18,6 +19,7 @@ class MSTestCase(SIDDTestCase):
     ##################################    
     def setUp(self):
         super(MSTestCase, self).setUp()
+        self.taxonomy = get_taxonomy("gem")
         self.survey_file = self.test_data_dir + "survey.csv"
         self.ms_file = self.test_data_dir + "ms.xml"
         self.ms_file2 = self.test_data_dir + "ms2.xml"

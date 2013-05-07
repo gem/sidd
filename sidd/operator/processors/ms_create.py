@@ -375,7 +375,7 @@ class StratifiedMSCreator(EmptyMSCreator):
                 self._taxonomy.parse(_tax_str)            
                 self.increment_dict(_zone_group_counts[_zone], _samp_grp, 1)
                 self.increment_dict(_zone_group_stories[_zone], _samp_grp, _ht)
-            except Exception as err:                
+            except Exception as err:
                 logAPICall.log("Error processing record %s" % err, logAPICall.WARNING)
             
         for _zone in zone_classes.iterkeys():
