@@ -100,6 +100,7 @@ class WidgetResult(Ui_widgetResult, QWidget):
         self.toolZoomOut = QgsMapToolZoom(self.canvas, True) # true = out
         self.toolInfo = QgsMapToolEmitPoint(self.canvas)
         self.toolInfo.canvasClicked.connect(self.showInfo)
+        self.canvas.setMapTool(self.toolPan)
         
         # additional         
         self.dlgResultDetail = DialogResult()
@@ -155,18 +156,21 @@ class WidgetResult(Ui_widgetResult, QWidget):
     @pyqtSlot()
     def mapPan(self):
         """ event handler for btn_pan - pan map """
+        self.canvas.unsetMapTool(self.toolInfo)
         self.canvas.setMapTool(self.toolPan)
 
     @logUICall
     @pyqtSlot()
     def mapZoomIn(self):
         """ event handler for btn_zoom_in - zoom in on map """
+        self.canvas.unsetMapTool(self.toolInfo)
         self.canvas.setMapTool(self.toolZoomIn)
 
     @logUICall
     @pyqtSlot()
     def mapZoomOut(self):
         """ event handler for btn_zoom_out - zoom out on map """
+        self.canvas.unsetMapTool(self.toolInfo)
         self.canvas.setMapTool(self.toolZoomOut)
         
     @logUICall
@@ -178,6 +182,7 @@ class WidgetResult(Ui_widgetResult, QWidget):
     @logUICall
     @pyqtSlot()
     def mapZoomLayer(self):
+        self.canvas.unsetMapTool(self.toolInfo)
         cur_layer_name = self.ui.cb_layer_selector.currentText()                
         self.zoomToLayer(self.map_layers[self.LAYER_NAMES.index(cur_layer_name)])
         

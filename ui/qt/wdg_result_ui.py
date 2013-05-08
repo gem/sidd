@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qt\wdg_result.ui'
 #
-# Created: Thu Apr 25 17:06:40 2013
+# Created: Tue May 07 14:56:31 2013
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -22,11 +22,11 @@ class Ui_widgetResult(object):
         self.widget_export.setGeometry(QtCore.QRect(650, 30, 281, 181))
         self.widget_export.setObjectName(_fromUtf8("widget_export"))
         self.btn_export_select_path = QtGui.QToolButton(self.widget_export)
-        self.btn_export_select_path.setGeometry(QtCore.QRect(230, 70, 41, 19))
+        self.btn_export_select_path.setGeometry(QtCore.QRect(250, 70, 21, 20))
         self.btn_export_select_path.setCursor(QtCore.Qt.OpenHandCursor)
         self.btn_export_select_path.setObjectName(_fromUtf8("btn_export_select_path"))
         self.txt_export_select_path = QtGui.QLineEdit(self.widget_export)
-        self.txt_export_select_path.setGeometry(QtCore.QRect(10, 70, 211, 20))
+        self.txt_export_select_path.setGeometry(QtCore.QRect(10, 70, 231, 20))
         self.txt_export_select_path.setObjectName(_fromUtf8("txt_export_select_path"))
         self.lb_export_select_path = QtGui.QLabel(self.widget_export)
         self.lb_export_select_path.setGeometry(QtCore.QRect(10, 40, 181, 21))
@@ -166,10 +166,11 @@ class Ui_widgetResult(object):
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:8pt;\"></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_layer_selector.setText(QtGui.QApplication.translate("widgetResult", "Select Layer", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_theme.setToolTip(QtGui.QApplication.translate("widgetResult", "Edit Layer Thematics", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_layer_selector.setText(QtGui.QApplication.translate("widgetResult", "Selected Layer", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_theme.setToolTip(QtGui.QApplication.translate("widgetResult", "Layer Rendering Options ...", None, QtGui.QApplication.UnicodeUTF8))
         self.btn_info.setToolTip(QtGui.QApplication.translate("widgetResult", "Query Feature in Layer", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_zoom_layer.setToolTip(QtGui.QApplication.translate("widgetResult", "Zoom to Layer", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_zoom_to_feature.setToolTip(QtGui.QApplication.translate("widgetResult", "Zoom to Feature ...", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_zoom_layer.setToolTip(QtGui.QApplication.translate("widgetResult", "Zoom to Selected Layer", None, QtGui.QApplication.UnicodeUTF8))
         self.btn_zoom_in.setToolTip(QtGui.QApplication.translate("widgetResult", "Zoom In", None, QtGui.QApplication.UnicodeUTF8))
         self.btn_pan.setToolTip(QtGui.QApplication.translate("widgetResult", "Pan", None, QtGui.QApplication.UnicodeUTF8))
         self.btn_zoom_out.setToolTip(QtGui.QApplication.translate("widgetResult", "Zoom Out", None, QtGui.QApplication.UnicodeUTF8))

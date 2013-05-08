@@ -60,6 +60,10 @@ class Workflow(object):
         #    yield op
         for op in self.operators:
             yield op
+            
+    @logAPICall        
+    def steps(self):
+        return len(self.operators)
 
     @logAPICall
     def process(self):

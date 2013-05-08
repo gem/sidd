@@ -25,10 +25,10 @@
    <widget class="QToolButton" name="btn_export_select_path">
     <property name="geometry">
      <rect>
-      <x>230</x>
+      <x>250</x>
       <y>70</y>
-      <width>41</width>
-      <height>19</height>
+      <width>21</width>
+      <height>20</height>
      </rect>
     </property>
     <property name="cursor">
@@ -43,7 +43,7 @@
      <rect>
       <x>10</x>
       <y>70</y>
-      <width>211</width>
+      <width>231</width>
       <height>20</height>
      </rect>
     </property>
@@ -205,7 +205,7 @@ p, li { white-space: pre-wrap; }
       </rect>
      </property>
      <property name="text">
-      <string>Select Layer</string>
+      <string>Selected Layer</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -231,7 +231,7 @@ p, li { white-space: pre-wrap; }
       </rect>
      </property>
      <property name="toolTip">
-      <string>Edit Layer Thematics</string>
+      <string>Layer Rendering Options ...</string>
      </property>
      <property name="text">
       <string/>
@@ -270,6 +270,9 @@ p, li { white-space: pre-wrap; }
        <height>23</height>
       </rect>
      </property>
+     <property name="toolTip">
+      <string>Zoom to Feature ...</string>
+     </property>
      <property name="icon">
       <iconset resource="resources/SIDDResource.qrc">
        <normaloff>:/imgs/icons/help.png</normaloff>:/imgs/icons/help.png</iconset>
@@ -285,7 +288,7 @@ p, li { white-space: pre-wrap; }
       </rect>
      </property>
      <property name="toolTip">
-      <string>Zoom to Layer</string>
+      <string>Zoom to Selected Layer</string>
      </property>
      <property name="text">
       <string/>

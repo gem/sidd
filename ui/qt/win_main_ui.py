@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qt\win_main.ui'
 #
-# Created: Mon May 06 18:31:01 2013
+# Created: Wed May 08 11:06:30 2013
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -17,7 +17,11 @@ except AttributeError:
 class Ui_mainWindow(object):
     def setupUi(self, mainWindow):
         mainWindow.setObjectName(_fromUtf8("mainWindow"))
-        mainWindow.resize(957, 766)
+        mainWindow.resize(930, 750)
+        mainWindow.setMinimumSize(QtCore.QSize(930, 750))
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/imgs/logo.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        mainWindow.setWindowIcon(icon)
         self.centralwidget = QtGui.QWidget(mainWindow)
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
         self.mainTabs = QtGui.QTabWidget(self.centralwidget)
@@ -27,7 +31,7 @@ class Ui_mainWindow(object):
         self.mainTabs.setObjectName(_fromUtf8("mainTabs"))
         mainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(mainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 957, 21))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 930, 21))
         self.menubar.setObjectName(_fromUtf8("menubar"))
         self.menuFile = QtGui.QMenu(self.menubar)
         self.menuFile.setObjectName(_fromUtf8("menuFile"))
@@ -90,7 +94,7 @@ class Ui_mainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(mainWindow)
 
     def retranslateUi(self, mainWindow):
-        mainWindow.setWindowTitle(QtGui.QApplication.translate("mainWindow", "Spatial Inventory Tool", None, QtGui.QApplication.UnicodeUTF8))
+        mainWindow.setWindowTitle(QtGui.QApplication.translate("mainWindow", "Spatial Inventory Data Developer", None, QtGui.QApplication.UnicodeUTF8))
         self.menuFile.setTitle(QtGui.QApplication.translate("mainWindow", "File", None, QtGui.QApplication.UnicodeUTF8))
         self.menuCreate_New.setTitle(QtGui.QApplication.translate("mainWindow", "Create Project", None, QtGui.QApplication.UnicodeUTF8))
         self.menuHelp.setTitle(QtGui.QApplication.translate("mainWindow", "Help", None, QtGui.QApplication.UnicodeUTF8))
@@ -108,3 +112,4 @@ class Ui_mainWindow(object):
         self.actionProject_Blank.setText(QtGui.QApplication.translate("mainWindow", "Blank Project", None, QtGui.QApplication.UnicodeUTF8))
         self.actionSave_as.setText(QtGui.QApplication.translate("mainWindow", "Save Project as ...", None, QtGui.QApplication.UnicodeUTF8))
 
+import SIDDResource_rc

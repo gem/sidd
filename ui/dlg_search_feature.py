@@ -24,7 +24,6 @@ class DialogSearchFeature(Ui_searchFeatureDialog, QDialog):
         super(DialogSearchFeature, self).__init__()
         self.ui = Ui_searchFeatureDialog()
         self.ui.setupUi(self)
-        self.retranslateUi(self.ui)
         self.ui.cb_attribute.clear()
         self.ui.cb_attribute.addItems(fields)
         

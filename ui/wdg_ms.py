@@ -165,9 +165,9 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
     @pyqtSlot()
     def createMS(self):
         """ create new mapping scheme """
-        #self.dlgMSOptions.resetList()
         # load existing options
         options = self.app.project.operator_options
+        self.dlgMSOptions.attribute_ranges.clear()
         for attr in self.dlgMSOptions.attributes:
             if options.has_key(attr.name):    
                 self.dlgMSOptions.attribute_ranges[attr.name] = options[attr.name]
@@ -179,7 +179,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         if options.has_key('stratified.sampling'):
             self.dlgMSOptions.use_sampling = options['stratified.sampling']
         else:
-            self.dlgMSOptions.use_sampling = True
+            self.dlgMSOptions.use_sampling = False
         if self.dlgMSOptions.exec_() == QDialog.Accepted:
             # set options
             options['attribute.order'] = self.dlgMSOptions.attribute_order

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>988</width>
-    <height>678</height>
+    <width>950</width>
+    <height>750</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>630</x>
-     <y>630</y>
+     <y>620</y>
      <width>131</width>
      <height>31</height>
     </rect>
@@ -30,7 +30,7 @@
    <property name="geometry">
     <rect>
      <x>780</x>
-     <y>630</y>
+     <y>620</y>
      <width>131</width>
      <height>31</height>
     </rect>
@@ -43,7 +43,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>10</y>
+     <y>0</y>
      <width>891</width>
      <height>31</height>
     </rect>
@@ -63,7 +63,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>50</y>
+     <y>40</y>
      <width>331</width>
      <height>571</height>
     </rect>
@@ -173,7 +173,7 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>71</width>
+      <width>141</width>
       <height>31</height>
      </rect>
     </property>
@@ -217,73 +217,53 @@
        <normaloff>:/imgs/icons/new.png</normaloff>:/imgs/icons/new.png</iconset>
      </property>
     </widget>
-   </widget>
-   <widget class="QPushButton" name="btn_refresh_tree">
-    <property name="geometry">
-     <rect>
-      <x>100</x>
-      <y>0</y>
-      <width>31</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="toolTip">
-     <string>Expand Mapping Scheme Tree</string>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="icon">
-     <iconset resource="resources/SIDDResource.qrc">
-      <normaloff>:/imgs/icons/refresh.png</normaloff>:/imgs/icons/refresh.png</iconset>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btn_collapse_tree">
-    <property name="geometry">
-     <rect>
-      <x>160</x>
-      <y>0</y>
-      <width>31</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="toolTip">
-     <string>Collapse Mapping Scheme Tree</string>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="icon">
-     <iconset resource="resources/SIDDResource.qrc">
-      <normaloff>:/imgs/icons/magnify_minus.png</normaloff>:/imgs/icons/magnify_minus.png</iconset>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btn_expand_tree">
-    <property name="geometry">
-     <rect>
-      <x>130</x>
-      <y>0</y>
-      <width>31</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="toolTip">
-     <string>Expand Mapping Scheme Tree</string>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="icon">
-     <iconset resource="resources/SIDDResource.qrc">
-      <normaloff>:/imgs/icons/magnify_plus.png</normaloff>:/imgs/icons/magnify_plus.png</iconset>
-    </property>
+    <widget class="QPushButton" name="btn_expand_tree">
+     <property name="geometry">
+      <rect>
+       <x>80</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Expand Mapping Scheme Tree</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/magnify_plus.png</normaloff>:/imgs/icons/magnify_plus.png</iconset>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_collapse_tree">
+     <property name="geometry">
+      <rect>
+       <x>110</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Collapse Mapping Scheme Tree</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/magnify_minus.png</normaloff>:/imgs/icons/magnify_minus.png</iconset>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QWidget" name="widget_ms_library" native="true">
    <property name="geometry">
     <rect>
      <x>350</x>
-     <y>80</y>
+     <y>70</y>
      <width>561</width>
      <height>541</height>
     </rect>

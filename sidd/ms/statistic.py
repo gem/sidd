@@ -76,7 +76,9 @@ class Statistics (object):
             self.root.add(bldg_attrs, 0, parse_order, self.taxonomy.defaults, parse_modifiers)
         except TaxonomyParseError as perr:
             logAPICall.log("error parsing case %s, %s" % (str(taxstr), str(perr)), logAPICall.WARNING)
-        except Exception as err:            
+        except Exception as err:     
+            import traceback
+            traceback.print_exc()       
             logAPICall.log("error adding case %s, %s" % (str(taxstr), str(err)), logAPICall.WARNING)         
 
     @logAPICall

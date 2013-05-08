@@ -212,12 +212,17 @@ class Project (object):
         self.exposure = None
         logAPICall.log('input verification completed', logAPICall.INFO)
         
-
     @logAPICall
     def build_exposure(self):
         """ building exposure database from workflow """
         for step in self.build_exposure_steps():
             step.do_operation()
+    
+    @logAPICall
+    def build_exposure_total_steps(self):
+        if not self.workflow.ready:
+            raise SIDDException('exposure workflow not complete')
+        return self.workflow.steps()
 
     @logAPICall
     def build_exposure_steps(self):
@@ -238,7 +243,7 @@ class Project (object):
         if self.workflow.operator_data.has_key('exposure_grid'):
             self.exposure_grid = self.workflow.operator_data['exposure_grid'].value
         
-        logAPICall.log('exposure data created %s' % self.exposure_file, logAPICall.INFO)        
+        logAPICall.log('exposure data created %s' % self.exposure_file, logAPICall.INFO)    
 
     @logAPICall
     def build_ms(self):
@@ -384,7 +389,7 @@ class Project (object):
 
             use_sampling = self._get_project_data('stratified.sampling')
             if use_sampling is None:
-                self.operator_options['stratified.sampling']=False # default to not use sampling method
+                self.operator_options['stratified.sampling']= False # default to not use sampling method
             else:
                 self.operator_options['stratified.sampling']= (use_sampling == "True")
                 

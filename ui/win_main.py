@@ -410,9 +410,7 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
     @apiCallChecker
     def appendMSBranch(self, node, branch):
         """ append a branch (from library) to a node in a mapping scheme tree """
-        self.ui.statusbar.showMessage(get_ui_string("app.status.ms.processing"))
-        # invoke asynchronously
-        #invoke_async(get_ui_string("app.status.processing"), self.project.ms.append_branch, node, branch)
+        self.ui.statusbar.showMessage(get_ui_string("app.status.ms.processing"))         
         self.project.ms.append_branch(node, branch)
         self.visualizeMappingScheme(self.project.ms)
         self.ui.statusbar.showMessage(get_ui_string("app.status.ms.modified"))
@@ -421,8 +419,6 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
     def deleteMSBranch(self, node):
         """ delete selected node and children from mapping scheme tree """
         self.ui.statusbar.showMessage(get_ui_string("app.status.ms.processing"))
-        # invoke asynchronously        
-        #invoke_async(get_ui_string("app.status.processing"), self.project.ms.delete_branch, node)
         self.project.ms.delete_branch(node)
         self.visualizeMappingScheme(self.project.ms)
         self.ui.statusbar.showMessage(get_ui_string("app.status.ms.modified"))
@@ -467,25 +463,33 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
 
         # reset progress dialog
         self.progress.setVisible(True)
-        self.progress.ui.pb_progress.setRange(0, 0)
+        self.progress.ui.pb_progress.setRange(0, self.project.build_exposure_total_steps())        
         self.progress.ui.txt_progress.clear()
         self.progress.ui.txt_progress.appendPlainText(get_ui_string("app.status.processing"))        
         self.qtapp.processEvents()
         
         cancelled = False
         error_occured = False
-        error_message = ""      
+        error_message = ""
+        curStep = 0
         for step in self.project.build_exposure_steps():
             if cancelled or error_occured:
                 break
             
+            # use introspection to get operator class                           
             class_name = str(step.__class__)
+            # result of above call has format 
+            # <class '...'> where ... is the class name of interest
             class_name = class_name[class_name.find("'")+1:class_name.rfind("'")]
             
+            # update UI
             logAPICall.log('\t %s' % step.name, logAPICall.DEBUG)
-            self.progress.ui.txt_progress.appendPlainText(get_ui_string('message.%s'% class_name))            
+            self.progress.ui.txt_progress.appendPlainText(get_ui_string('message.%s'% class_name))
+            self.progress.ui.pb_progress.setValue(curStep)                        
             self.qtapp.processEvents()
             sleep(0.5)
+            
+            # perform operation
             try:
                 step.do_operation()
                 if not self.progress.isVisible():
@@ -494,6 +498,9 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
                 error_message = err.message
                 error_occured = True
                 self.progress.setVisible(False)
+            
+            # operation successful
+            curStep+=1
             
         if error_occured:
             # processing cancelled
@@ -535,4 +542,3 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         """ display the given mapping scheme in Mapping scheme and Modifier tabs"""
         self.tab_ms.showMappingScheme(ms)
         self.tab_mod.showMappingScheme(ms)
-    

@@ -21,7 +21,8 @@ class AsyncProgressDialog(QDialog):
         self.progress_bar = QProgressBar(self)
         self.progress_bar.setFixedSize(280, 20)
         self.progress_bar.setMinimum(0)
-        self.progress_bar.setMaximum(10)       
+        self.progress_bar.setMaximum(10)  
+        self.progress_bar.setTextVisible(False)     
         self.layout().addWidget(self.progress_bar)
 
 class AsyncThread(Thread):

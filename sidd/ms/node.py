@@ -540,13 +540,13 @@ class StatisticNode (object):
             _attrib = None
             # find appropriate value in attr_val
             for _attr in values:
-                if _attr.attribute.name == attr_name:
+                if _attr.attribute.name == attribute_name:
                     _attrib = _attr
                     break
             # if not found, then get default
             if _attrib is None:
                 for _attr in default_attributes:
-                    if _attr.attribute.name == attr_name:
+                    if _attr.attribute.name == attribute_name:
                         _attrib = _attr
                         break
             return _attrib
