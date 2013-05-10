@@ -1,0 +1,429 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>widgetResult</class>
+ <widget class="QWidget" name="widgetResult">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>941</width>
+    <height>655</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <widget class="QWidget" name="widget_export" native="true">
+   <property name="geometry">
+    <rect>
+     <x>650</x>
+     <y>30</y>
+     <width>281</width>
+     <height>181</height>
+    </rect>
+   </property>
+   <widget class="QToolButton" name="btn_export_select_path">
+    <property name="geometry">
+     <rect>
+      <x>250</x>
+      <y>70</y>
+      <width>21</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="cursor">
+     <cursorShape>OpenHandCursor</cursorShape>
+    </property>
+    <property name="text">
+     <string>...</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="txt_export_select_path">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>70</y>
+      <width>231</width>
+      <height>20</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_export_select_path">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>40</y>
+      <width>181</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Select location to save output:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_export_title">
+    <property name="geometry">
+     <rect>
+      <x>6</x>
+      <y>5</y>
+      <width>251</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Export Exposure</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_export">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>150</y>
+      <width>75</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Export</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="cb_export_format">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>120</y>
+      <width>261</width>
+      <height>22</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_export_format">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>90</y>
+      <width>181</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Select Export Data Format</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QWidget" name="widget_dq_test" native="true">
+   <property name="geometry">
+    <rect>
+     <x>650</x>
+     <y>220</y>
+     <width>281</width>
+     <height>401</height>
+    </rect>
+   </property>
+   <widget class="QLabel" name="lbl_dq_test_title">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>251</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Data Quality Tests</string>
+    </property>
+   </widget>
+   <widget class="QTextBrowser" name="txt_dq_test_details">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>40</y>
+      <width>251</width>
+      <height>351</height>
+     </rect>
+    </property>
+    <property name="html">
+     <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:8pt;&quot;&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QWidget" name="widget_map" native="true">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>40</y>
+     <width>631</width>
+     <height>581</height>
+    </rect>
+   </property>
+   <widget class="QWidget" name="widget_map_menu_r" native="true">
+    <property name="geometry">
+     <rect>
+      <x>180</x>
+      <y>0</y>
+      <width>451</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <widget class="QLabel" name="lb_layer_selector">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>171</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Selected Layer</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="cb_layer_selector">
+     <property name="geometry">
+      <rect>
+       <x>180</x>
+       <y>0</y>
+       <width>141</width>
+       <height>22</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_theme">
+     <property name="geometry">
+      <rect>
+       <x>360</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Layer Rendering Options ...</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/pie_chart.png</normaloff>:/imgs/icons/pie_chart.png</iconset>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_info">
+     <property name="geometry">
+      <rect>
+       <x>420</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Query Feature in Layer</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/information.png</normaloff>:/imgs/icons/information.png</iconset>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_zoom_to_feature">
+     <property name="geometry">
+      <rect>
+       <x>390</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Zoom to Feature ...</string>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/help.png</normaloff>:/imgs/icons/help.png</iconset>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_zoom_layer">
+     <property name="geometry">
+      <rect>
+       <x>330</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Zoom to Selected Layer</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/magnify.png</normaloff>:/imgs/icons/magnify.png</iconset>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="widget_map_menu_l" native="true">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>161</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <widget class="QPushButton" name="btn_zoom_in">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Zoom In</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/magnify_plus.png</normaloff>:/imgs/icons/magnify_plus.png</iconset>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_pan">
+     <property name="geometry">
+      <rect>
+       <x>60</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Pan</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/arrows_4_way.png</normaloff>:/imgs/icons/arrows_4_way.png</iconset>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_zoom_out">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Zoom Out</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/magnify_minus.png</normaloff>:/imgs/icons/magnify_minus.png</iconset>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_zoom_full">
+     <property name="geometry">
+      <rect>
+       <x>90</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Zoom to Full Extent</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/world.png</normaloff>:/imgs/icons/world.png</iconset>
+     </property>
+    </widget>
+   </widget>
+  </widget>
+  <widget class="QLabel" name="lb_panel_title">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>0</y>
+     <width>591</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>12</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Preview</string>
+   </property>
+  </widget>
+ </widget>
+ <resources>
+  <include location="resources/SIDDResource.qrc"/>
+ </resources>
+ <connections/>
+ <slots>
+  <slot>mapZoomIn()</slot>
+  <slot>mapZoomOut()</slot>
+  <slot>mapZoomFull()</slot>
+  <slot>mapIdentify()</slot>
+  <slot>exportData()</slot>
+  <slot>selectExportFile()</slot>
+  <slot>mapPan()</slot>
+  <slot>exportFormatChanged()</slot>
+  <slot>editTheme()</slot>
+ </slots>
+</ui>

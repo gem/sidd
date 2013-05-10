@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>procOptionsDialog</class>
+ <widget class="QDialog" name="procOptionsDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>313</width>
+    <height>168</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Processing Options</string>
+  </property>
+  <widget class="QGroupBox" name="box_extrapolate_options">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>20</y>
+     <width>291</width>
+     <height>91</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Extrapolation Options</string>
+   </property>
+   <widget class="QRadioButton" name="radio_random">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>20</y>
+      <width>200</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Monte-Carlo Simulation</string>
+    </property>
+    <property name="checked">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="radio_actual">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>40</y>
+      <width>200</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Building Distribution Fraction</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="radio_actual_rounded">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>60</y>
+      <width>200</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Building Distribution Fraction Rounded</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QWidget" name="widgetButtons" native="true">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>130</y>
+     <width>291</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <widget class="QPushButton" name="btn_ok">
+    <property name="geometry">
+     <rect>
+      <x>130</x>
+      <y>0</y>
+      <width>75</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>OK</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_close">
+    <property name="geometry">
+     <rect>
+      <x>210</x>
+      <y>0</y>
+      <width>75</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Close</string>
+    </property>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
