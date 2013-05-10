@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qt\win_main.ui'
 #
-# Created: Wed May 08 11:06:30 2013
+# Created: Thu May 09 09:08:06 2013
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -20,7 +20,7 @@ class Ui_mainWindow(object):
         mainWindow.resize(930, 750)
         mainWindow.setMinimumSize(QtCore.QSize(930, 750))
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/imgs/logo.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/imgs/icon.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         mainWindow.setWindowIcon(icon)
         self.centralwidget = QtGui.QWidget(mainWindow)
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))

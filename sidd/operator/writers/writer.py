@@ -1,8 +1,17 @@
 # Copyright (c) 2011-2013, ImageCat Inc.
 #
-# SIDD is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+# This program is free software: you can redistribute it and/or modify 
+# it under the terms of the GNU Affero General Public License as published by 
+# the Free Software Foundation, either version 3 of the License, or 
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, 
+# but WITHOUT ANY WARRANTY; without even the implied warranty of 
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License 
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 """
 module to support exposure export 
@@ -17,7 +26,6 @@ class NullWriter(Operator):
 
     # self documenting method override
     ###########################
-
     @property
     def input_types(self):
         return []
@@ -44,7 +52,6 @@ class NullWriter(Operator):
         
     # protected method override
     ###########################
-
     def _verify_inputs(self, inputs):
         """ perform operator specific input validation """ 
         pass

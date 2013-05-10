@@ -21,7 +21,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="resources/SIDDResource.qrc">
-    <normaloff>:/imgs/logo.png</normaloff>:/imgs/logo.png</iconset>
+    <normaloff>:/imgs/icon.png</normaloff>:/imgs/icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QTabWidget" name="mainTabs">
