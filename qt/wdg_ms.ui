@@ -1,0 +1,730 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>widgetMappingSchemes</class>
+ <widget class="QWidget" name="widgetMappingSchemes">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>950</width>
+    <height>750</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <widget class="QPushButton" name="btn_secondary_mod">
+   <property name="geometry">
+    <rect>
+     <x>630</x>
+     <y>620</y>
+     <width>131</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Modifiers</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btn_build_exposure">
+   <property name="geometry">
+    <rect>
+     <x>780</x>
+     <y>620</y>
+     <width>131</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Build Exposure</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lb_panel_title">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>0</y>
+     <width>891</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>12</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Manage Mapping Schemes</string>
+   </property>
+  </widget>
+  <widget class="QWidget" name="widget_ms_tree" native="true">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>40</y>
+     <width>331</width>
+     <height>571</height>
+    </rect>
+   </property>
+   <widget class="QWidget" name="widget_ms_buttons_r" native="true">
+    <property name="geometry">
+     <rect>
+      <x>160</x>
+      <y>0</y>
+      <width>171</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <widget class="QPushButton" name="btn_edit_level">
+     <property name="geometry">
+      <rect>
+       <x>140</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Edit Level</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/edit.png</normaloff>:/imgs/icons/edit.png</iconset>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_del_child">
+     <property name="geometry">
+      <rect>
+       <x>110</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Delete Selected Node </string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/delete.png</normaloff>:/imgs/icons/delete.png</iconset>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_add_child">
+     <property name="geometry">
+      <rect>
+       <x>80</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Add/Edit Child Nodes</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/add.png</normaloff>:/imgs/icons/add.png</iconset>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_add_zone">
+     <property name="geometry">
+      <rect>
+       <x>50</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Add New Zone</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/element_clouds.png</normaloff>:/imgs/icons/element_clouds.png</iconset>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QTreeView" name="tree_ms">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>30</y>
+      <width>331</width>
+      <height>541</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QWidget" name="widget_ms_buttons_l" native="true">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>141</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <widget class="QPushButton" name="btn_save_ms">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Save Mapping Scheme</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/save.png</normaloff>:/imgs/icons/save.png</iconset>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_create_ms">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Create New Mapping Scheme</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/new.png</normaloff>:/imgs/icons/new.png</iconset>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_expand_tree">
+     <property name="geometry">
+      <rect>
+       <x>80</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Expand Mapping Scheme Tree</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/magnify_plus.png</normaloff>:/imgs/icons/magnify_plus.png</iconset>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_collapse_tree">
+     <property name="geometry">
+      <rect>
+       <x>110</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Collapse Mapping Scheme Tree</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/magnify_minus.png</normaloff>:/imgs/icons/magnify_minus.png</iconset>
+     </property>
+    </widget>
+   </widget>
+  </widget>
+  <widget class="QWidget" name="widget_ms_library" native="true">
+   <property name="geometry">
+    <rect>
+     <x>350</x>
+     <y>70</y>
+     <width>561</width>
+     <height>541</height>
+    </rect>
+   </property>
+   <widget class="QPushButton" name="btn_add_branch">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>150</y>
+      <width>31</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>Append Selected Mapping Scheme from Library to Zone</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset resource="resources/SIDDResource.qrc">
+      <normaloff>:/imgs/icons/arrow_left.png</normaloff>:/imgs/icons/arrow_left.png</iconset>
+    </property>
+   </widget>
+   <widget class="QGroupBox" name="box_ms_library">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>0</y>
+      <width>521</width>
+      <height>541</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Mapping Scheme Library</string>
+    </property>
+    <widget class="QListWidget" name="list_ms_library_regions">
+     <property name="geometry">
+      <rect>
+       <x>310</x>
+       <y>40</y>
+       <width>200</width>
+       <height>191</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_ms_library_regions">
+     <property name="geometry">
+      <rect>
+       <x>310</x>
+       <y>20</y>
+       <width>200</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Regions</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_ms_library_types">
+     <property name="geometry">
+      <rect>
+       <x>310</x>
+       <y>240</y>
+       <width>200</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Types</string>
+     </property>
+    </widget>
+    <widget class="QListWidget" name="list_ms_library_types">
+     <property name="geometry">
+      <rect>
+       <x>310</x>
+       <y>260</y>
+       <width>200</width>
+       <height>81</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QListWidget" name="list_ms_library_msnames">
+     <property name="geometry">
+      <rect>
+       <x>310</x>
+       <y>380</y>
+       <width>200</width>
+       <height>151</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_ms_library_msnames">
+     <property name="geometry">
+      <rect>
+       <x>310</x>
+       <y>350</y>
+       <width>200</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Available Mapping Schemes</string>
+     </property>
+    </widget>
+    <widget class="QTreeView" name="tree_ms_library">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>40</y>
+       <width>280</width>
+       <height>321</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_tree_ms_library">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>20</y>
+       <width>280</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_ms_library_date">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>370</y>
+       <width>100</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Date Created</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_ms_library_notes">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>460</y>
+       <width>100</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Use Notes</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txt_ms_library_date">
+     <property name="geometry">
+      <rect>
+       <x>120</x>
+       <y>370</y>
+       <width>171</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QTextEdit" name="txt_ms_library_notes">
+     <property name="geometry">
+      <rect>
+       <x>120</x>
+       <y>460</y>
+       <width>171</width>
+       <height>71</height>
+      </rect>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txt_ms_library_datasource">
+     <property name="geometry">
+      <rect>
+       <x>120</x>
+       <y>400</y>
+       <width>171</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_ms_library_datasource">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>400</y>
+       <width>100</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Data Source</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_ms_library_quality">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>430</y>
+       <width>100</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Data Measured</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txt_ms_library_quality">
+     <property name="geometry">
+      <rect>
+       <x>120</x>
+       <y>430</y>
+       <width>171</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lb_ms_library_ms">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>100</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Mapping Scheme</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_del_lib_ms">
+     <property name="geometry">
+      <rect>
+       <x>480</x>
+       <y>350</y>
+       <width>31</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Delete Selected Mapping Scheme</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/minus.png</normaloff>:/imgs/icons/minus.png</iconset>
+     </property>
+    </widget>
+   </widget>
+  </widget>
+  <widget class="QWidget" name="widget_ms_leaves" native="true">
+   <property name="geometry">
+    <rect>
+     <x>890</x>
+     <y>30</y>
+     <width>561</width>
+     <height>531</height>
+    </rect>
+   </property>
+   <widget class="QTableView" name="table_ms_leaves">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>50</y>
+      <width>521</width>
+      <height>441</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="cb_ms_zones">
+    <property name="geometry">
+     <rect>
+      <x>110</x>
+      <y>0</y>
+      <width>151</width>
+      <height>22</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_ms_zones">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>0</y>
+      <width>91</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Select zone</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="txt_leaves_total">
+    <property name="geometry">
+     <rect>
+      <x>410</x>
+      <y>500</y>
+      <width>151</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_leaves_total">
+    <property name="geometry">
+     <rect>
+      <x>300</x>
+      <y>500</y>
+      <width>91</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Total</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_ms_leaves">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>30</y>
+      <width>111</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Building Distribution</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_save_bldg_distribution">
+    <property name="geometry">
+     <rect>
+      <x>530</x>
+      <y>20</y>
+      <width>31</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset resource="resources/SIDDResource.qrc">
+      <normaloff>:/imgs/icons/save.png</normaloff>:/imgs/icons/save.png</iconset>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="ck_use_modifier">
+    <property name="geometry">
+     <rect>
+      <x>300</x>
+      <y>0</y>
+      <width>131</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Include Modifiers</string>
+    </property>
+   </widget>
+  </widget>
+ </widget>
+ <resources>
+  <include location="resources/SIDDResource.qrc"/>
+ </resources>
+ <connections/>
+ <slots>
+  <slot>buildMS()</slot>
+  <slot>createMS()</slot>
+  <slot>saveMS()</slot>
+  <slot>addBranch()</slot>
+  <slot>removeBranch()</slot>
+  <slot>editBranch()</slot>
+  <slot>setModifiers()</slot>
+  <slot>applyMS()</slot>
+  <slot>appendBranch()</slot>
+  <slot>showRegionMS()</slot>
+  <slot>showTypeMS()</slot>
+  <slot>showMS()</slot>
+  <slot>regionSelected()</slot>
+  <slot>typeSelected()</slot>
+  <slot>msSelected()</slot>
+  <slot>toggleMSLibrary()</slot>
+  <slot>deleteLibraryMS()</slot>
+ </slots>
+</ui>

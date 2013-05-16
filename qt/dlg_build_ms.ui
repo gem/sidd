@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>msOptionsDialog</class>
+ <widget class="QDialog" name="msOptionsDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>543</width>
+    <height>340</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="windowTitle">
+   <string>Create Mapping Scheme</string>
+  </property>
+  <widget class="QDialogButtonBox" name="buttons">
+   <property name="geometry">
+    <rect>
+     <x>360</x>
+     <y>300</y>
+     <width>171</width>
+     <height>32</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+   <property name="standardButtons">
+    <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+   </property>
+  </widget>
+  <widget class="QRadioButton" name="radioEmptyMS">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>50</y>
+     <width>281</width>
+     <height>17</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Create Empty Mapping Scheme</string>
+   </property>
+  </widget>
+  <widget class="QRadioButton" name="radioBuildMS">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>70</y>
+     <width>281</width>
+     <height>17</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Build from Survey Data</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lb_title">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>10</y>
+     <width>341</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>12</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Create Mapping Scheme</string>
+   </property>
+  </widget>
+  <widget class="QWidget" name="widget_attributes" native="true">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>90</y>
+     <width>501</width>
+     <height>201</height>
+    </rect>
+   </property>
+   <widget class="QListWidget" name="lst_attributes">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>30</y>
+      <width>211</width>
+      <height>171</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_attributes">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>0</y>
+      <width>141</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Attributes to include</string>
+    </property>
+   </widget>
+   <widget class="QWidget" name="widget_attribute_buttons" native="true">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>30</y>
+      <width>31</width>
+      <height>171</height>
+     </rect>
+    </property>
+    <widget class="QPushButton" name="btn_range">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>70</y>
+       <width>30</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Edit Grouping</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/cog.png</normaloff>:/imgs/icons/cog.png</iconset>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_move_up">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>30</y>
+       <width>30</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Move up</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/arrow_up.png</normaloff>:/imgs/icons/arrow_up.png</iconset>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_move_bottom">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>140</y>
+       <width>30</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Move to Bottom</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/arrow_bottom.png</normaloff>:/imgs/icons/arrow_bottom.png</iconset>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_move_down">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>110</y>
+       <width>30</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Move Down</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/arrow_down.png</normaloff>:/imgs/icons/arrow_down.png</iconset>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_move_top">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>30</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Move to Top</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/arrow_top.png</normaloff>:/imgs/icons/arrow_top.png</iconset>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QListWidget" name="lst_attributes_not_included">
+    <property name="geometry">
+     <rect>
+      <x>290</x>
+      <y>30</y>
+      <width>211</width>
+      <height>171</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_attributes_not_included">
+    <property name="geometry">
+     <rect>
+      <x>290</x>
+      <y>0</y>
+      <width>141</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Attributes not included</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_move_right">
+    <property name="geometry">
+     <rect>
+      <x>250</x>
+      <y>110</y>
+      <width>30</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>Exclude Selected Attribute</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset resource="resources/SIDDResource.qrc">
+      <normaloff>:/imgs/icons/arrow_right.png</normaloff>:/imgs/icons/arrow_right.png</iconset>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_move_left">
+    <property name="geometry">
+     <rect>
+      <x>250</x>
+      <y>80</y>
+      <width>30</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>Include selected Attribute</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset resource="resources/SIDDResource.qrc">
+      <normaloff>:/imgs/icons/arrow_left.png</normaloff>:/imgs/icons/arrow_left.png</iconset>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QLabel" name="lb_notes">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>300</y>
+     <width>331</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="ck_use_sampling">
+   <property name="geometry">
+    <rect>
+     <x>320</x>
+     <y>70</y>
+     <width>211</width>
+     <height>17</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Use Stratified Sampling Method</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lb_notes">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>300</y>
+     <width>291</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Attribute with * symbol can be grouped into ranges</string>
+   </property>
+  </widget>
+ </widget>
+ <resources>
+  <include location="resources/SIDDResource.qrc"/>
+ </resources>
+ <connections/>
+</ui>

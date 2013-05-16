@@ -1,4 +1,0 @@
-sidd
-====
-
-IDCT SIDD tool

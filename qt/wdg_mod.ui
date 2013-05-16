@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>widgetSecondaryModifier</class>
+ <widget class="QWidget" name="widgetSecondaryModifier">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>922</width>
+    <height>660</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <widget class="QPushButton" name="btn_build_exposure">
+   <property name="geometry">
+    <rect>
+     <x>780</x>
+     <y>610</y>
+     <width>131</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Build Exposure</string>
+   </property>
+  </widget>
+  <widget class="QTableView" name="table_mod">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>40</y>
+     <width>901</width>
+     <height>561</height>
+    </rect>
+   </property>
+   <attribute name="verticalHeaderVisible">
+    <bool>false</bool>
+   </attribute>
+   <attribute name="verticalHeaderDefaultSectionSize">
+    <number>0</number>
+   </attribute>
+  </widget>
+  <widget class="QLabel" name="lb_panel_title">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>0</y>
+     <width>701</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>12</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Manage Modifiers</string>
+   </property>
+  </widget>
+  <widget class="QWidget" name="widget_buttons" native="true">
+   <property name="geometry">
+    <rect>
+     <x>730</x>
+     <y>10</y>
+     <width>181</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <widget class="QPushButton" name="btn_del_mod">
+    <property name="geometry">
+     <rect>
+      <x>120</x>
+      <y>0</y>
+      <width>31</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>Delete Selected Modifier</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset resource="resources/SIDDResource.qrc">
+      <normaloff>:/imgs/icons/minus.png</normaloff>:/imgs/icons/minus.png</iconset>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_edit_mod">
+    <property name="geometry">
+     <rect>
+      <x>150</x>
+      <y>0</y>
+      <width>31</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>Edit Selected Modifier</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset resource="resources/SIDDResource.qrc">
+      <normaloff>:/imgs/icons/edit.png</normaloff>:/imgs/icons/edit.png</iconset>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_add_mod">
+    <property name="geometry">
+     <rect>
+      <x>90</x>
+      <y>0</y>
+      <width>31</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>Add Modifier</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset resource="resources/SIDDResource.qrc">
+      <normaloff>:/imgs/icons/add.png</normaloff>:/imgs/icons/add.png</iconset>
+    </property>
+   </widget>
+  </widget>
+ </widget>
+ <resources>
+  <include location="resources/SIDDResource.qrc"/>
+ </resources>
+ <connections/>
+ <slots>
+  <slot>addModifier()</slot>
+  <slot>deleteModifier()</slot>
+  <slot>editModifier()</slot>
+  <slot>applyMS()</slot>
+ </slots>
+</ui>

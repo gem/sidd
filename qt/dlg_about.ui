@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DialogAbout</class>
+ <widget class="QDialog" name="DialogAbout">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>461</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>About SIDD</string>
+  </property>
+  <widget class="QDialogButtonBox" name="buttonBox">
+   <property name="geometry">
+    <rect>
+     <x>300</x>
+     <y>410</y>
+     <width>81</width>
+     <height>32</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+   <property name="standardButtons">
+    <set>QDialogButtonBox::Ok</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lb_logo">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>20</y>
+     <width>311</width>
+     <height>101</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="pixmap">
+    <pixmap resource="resources/SIDDResource.qrc">:/imgs/logo.png</pixmap>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lb_description">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>111</y>
+     <width>360</width>
+     <height>151</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Version: Beta 1&lt;br /&gt;Last updated: May 2013 &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;SIDD (Spatial Inventory Data Developer) is developed from GEM Inventory and Damage Capture Tools effort. It is part of a collection of tools that can be used for development of exposure datasets and models at the sub-national level, for exposure dataset development per-building and to capture earthquake consequences per-building &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lb_logo_gem">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>270</y>
+     <width>150</width>
+     <height>100</height>
+    </rect>
+   </property>
+   <property name="pixmap">
+    <pixmap resource="resources/SIDDResource.qrc">:/imgs/gem_logo_250X180.png</pixmap>
+   </property>
+   <property name="scaledContents">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lb_logo_imagecat">
+   <property name="geometry">
+    <rect>
+     <x>200</x>
+     <y>280</y>
+     <width>151</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="pixmap">
+    <pixmap resource="resources/SIDDResource.qrc">:/imgs/imagecat_logo.gif</pixmap>
+   </property>
+   <property name="scaledContents">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lb_copyright">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>380</y>
+     <width>361</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>&lt;p&gt;Copyright &amp;reg; ImageCat Inc. 2013.&lt;/p&gt;</string>
+   </property>
+  </widget>
+ </widget>
+ <resources>
+  <include location="resources/SIDDResource.qrc"/>
+ </resources>
+ <connections/>
+</ui>
