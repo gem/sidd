@@ -68,7 +68,7 @@ class GEMDBSurveyLoader(Operator):
             0 : QgsField(GID_FIELD_NAME, QVariant.Int),
             1 : QgsField(LON_FIELD_NAME, QVariant.Double),
             2 : QgsField(LAT_FIELD_NAME, QVariant.Double),
-            3 : QgsField(TAX_FIELD_NAME, QVariant.String),
+            3 : QgsField(TAX_FIELD_NAME, QVariant.String, "", 255),
             4 : QgsField(GRP_FIELD_NAME, QVariant.String),
             5 : QgsField(AREA_FIELD_NAME, QVariant.String),
             6 : QgsField(HT_FIELD_NAME, QVariant.String),
@@ -142,8 +142,8 @@ class GEMDBSurveyLoader(Operator):
     def _loadSurvey(self, sqlitepath, shapefilepath):
         # load data
         sql = """select X, Y, SAMPLE_GRP, PLAN_AREA,
-                MAT_TYPE_L, MAT_TECH_L, MAS_REIN_L, MAS_MORT_L, STEEL_CON_L, 
-                LLRS_L, LLRS_DUCT_L,  
+                MAT_TYPE_L, MAT_TECH_L, MAS_REIN_L, MAS_MORT_L, STEELCON_L, 
+                LLRS_L, LLRS_DCT_L,  
                 ROOFSYSMAT, ROOFSYSTYP,  
                 FLOOR_MAT, FLOOR_TYPE, 
                 STORY_AG_Q, STORY_AG_1, STORY_AG_2,
@@ -203,7 +203,7 @@ class GEMDBSurveyLoader(Operator):
             + self._append_not_null(mas_mort_l, separator)  + self._append_not_null(steel_con_l, separator) 
         
         # lateral load
-        ll_string = llrs_l + self._append_not_null(llrs_duct_l,separator) 
+        ll_string = self._coalesce(llrs_l) + self._append_not_null(llrs_duct_l,separator) 
         
         # roof 
         roof_string = self._coalesce(roofsysmat) + self._append_not_null(roofsystyp,separator) 
@@ -216,20 +216,17 @@ class GEMDBSurveyLoader(Operator):
         _qualifier = self._coalesce(story_ag_q)
         _story1, _story2 = self._toint(story_ag_1), self._toint(story_ag_2)
         if getattr(self, 'ht_ranges', None) is None:            
-#            ht_string = self._make_height_string(self._coalesce(story_ag_q), 
-#                                                 self._toint(story_ag_1), self._toint(story_ag_2))            
-            if _qualifier == 'CIRCA':
-                _qualifier =  GemTaxonomyAttribute.RANGE
-            elif _qualifier == 'BETWEEN':
-                _qualifier = GemTaxonomyAttribute.AVERAGE
+            if _qualifier == 'HBET':
+                ht_string = attribute.make_string([_story2, _story1], GemTaxonomyAttribute.RANGE)                  
+            elif _qualifier == 'HAPP':
+                ht_string = attribute.make_string([_story2, 0], GemTaxonomyAttribute.APP) 
             else:
-                _qualifier = GemTaxonomyAttribute.EXACT
-            ht_string = attribute.make_string([_story1, _story2], _qualifier)            
+                ht_string = attribute.make_string([_story1, 0], GemTaxonomyAttribute.EXACT)            
         else:
-            if _qualifier == "BETWEEN":
+            if _qualifier == "HBET":
                 ht_range = self._find_range((_story1 + _story2) / 2.0,
                                              self.ht_ranges['min_values'], self.ht_ranges['max_values'])
-            else: # EXACT or CIRCA
+            else: # EXACT or APPROXIMATE
                 ht_range = self._find_range(_story1, 
                                             self.ht_ranges['min_values'], self.ht_ranges['max_values'])
             if _story1 is None or _story1 == 0:
@@ -244,23 +241,22 @@ class GEMDBSurveyLoader(Operator):
             
         # yr_built
         attribute = self.taxonomy.get_attribute_by_name('Date of Construction')
-        _qualifier = self._coalesce(story_ag_q)
+        _qualifier = self._coalesce(yr_built_q)
         _year1, _year2 = self._toint(yr_built_1), self._toint(yr_built_2)
         if getattr(self, 'yr_ranges', None) is None:
-#            yr_string = self._make_year_string(self._coalesce(yr_built_q), 
-#                                               self._toint(yr_built_1), self._toint(yr_built_2))
-            if _qualifier == 'CIRCA':
-                _qualifier =  GemTaxonomyAttribute.RANGE
-            elif _qualifier == 'BETWEEN':
-                _qualifier = GemTaxonomyAttribute.AVERAGE
+            if _qualifier == 'YAPP':
+                yr_string = attribute.make_string([_year2, 0], GemTaxonomyAttribute.APP)
+            elif _qualifier== 'YPRE':                
+                yr_string = attribute.make_string([_year2, 0], GemTaxonomyAttribute.PRE)
+            elif _qualifier == 'YBET':
+                yr_string = attribute.make_string([_year2, _year1], GemTaxonomyAttribute.RANGE)
             else:
-                _qualifier = GemTaxonomyAttribute.EXACT
-            yr_string = attribute.make_string([_year1, _year2], _qualifier)
+                yr_string = attribute.make_string([_year1, 0], GemTaxonomyAttribute.EXACT)
         else:
-            if _qualifier == "BETWEEN":
+            if _qualifier == "YBET":
                 yr_ranges = self._find_range((_year1 + _year2) / 2.0,
                                               self.yr_ranges['min_values'], self.yr_ranges['max_values'])
-            else: # EXACT or CIRCA
+            else: # EXACT or APPROXIMATE
                 yr_ranges = self._find_range(_year1, 
                                              self.yr_ranges['min_values'], self.yr_ranges['max_values'])
             if _year1 is None or _year1 == 0:
@@ -295,16 +291,17 @@ class GEMDBSurveyLoader(Operator):
         ht = 0
         if story_ag_1 is None:
             ht = 0
-        elif story_ag_q.upper() == "CIRCA":
-            ht = self._toint(story_ag_1)
-        elif story_ag_q.upper() == "BETWEEN":
+        elif self._coalesce(story_ag_q) == "HBET":
             ht = (self._toint(story_ag_1) + self._toint(story_ag_2)) / 2
         else:
             ht = self._toint(story_ag_1)
         return int(ht)
     
-    def _coalesce(self, val):
-        return str(val).upper() if (val is not None) else ""
+    def _coalesce(self, val):        
+        if (val is not None):
+            return str(val).upper()
+        else:
+            return ""
     
     def _toint(self, val):
         try:
@@ -323,31 +320,6 @@ class GEMDBSurveyLoader(Operator):
             return ""
         else:
             return separator + str(val)
-
-    def _make_height_string(self, story_ag_q, story_ag_1, story_ag_2):
-        # create story string from given qualifier and parameters
-        ht_string = "H99"
-        if story_ag_1 is None:
-            ht_string = "H99"
-        elif story_ag_q.upper() == "CIRCA":
-            ht_string = "H:" + self._coalesce(story_ag_1)
-        elif story_ag_q.upper() == "BETWEEN":
-            ht_string = "H" + story_ag_1 + "," + story_ag_2
-        else:
-            ht_string = "H:" + self._coalesce(story_ag_1)
-        return ht_string
-    
-    def _make_year_string(self, yr_built_q, yr_built_1, yr_built_2):
-        yr_string = "Y99"
-        if yr_built_1 is None:
-            yr_string = "Y99"
-        elif yr_built_q.upper() == "CIRCA":
-            yr_string = "YA:" + self._coalesce(yr_built_1)
-        elif yr_built_q.upper() == "BETWEEN":
-            yr_string = "YA" + int((yr_built_1 + yr_built_2)/2)
-        else:
-            yr_string = "YN:" + self._coalesce(yr_built_1)
-        return yr_string
 
     def _find_range(self, value, min_values, max_values):
         # less than minimum

@@ -27,7 +27,8 @@ logAPICall = SIDDLogging('core')
 ###########################
 SIDD_COMPANY = "GEM"
 SIDD_APP_NAME = "SIDD"
-SIDD_VERSION = 'Beta 1'
+SIDD_VERSION = "Beta 1.0.1"
+SIDD_LASTUPDATED = "2013-05-20"
 
 # maximum number of items before swithcing from in-memory algorithms
 # to file-based algorithms

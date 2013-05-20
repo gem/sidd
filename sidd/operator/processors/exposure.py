@@ -47,7 +47,7 @@ class GridMSApplier(Operator):
         self._fields = {0: QgsField(GID_FIELD_NAME, QVariant.Int),
                         1: QgsField(LON_FIELD_NAME, QVariant.Double),
                         2: QgsField(LAT_FIELD_NAME, QVariant.Double),
-                        3: QgsField(TAX_FIELD_NAME, QVariant.String),
+                        3: QgsField(TAX_FIELD_NAME, QVariant.String, "", 255),
                         4: QgsField(ZONE_FIELD_NAME, QVariant.String),
                         5: QgsField(CNT_FIELD_NAME, QVariant.Int)}        
         if self._extrapolationOption != ExtrapolateOptions.RandomWalk:

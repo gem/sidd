@@ -62,7 +62,7 @@ SIDD_UI_STRINGS = {
     "app.extension.kml":QApplication.translate('app.extension', 'KML (*.kml)', None, QApplication.UnicodeUTF8),
     "app.extension.xml":QApplication.translate('app.extension', 'XML(*.xml)', None, QApplication.UnicodeUTF8),
     "app.extension.nrml":QApplication.translate('app.extension', 'NRML(*.xml)', None, QApplication.UnicodeUTF8),
-    "app.extension.gemdb":QApplication.translate('app.extension', 'GEMDB(*.gemdb)', None, QApplication.UnicodeUTF8),
+    "app.extension.gemdb":QApplication.translate('app.extension', 'DB3(*.db3)', None, QApplication.UnicodeUTF8),
     # common UI messages
     ######################    
     "app.file.select":QApplication.translate('app.common', 'Select file', None, QApplication.UnicodeUTF8), 

@@ -35,7 +35,7 @@ class GemTaxonomy(Taxonomy):
     """
     
     # protected member attributes
-    __GEM_TAXONOMY_FILE = 'gem_v1.0.2.db'
+    __GEM_TAXONOMY_FILE = 'gem_v1.0.3.db'
     __attrs = []
     __codes = {}
     __empty = []
@@ -260,7 +260,7 @@ class GemTaxonomyAttribute(TaxonomyAttribute):
     """
     Gem taxonomy attribute. used to create range strings and validate strings
     """
-    (EXACT, RANGE, AVERAGE) = range(3) 
+    (EXACT, RANGE, APP, PRE) = range(4) 
     
     def __init__(self, name="", order=1, levels=1, default="", attribute_type=1):
         super(GemTaxonomyAttribute, self).__init__(name, order, levels, default, attribute_type)
@@ -293,39 +293,25 @@ class GemTaxonomyAttribute(TaxonomyAttribute):
         else:
             if self.name == "Height":                
                 # construct valid height string from given values
-                if len(values) == 1:
-                    if values[0] is None:
-                        return "H99"
-                    else:
-                        return "H:%s" % (values[0])
-                elif len(values) == 2:
-                    if values[0] is None or values[1] is None :
-                        return "H99"
-                    if values[0] == 0 and values[1] == 0:
-                        return "H99"
-                    elif qualifier==GemTaxonomyAttribute.AVERAGE:                        
-                        return "H:%s" % ( int((values[0]+values[1])/2) )
-                    else:
-                        return "H:%s,%s" % (values[0], values[1])
+                if (values[0] is None or values[1] is None) or (values[0] == 0 and values[1] == 0):
+                    return "H99"
+                elif qualifier==GemTaxonomyAttribute.EXACT:                        
+                    return "HEX:%s" % ( values[0] )
+                elif qualifier==GemTaxonomyAttribute.RANGE:
+                    return "HBET:%s,%s" % (values[0], values[1])
                 else:
                     return "H99"
                                                         
             elif self.name == "Date of Construction":
                 # construct valid date of construction string from given values                
-                if len(values) == 1:
-                    if values[0] is None:
-                        return "Y99"
-                    else:
-                        return "YN:%s" % (values[0])
-                elif len(values) == 2:
-                    if values[0] is None or values[1] is None :
-                        return "Y99"
-                    if values[0] == 0 and values[1] == 0:
-                        return "Y99"
-                    elif qualifier==GemTaxonomyAttribute.AVERAGE:
-                        return "YN:%s" % ( int((values[0]+values[1])/2) )
-                    else:
-                        return "YN:%s,%s" % (values[0], values[1])
+                if (values[0] is None or values[1] is None) or (values[0] == 0 and values[1] == 0):
+                    return "Y99"
+                elif qualifier==GemTaxonomyAttribute.PRE:
+                    return "YPRE:%s" % ( values[0] )
+                elif qualifier==GemTaxonomyAttribute.APP:
+                    return "YAPP:%s" % ( values[0] )
+                elif qualifier==GemTaxonomyAttribute.RANGE:
+                    return "YBET:%s,%s" % (values[0], values[1])
                 else:
                     return "Y99"
 

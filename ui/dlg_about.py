@@ -18,6 +18,8 @@ dialog showing about message
 """
 from PyQt4.QtGui import QDialog 
 from ui.qt.dlg_about_ui import Ui_DialogAbout
+from sidd.constants import SIDD_VERSION, SIDD_LASTUPDATED
+from string import Template
 
 class DialogAbout(Ui_DialogAbout, QDialog):
     """
@@ -32,3 +34,6 @@ class DialogAbout(Ui_DialogAbout, QDialog):
         self.setFixedSize(self.size())        
         # connect slot (ui event)
         self.ui.buttonBox.accepted.connect(self.accept)        
+        
+        desc = Template(str(self.ui.lb_description.text()))
+        self.ui.lb_description.setText(desc.safe_substitute(version=SIDD_VERSION, lastupdate=SIDD_LASTUPDATED))
