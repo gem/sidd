@@ -53,7 +53,10 @@ class SIDDLogging(object):
             self.log('function call %s from module %s' % (self.func_name,
                                                           self.mod_name),
                      logging.DEBUG)            
-            return f(*args, **kw)
+            try:
+                return f(*args, **kw)
+            except Exception, err:
+                raise err
         return wrapper
 
     def setLevel(self, level):

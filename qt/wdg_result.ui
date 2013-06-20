@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>650</x>
-     <y>30</y>
+     <y>70</y>
      <width>281</width>
      <height>181</height>
     </rect>
@@ -134,9 +134,9 @@
    <property name="geometry">
     <rect>
      <x>650</x>
-     <y>220</y>
+     <y>260</y>
      <width>281</width>
-     <height>401</height>
+     <height>361</height>
     </rect>
    </property>
    <widget class="QLabel" name="lbl_dq_test_title">
@@ -408,6 +408,25 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="text">
     <string>Preview</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lb_gem_logo">
+   <property name="geometry">
+    <rect>
+     <x>820</x>
+     <y>0</y>
+     <width>121</width>
+     <height>61</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="pixmap">
+    <pixmap resource="resources/SIDDResource.qrc">:/imgs/gem_logo_120X60.png</pixmap>
+   </property>
+   <property name="scaledContents">
+    <bool>true</bool>
    </property>
   </widget>
  </widget>

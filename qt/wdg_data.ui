@@ -6,18 +6,21 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>884</width>
-    <height>694</height>
+    <width>998</width>
+    <height>765</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
   <widget class="QWidget" name="widgetSurvey" native="true">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>520</y>
+     <x>430</x>
+     <y>80</y>
      <width>411</width>
      <height>161</height>
     </rect>
@@ -184,9 +187,9 @@
    <property name="geometry">
     <rect>
      <x>430</x>
-     <y>200</y>
-     <width>401</width>
-     <height>341</height>
+     <y>350</y>
+     <width>411</width>
+     <height>351</height>
     </rect>
    </property>
    <widget class="QLabel" name="lb_verify_title">
@@ -251,7 +254,7 @@
     <property name="geometry">
      <rect>
       <x>40</x>
-      <y>80</y>
+      <y>100</y>
       <width>111</width>
       <height>20</height>
      </rect>
@@ -277,7 +280,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>80</y>
+      <y>100</y>
       <width>21</width>
       <height>21</height>
      </rect>
@@ -290,7 +293,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>113</y>
+      <y>133</y>
       <width>161</width>
       <height>16</height>
      </rect>
@@ -309,7 +312,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>150</y>
+      <y>170</y>
       <width>21</width>
       <height>21</height>
      </rect>
@@ -322,7 +325,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>130</y>
+      <y>150</y>
       <width>21</width>
       <height>21</height>
      </rect>
@@ -335,7 +338,7 @@
     <property name="geometry">
      <rect>
       <x>40</x>
-      <y>130</y>
+      <y>150</y>
       <width>131</width>
       <height>20</height>
      </rect>
@@ -348,7 +351,7 @@
     <property name="geometry">
      <rect>
       <x>40</x>
-      <y>150</y>
+      <y>170</y>
       <width>131</width>
       <height>20</height>
      </rect>
@@ -380,8 +383,8 @@ p, li { white-space: pre-wrap; }
     </property>
     <property name="geometry">
      <rect>
-      <x>260</x>
-      <y>270</y>
+      <x>250</x>
+      <y>260</y>
       <width>141</width>
       <height>23</height>
      </rect>
@@ -393,13 +396,39 @@ p, li { white-space: pre-wrap; }
      <string>Verify Input Data</string>
     </property>
    </widget>
+   <widget class="QLabel" name="img_lb_verify_pop">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>80</y>
+      <width>16</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_verify_pop">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>80</y>
+      <width>111</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Population Grid</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QWidget" name="widgetAggr" native="true">
    <property name="geometry">
     <rect>
      <x>430</x>
-     <y>80</y>
-     <width>401</width>
+     <y>240</y>
+     <width>411</width>
      <height>111</height>
     </rect>
    </property>
@@ -471,8 +500,8 @@ p, li { white-space: pre-wrap; }
    <widget class="QLabel" name="img_lb_aggr_desc_help">
     <property name="geometry">
      <rect>
-      <x>130</x>
-      <y>5</y>
+      <x>150</x>
+      <y>0</y>
       <width>16</width>
       <height>21</height>
      </rect>
@@ -712,7 +741,7 @@ p, li { white-space: pre-wrap; }
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>831</width>
+     <width>741</width>
      <height>81</height>
     </rect>
    </property>
@@ -1011,6 +1040,275 @@ p, li { white-space: pre-wrap; }
     </property>
    </widget>
   </widget>
+  <widget class="QLabel" name="lb_gem_logo">
+   <property name="geometry">
+    <rect>
+     <x>760</x>
+     <y>0</y>
+     <width>121</width>
+     <height>61</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="pixmap">
+    <pixmap resource="resources/SIDDResource.qrc">:/imgs/gem_logo_120X60.png</pixmap>
+   </property>
+   <property name="scaledContents">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QWidget" name="widgetPop" native="true">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>520</y>
+     <width>411</width>
+     <height>211</height>
+    </rect>
+   </property>
+   <widget class="QRadioButton" name="radio_pop_grid">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>75</y>
+      <width>381</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Population Grid from GED</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_pop_desc">
+    <property name="geometry">
+     <rect>
+      <x>5</x>
+      <y>35</y>
+      <width>281</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Population </string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_pop_title">
+    <property name="geometry">
+     <rect>
+      <x>5</x>
+      <y>0</y>
+      <width>331</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Population Grid</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="radio_pop_no_data">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>55</y>
+      <width>381</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>No Data</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="img_lb_pop_desc_help">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>0</y>
+      <width>16</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap resource="resources/SIDDResource.qrc">:/imgs/icons/help.png</pixmap>
+    </property>
+   </widget>
+   <widget class="QToolButton" name="btn_pop_select_file">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>360</x>
+      <y>100</y>
+      <width>41</width>
+      <height>19</height>
+     </rect>
+    </property>
+    <property name="cursor">
+     <cursorShape>ArrowCursor</cursorShape>
+    </property>
+    <property name="text">
+     <string>...</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="txt_pop_select_file">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>90</x>
+      <y>100</y>
+      <width>261</width>
+      <height>20</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_pop_select_file">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>100</y>
+      <width>71</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Select file:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_pop_pop_field">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>125</y>
+      <width>241</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Select field containing population:</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="cb_pop_pop_field">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>280</x>
+      <y>125</y>
+      <width>121</width>
+      <height>22</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="cb_pop_proj">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>280</x>
+      <y>175</y>
+      <width>121</width>
+      <height>22</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_pop_proj">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>175</y>
+      <width>151</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Verify projection:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lb_pop_bldg_ratio">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>150</y>
+      <width>251</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Average Number of People Per Building</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="txt_pop_bldg_ratio">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>280</x>
+      <y>150</y>
+      <width>121</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+    </property>
+   </widget>
+  </widget>
+  <zorder>widgetSurvey</zorder>
+  <zorder>widgetResult</zorder>
+  <zorder>widgetAggr</zorder>
+  <zorder>widgetFootprint</zorder>
+  <zorder>widgetTitle</zorder>
+  <zorder>widgetZones</zorder>
+  <zorder>lb_gem_logo</zorder>
+  <zorder>widgetPop</zorder>
+  <zorder>lb_pop_title</zorder>
  </widget>
  <tabstops>
   <tabstop>radio_fp_no_data</tabstop>

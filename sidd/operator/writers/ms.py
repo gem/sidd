@@ -61,5 +61,6 @@ class MSLeavesCSVWriter(NullWriter):
                 csvwriter = csv.writer(csvfile, delimiter=',',
                                       quotechar='"', quoting=csv.QUOTE_NONNUMERIC)
                 csvwriter.writerow(['Building Type', 'Building Fraction'])
-                for leaf in stats.get_leaves(True, True):
-                    csvwriter.writerow([str(leaf[0]), leaf[1]*100.0])                        
+                for leaf in stats.leaves:
+                    csvwriter.writerow([str(leaf[0]), leaf[1]*100.0])
+                                            

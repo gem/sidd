@@ -32,8 +32,7 @@ class MSTestCase(SIDDTestCase):
         self.taxonomy = get_taxonomy("gem")
         self.survey_file = self.test_data_dir + "survey.csv"
         self.ms_file = self.test_data_dir + "ms.xml"
-        self.ms_file2 = self.test_data_dir + "ms2.xml"
-
+        self.ms_parse_order = ['Material', 'Lateral Load Resisting System', 'Occupancy', 'Height', 'Date of Construction', 'Structural Irregularity']
     # tests
     ##################################
     
@@ -44,26 +43,22 @@ class MSTestCase(SIDDTestCase):
         survey.next()
 
         stats = Statistics(self.taxonomy)
-        stats.set_attribute_skip(3, True)
-        stats.set_attribute_skip(4, True)
-        stats.set_attribute_skip(5, True)
-        stats.set_attribute_skip(6, True)
         _count=0
 
         for row in survey:
             tax_string = row[2]
-            stats.add_case(tax_string)
+            stats.add_case(tax_string, parse_order=self.ms_parse_order)
         stats.finalize()
         
         ms = MappingScheme(self.taxonomy)
         ms_zone = MappingSchemeZone('ALL')
         ms.assign(ms_zone, stats)
-
+        #ms.save(self.ms_file)
         if skipTest:
             return ms
         
         ms2 = MappingScheme(self.taxonomy)
-        ms2.read(self.ms_file2)
+        ms2.read(self.ms_file)
         
         self.assertEqual(
             ms.get_assignment_by_name("ALL").to_xml().strip().__len__(),
@@ -89,9 +84,8 @@ class MSTestCase(SIDDTestCase):
                 return ms
         
         stats = ms.get_assignment_by_name("ALL")
-        attributes = stats.get_attributes(stats.get_tree())
-        expected = ['Material', 'Lateral Load-Resisting System', 'Roof', 'Occupancy']
-        self.assertEqual(attributes, expected)
+        attributes = stats.get_attributes(stats.get_tree())        
+        self.assertEqual(attributes, self.ms_parse_order)
         
     def test_StatsAddBranch(self):
         stats = self.test_LoadMS(skipTest=True, statsOnly=True)
@@ -107,21 +101,16 @@ class MSTestCase(SIDDTestCase):
         
         self.assertEquals(len(node.children), 2)
     
-    def test_StatsRandomWalk(self):
-        self.test_LoadMS(skipTest=True, statsOnly=True)
-        
-                
     def test_StatsLeaves(self):
         stats = self.test_LoadMS(skipTest=True, statsOnly=True)
-        leaves =  stats.get_leaves(refresh=True, with_modifier=True)
+        stats.refresh_leaves(with_modifier=True)        
         total = 0
-        for l in leaves:
+        for l in stats.leaves:
             total += l[1]
         self.assertAlmostEqual(total, 1)
-
-        leaves =  stats.get_leaves(refresh=True, with_modifier=False)
+        stats.refresh_leaves(with_modifier=True, order_attributes=True)        
         total = 0
-        for l in leaves:
+        for l in stats.leaves:
             total += l[1]
         self.assertAlmostEqual(total, 1)
         

@@ -448,3 +448,98 @@ class FootprintZoneToGrid(ZoneToGrid):
                 
         # store data in output
         self._load_output(output_file, output_layername)
+
+
+class PopgridZoneToGrid(ToGrid):
+    def __init__(self, options=None, name='Population to Building Count Grid'):
+        super(PopgridZoneToGrid, self).__init__(options, name)
+    
+    @property
+    def input_types(self):
+        return [OperatorDataTypes.Population,
+                OperatorDataTypes.Zone,
+                OperatorDataTypes.StringAttribute,
+                OperatorDataTypes.NumericAttribute]
+
+    @property    
+    def input_names(self):
+        return ["Population Grid",
+                "Zone Layer",
+                "Zone Field",
+                "Population to Building Convertion"]
+    
+    input_descriptions = input_names
+
+    # public method override
+    ###########################
+    
+    @logAPICall
+    def do_operation(self):
+        """ perform create mappin """
+        # validate inputs 
+        popgrid_layer = self.inputs[0].value        
+        zone_layer = self.inputs[1].value
+        zone_field = self.inputs[2].value
+        pop_to_bldg = float(self.inputs[3].value)
+
+        # make sure input is correct
+        # NOTE: these checks cannot be performed at set input time
+        #       because the data layer maybe is not loaded yet
+        self._test_layer_loaded(popgrid_layer)
+        self._test_layer_field_exists(popgrid_layer, CNT_FIELD_NAME)
+        self._test_layer_loaded(zone_layer)
+        self._test_layer_field_exists(zone_layer, zone_field)        
+        # count_field is not required        
+        # if count field is not defined, then generate building count from footprints
+        
+        # local variables 
+        analyzer = QgsOverlayAnalyzer()
+
+        # intersect grids and zones to obtain polygons with 
+        # - population and zone_id
+        # - apply ratio to population to obtain building count                  
+        tmp_join = 'joined_%s' % get_unique_filename()
+        tmp_join_file = '%s%s.shp' % (self._tmp_dir, tmp_join)
+        try:
+            # do intersection
+            analyzer.intersection(popgrid_layer, zone_layer, tmp_join_file)
+            tmp_join_layer = load_shapefile(tmp_join_file, tmp_join)
+        except AssertionError as err:
+            raise OperatorError(str(err), self.__class__)
+        except Exception as err:
+            raise OperatorError(str(err), self.__class__)
+
+        # generate grid with  building counts
+        fields = {
+            0 : QgsField(GID_FIELD_NAME, QVariant.String),            
+            1 : QgsField(zone_field, QVariant.String),
+            2 : QgsField(CNT_FIELD_NAME, QVariant.Double),
+        }
+        output_layername = 'grid_%s' % get_unique_filename()
+        output_file = '%s%s.shp' % (self._tmp_dir, output_layername)                
+        writer = QgsVectorFileWriter(output_file, "utf-8", fields, QGis.WKBPolygon, self._crs, "ESRI Shapefile")
+        f = QgsFeature()
+        pop_idx = layer_field_index(tmp_join_layer, CNT_FIELD_NAME)
+        zone_idx = layer_field_index(tmp_join_layer, zone_field) 
+        for _f in layer_features(tmp_join_layer):
+            pop_count = _f.attributeMap()[pop_idx].toDouble()[0]
+            zone = _f.attributeMap()[zone_idx].toString()
+            
+            # 1. get geometry
+            geom = _f.geometry()
+            # 2. get original centroid point and project is required
+            centroid  = geom.centroid().asPoint()
+            grid_gid = latlon_to_grid(centroid.y(), centroid.x())
+            f.setGeometry(self._outputGeometryFromGridId(grid_gid))
+            f.addAttribute(0, grid_gid)
+            f.addAttribute(1, zone)
+            f.addAttribute(2, pop_count / pop_to_bldg)
+            writer.addFeature(f)
+        del writer
+        
+        # clean up
+        del tmp_join_layer
+        remove_shapefile(tmp_join_file)
+                
+        # store data in output
+        self._load_output(output_file, output_layername)

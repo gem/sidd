@@ -116,6 +116,8 @@ class StatisticNode (object):
 
     # static members
     ###########################
+    # additional values to be attached to the node
+    AverageSize, UnitCost = range(2)
 
     # separator character for each level
     separator = "_"
@@ -141,8 +143,10 @@ class StatisticNode (object):
         self.parent=parent
         self.name=name
         self.value=value
+        self.additional = {}
+        self.label_additional = ["avg_size", "unit_cost"]
         self.is_skipped=is_skipped
-        self.is_default=is_default
+        self.is_default=is_default        
         self.count=0
         self.weight=0.0
         self.modifiers=[]                
@@ -244,6 +248,8 @@ class StatisticNode (object):
         outstr.append('%s<node attribute="%s" value="%s" level="%d" is_default="%s" is_skipped="%s" weight="%f">%s'
                       % (pad, self.name, self.value, self.level, self.is_default,
                          self.is_skipped, self.weight, line_break))
+        for key,value in self.additional.iteritems():
+            outstr.append('%s  <additional %s="%s" />' % (pad, self.label_additional[key], value))
         outstr.append('%s  <modifiers>%s' % (pad, line_break))
         for mod in self.modifiers:
             outstr.append(mod.to_xml(pretty))
@@ -268,9 +274,15 @@ class StatisticNode (object):
         self.is_default = str(get_node_attrib(xmlnode, 'is_default')).upper()=='TRUE'
         self.is_skipped = str(get_node_attrib(xmlnode, 'is_skipped')).upper()=='TRUE'
         
-        for mod_nodes in xmlnode.findall('modifiers/modifier'):
+        for add_node in xmlnode.findall('additional'):
+            for idx, label in enumerate(self.label_additional):
+                add_value = get_node_attrib(add_node, label)
+                if add_value != '':
+                    self.additional[idx]=add_value
+        
+        for mod_node in xmlnode.findall('modifiers/modifier'):
             mod = StatisticModifier()
-            mod.from_xml(mod_nodes)
+            mod.from_xml(mod_node)
             self.modifiers.append(mod)
             
         for childnode in xmlnode.findall('children/node'):
@@ -344,7 +356,7 @@ class StatisticNode (object):
                 leaf_value += mod_separator + _val
 
             if (self.is_leaf):
-                yield leaf_value, parent_weight * self.weight / 100.0 * _weight
+                yield leaf_value, parent_weight * self.weight / 100.0 * _weight, self
             
             for _child in self.children:
                 #print '\t','child leaf', _child.value                
@@ -451,92 +463,6 @@ class StatisticNode (object):
 
     # tree modifying methods
     ###########################
-
-    @logAPICall
-    def add_old(self, attr_vals, idx, attributes, defaults, skips):
-        """        
-        recursively update statistic @ node and @ child nodes
-        using attr_val, defaults, skips at idx
-        """
-        # increment count of current node
-        self.count+=1
-        
-        # the ending condition for the recursive call
-        # NOTE: is_leaf is not used here, this process should work on a empty tree
-        if (len(attr_vals) <= idx):
-            return
-        
-        logAPICall.log('processing %d %s %s' %(idx, attr_vals[idx], skips[idx]), logAPICall.DEBUG)
-        
-        # get value to add
-        attr_name = attributes[idx]
-        attr_val = attr_vals[idx]
-        modifiers = None
-        is_default = False        
-        if attr_val.is_empty:
-            # case attrbitue not set
-            # - default value node's count should be incremented
-            # - no modifier
-            value = defaults[idx]
-            is_default=True
-        elif skips[idx]:
-            # case attribute should be skipped
-            # - default value node's count should be incremented
-            # - attribute value in set as modifier
-            value = defaults[idx]
-            is_default = value == defaults[idx]
-            if isinstance(attr_val, TaxonomyAttributeMulticodeValue):
-                modifiers =  self.separator.join(sorted( attr_val.codes ))
-            elif isinstance(attr_val, TaxonomyAttributePairValue):
-                modifiers = str(attr_val)
-        else:
-            # normal case
-            if isinstance(attr_val, TaxonomyAttributeMulticodeValue):
-                # multiple codes for same attribute 
-                # - node determined by first code value
-                # - all other code values aggregated as modifier
-                value = attr_val.codes[0]
-                is_default = value == defaults[idx]
-                if len(attr_val.codes)>1:
-                    modifiers = self.separator.join(sorted( attr_val.codes[1:] ))
-            elif isinstance(attr_val, TaxonomyAttributePairValue):
-                # code/value pair for attribute 
-                # - node determined by code value
-                # - no modifier
-                value = str(attr_val)
-                is_default = value == defaults[idx]
-            elif isinstance(attr_val, TaxonomyAttributeSinglecodeValue):
-                # single code attribute 
-                # - node determined by code value
-                # - no modifier
-                value = attr_val.code
-                is_default = value == defaults[idx]
-        
-        logAPICall.log('\tnode:%s, modifier:%s' %(value, modifiers), logAPICall.DEBUG_L2)
-        
-        child_found = False
-        # find children and add value/modifier
-        for child in self.children:
-            if (child.value == value):
-                logAPICall.log('found child with %s' % value, logAPICall.DEBUG_L2)
-                child_found = True
-                child.add_modifier(modifiers)
-                
-                # recursive call to process next level
-                child.add(attr_vals, idx+1, attributes, defaults, skips)
-                return 
-
-        # if no children found, then add new node for value and add modifier
-        if not child_found:
-            logAPICall.log('create new child with %s' % value, logAPICall.DEBUG_L2)
-            child = StatisticNode(self, attr_name, value, self.level+1, is_default, skips[idx])
-            self.children.append(child)
-            child.add_modifier(modifiers)
-
-            # recursive call to process next level
-            child.add(attr_vals, idx+1, attributes, defaults, skips)
-        return
-
     @logAPICall
     def add(self, attr_vals, level, parse_order, default_attributes, parse_modifiers=True):
         """        
@@ -880,4 +806,19 @@ class StatisticNode (object):
         if modidx < 0 or len(self.modifiers) <= modidx:
             raise StatisticNodeError('modifier with index %s does not exist' % modidx)
         del self.modifiers[modidx]
-            
+    
+    def set_additional(self, key, value):
+        if self.is_leaf:
+            self.additional[key]=value
+        else:
+            for child in self.children:
+                child.set_additional(key, value)
+
+    def get_additional(self, key):
+        return self.additional[key] if self.additional.has_key(key) else ''
+    
+    def get_additional_float(self, key):
+        try:
+            return float(self.additional[key])
+        except:
+            return 0

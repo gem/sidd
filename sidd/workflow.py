@@ -20,7 +20,7 @@ from xml.etree.ElementTree import ElementTree, fromstring
 
 from sidd.exception import WorkflowException
 from sidd.constants import logAPICall, WorkflowErrors, \
-                           FootprintTypes, ExportTypes, OutputTypes, SurveyTypes, ZonesTypes, \
+                           FootprintTypes, ExportTypes, OutputTypes, SurveyTypes, ZonesTypes, PopGridTypes, \
                            CNT_FIELD_NAME, HT_FIELD_NAME, AREA_FIELD_NAME
 from sidd.ms import MappingScheme
 from sidd.operator import *
@@ -145,6 +145,7 @@ class WorkflowBuilder(object):
             (['fp', 'zone',], OutputTypes.Zone, self._footprint_to_zone_workflow),
             (['zone', 'zone_count_field'], OutputTypes.Zone, self._zonecount_to_zone_workflow),
             (['zone', 'zone_count_field'], OutputTypes.Grid, self._zonecount_to_grid_workflow),
+            (['zone', 'popgrid'], OutputTypes.Grid, self._pop_to_grid_workflow),
         ]
 
     # public method
@@ -169,6 +170,16 @@ class WorkflowBuilder(object):
             self.load_survey(project, workflow, True)
         elif project.survey_type == SurveyTypes.SampledSurvey:
             self.load_survey(project, workflow, False)
+        else:
+            workflow.ready=False
+        return workflow
+    
+    @logAPICall
+    def build_load_popgrid_workflow(self, project):
+        workflow = Workflow()
+        workflow.ready=True
+        if project.popgrid_type == PopGridTypes.Grid:
+            self.load_popgrid(project, workflow)
         else:
             workflow.ready=False
         return workflow
@@ -267,7 +278,7 @@ class WorkflowBuilder(object):
         workflow = Workflow()
         still_needs_count = True
         still_needs_zone = True
-        still_needs_ms = True
+        still_needs_ms = True        
             
         # footprint loading
         logAPICall.log('checking footprint data', logAPICall.DEBUG)        
@@ -278,6 +289,11 @@ class WorkflowBuilder(object):
             self.load_footprint(project, workflow, False)
             still_needs_count = False
 
+        # population grid loading
+        if project.popgrid_type == PopGridTypes.Grid:
+            self.load_popgrid(project, workflow)
+            still_needs_count = False
+            
         # survey loading
         logAPICall.log('checking survey data', logAPICall.DEBUG)        
         if project.survey_type == SurveyTypes.CompleteSurvey:
@@ -488,6 +504,30 @@ class WorkflowBuilder(object):
         workflow.operators.append(zone_loader)
     
     @logAPICall
+    def load_popgrid(self, project, workflow):
+        """ create operator for loading zone data and add to workflow """
+        # required operator_data for additional processing
+        workflow.operator_data['popgrid_input_file'] = OperatorData(OperatorDataTypes.Shapefile, project.popgrid_file)
+        workflow.operator_data['pop_field'] = OperatorData(OperatorDataTypes.StringAttribute, project.pop_field)
+
+        # skip loading operator if project already has data loaded
+        if getattr(project, 'popgrid', None) is not None and getattr(project, 'popgrid_tmp_file', None) is not None:
+            workflow.operator_data['popgrid'] = OperatorData(OperatorDataTypes.Footprint, project.popgrid)
+            workflow.operator_data['popgrid_file'] = OperatorData(OperatorDataTypes.Shapefile, project.popgrid_tmp_file)
+            return
+
+        # inputs / outputs
+        workflow.operator_data['popgrid'] = OperatorData(OperatorDataTypes.Population)
+        workflow.operator_data['popgrid_file'] = OperatorData(OperatorDataTypes.Shapefile)
+        popgrid_loader = PopGridLoader(self._operator_options)
+        popgrid_loader.inputs = [workflow.operator_data['popgrid_input_file'],
+                                 workflow.operator_data['pop_field'],]        
+        popgrid_loader.outputs = [workflow.operator_data['popgrid'],
+                                  workflow.operator_data['popgrid_file'],]
+        # add to workflow
+        workflow.operators.append(popgrid_loader)
+    
+    @logAPICall
     def load_survey(self, project, workflow, isComplete):
         # required operator_data for additional processing
         workflow.operator_data['survey_input_file'] = OperatorData(OperatorDataTypes.File, project.survey_file)
@@ -664,7 +704,6 @@ class WorkflowBuilder(object):
 
     def _completesurvey_to_grid_workflow(self, project, workflow):
         """ create exposure aggregated into ged grid with zone/count """
-
         workflow.operator_data['exposure'] = OperatorData(OperatorDataTypes.Exposure)
         workflow.operator_data['exposure_file'] = OperatorData(OperatorDataTypes.Shapefile)
         
@@ -674,4 +713,41 @@ class WorkflowBuilder(object):
                            workflow.operator_data['exposure_file'],]
         workflow.operators.append(svy_agg)
 
-    
+    def _pop_to_grid_workflow(self, project, workflow):
+        """ create exposure aggregated into ged grid with population and zone """
+        
+        # action (operator) required
+        # 1 attach population counts to zones (convert to building count in process)
+        # 2 apply mapping scheme to grid
+        ###################################
+        
+        # 1 attach population counts to zones (convert to building count in process)
+        ###################################
+        workflow.operator_data['grid'] = OperatorData(OperatorDataTypes.Grid)
+        workflow.operator_data['grid_file'] = OperatorData(OperatorDataTypes.Shapefile)
+
+        grid_writer = PopgridZoneToGrid(self._operator_options)
+        
+        pop_to_bldg = project.pop_to_bldg
+        grid_writer.inputs = [workflow.operator_data['popgrid'],
+                              workflow.operator_data['zone'],
+                              workflow.operator_data['zone_field'],
+                              OperatorData(OperatorDataTypes.NumericAttribute, pop_to_bldg)]                         
+                    
+        grid_writer.outputs = [workflow.operator_data['grid'],
+                               workflow.operator_data['grid_file'],]        
+        workflow.operators.append(grid_writer)
+        
+        # 2 apply mapping scheme to grid
+        ###################################
+        workflow.operator_data['exposure'] = OperatorData(OperatorDataTypes.Exposure)
+        workflow.operator_data['exposure_file'] = OperatorData(OperatorDataTypes.Shapefile)
+        
+        ms_applier = GridMSApplier(self._operator_options)
+        ms_applier.inputs = [workflow.operator_data['grid'],
+                             workflow.operator_data['zone_field'],
+                             OperatorData(OperatorDataTypes.StringAttribute, CNT_FIELD_NAME),
+                             workflow.operator_data['ms'],]
+        ms_applier.outputs = [workflow.operator_data['exposure'],
+                              workflow.operator_data['exposure_file'],]
+        workflow.operators.append(ms_applier)

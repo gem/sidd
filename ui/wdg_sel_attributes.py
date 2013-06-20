@@ -26,7 +26,6 @@ class WidgetSelectAttribute(Ui_widgetSelectAttribute, QWidget):
     """
     Widget (Panel) for managing secondary modifier 
     """
-
     # custom event 
     codeUpdated = pyqtSignal()
 

@@ -17,10 +17,10 @@
 Widget (Panel) for specifying data inputs
 """
 
-from PyQt4.QtGui import QWizard
+from PyQt4.QtGui import QWizard, QDoubleValidator
 from PyQt4.QtCore import pyqtSlot
 
-from sidd.constants import ZonesTypes
+from sidd.constants import ZonesTypes, FootprintTypes
 
 from ui.qt.wdg_data_wizard_ui import Ui_widgetDataWizard
 from ui.wdg_data import WidgetDataInput
@@ -29,7 +29,7 @@ class WidgetDataWizard(Ui_widgetDataWizard, QWizard, WidgetDataInput):
     """
     Widget (Panel) for specifying data inputs
     """
-    PAGE_ZONE, PAGE_FOOTPRINT, PAGE_SURVEY, PAGE_AGGREGATE, PAGE_VERIFY = range(5)    
+    PAGE_ZONE, PAGE_FOOTPRINT, PAGE_POPGRID, PAGE_SURVEY, PAGE_AGGREGATE, PAGE_VERIFY = range(6)    
     def __init__(self, app, project):
         """ constructor """
         QWizard.__init__(self)
@@ -44,6 +44,13 @@ class WidgetDataWizard(Ui_widgetDataWizard, QWizard, WidgetDataInput):
 
         self.app = app
         self.project = project
+
+        self.showPopgrid = (app.app_config.get('options', 'allow_popgrid', 0, int) == 1)
+        if not self.showPopgrid:
+            self.ui.img_lb_verify_pop.setVisible(False)
+            self.ui.lb_verify_pop.setVisible(False)
+            self.ui.img_lb_verify_svy.move(self.ui.img_lb_verify_svy.x(), self.ui.img_lb_verify_pop.y())
+            self.ui.lb_verify_svy.move(self.ui.lb_verify_svy.x(), self.ui.lb_verify_pop.y())            
         
         # connect slots (ui event)
         # footprint
@@ -64,6 +71,13 @@ class WidgetDataWizard(Ui_widgetDataWizard, QWizard, WidgetDataInput):
         self.ui.radio_zones_count.toggled.connect(self.setZoneDataType)    
         self.ui.cb_zones_class_field.currentIndexChanged[str].connect(self.setZoneField)
         self.ui.cb_zones_count_field.currentIndexChanged[str].connect(self.setZoneCountField)  
+        # population grid
+        self.ui.btn_pop_select_file.clicked.connect(self.openPopGridData)
+        self.ui.radio_pop_no_data.toggled.connect(self.setPopGridType)
+        self.ui.radio_pop_grid.toggled.connect(self.setPopGridType)  
+        self.ui.cb_pop_pop_field.currentIndexChanged[str].connect(self.setPopField)
+        self.ui.txt_pop_bldg_ratio.setValidator(QDoubleValidator(0, 10000000,  2, self))
+        self.ui.txt_pop_bldg_ratio.editingFinished.connect(self.setPopToBldg)
         # aggregation
         self.ui.radio_aggr_zones.toggled.connect(self.setAggregateType)
         self.ui.radio_aggr_grid.toggled.connect(self.setAggregateType)
@@ -111,6 +125,22 @@ class WidgetDataWizard(Ui_widgetDataWizard, QWizard, WidgetDataInput):
     @pyqtSlot(int)
     def setZoneCountField(self, count_field):
         super(WidgetDataWizard, self).setZoneCountField(count_field)
+
+    @pyqtSlot()
+    def openPopGridData(self):
+        super(WidgetDataWizard, self).openPopGridData()
+                
+    @pyqtSlot(bool)
+    def setPopGridType(self, checked=False):
+        super(WidgetDataWizard, self).setPopGridType(checked)
+
+    @pyqtSlot(str)
+    def setPopField(self, pop_field):
+        super(WidgetDataWizard, self).setPopField(pop_field)
+    
+    @pyqtSlot()
+    def setPopToBldg(self):
+        super(WidgetDataWizard, self).setPopToBldg()
         
     @pyqtSlot(bool)
     def setAggregateType(self, checked=False):
@@ -129,8 +159,11 @@ class WidgetDataWizard(Ui_widgetDataWizard, QWizard, WidgetDataInput):
                 next_id = self.PAGE_SURVEY            
             else:
                 next_id = self.PAGE_FOOTPRINT
-        elif cur_id == self.PAGE_FOOTPRINT:            
-            next_id = self.PAGE_SURVEY
+        elif cur_id == self.PAGE_FOOTPRINT:
+            if self.project.fp_type != FootprintTypes.None and self.showPopgrid:
+                next_id = self.PAGE_POPGRID
+            else:
+                next_id = self.PAGE_SURVEY
         elif cur_id == self.PAGE_SURVEY:
             if self.project.zone_type == ZonesTypes.None:
                 next_id = self.PAGE_VERIFY

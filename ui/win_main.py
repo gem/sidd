@@ -82,8 +82,8 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
 
     # CONSTANTS
     #############################    
-    UI_WINDOW_GEOM = 'main/geometry'
-    UI_WINDOW_STATE = 'main/windowState'
+    UI_WINDOW_GEOM = 'app_main/geometry'
+    UI_WINDOW_STATE = 'app_main/windowState'
 
     # constructor / destructor
     #############################    
@@ -100,9 +100,9 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         self.ui = Ui_mainWindow()
         self.ui.setupUi(self)
         
-        settings = QSettings(SIDD_COMPANY, '%s %s' %(SIDD_APP_NAME, SIDD_VERSION));
-        self.restoreGeometry(settings.value(self.UI_WINDOW_GEOM).toByteArray());
-        self.restoreState(settings.value(self.UI_WINDOW_STATE).toByteArray());
+        self.settings = QSettings(SIDD_COMPANY, '%s %s' %(SIDD_APP_NAME, SIDD_VERSION));
+        self.restoreGeometry(self.settings.value(self.UI_WINDOW_GEOM).toByteArray());
+        self.restoreState(self.settings.value(self.UI_WINDOW_STATE).toByteArray());
         
         self.msdb_dao = MSDatabaseDAO(FILE_MS_DB)
         
@@ -149,7 +149,11 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         self.ui.statusbar.showMessage(get_ui_string("app.status.ready"))
 
         # perform clean up from previous runs
-        delete_folders_in_dir(get_temp_dir(), "tmp*")
+        try:
+            delete_folders_in_dir(get_temp_dir(), "tmp*")
+        except:
+            # cleanup is not-critical. no action taken even if fails
+            pass
 
         # enable following during development
         #self._dev_short_cut()
@@ -181,9 +185,8 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
     @pyqtSlot(QCloseEvent)    
     def closeEvent(self, event):
         self.closeProject()
-        settings = QSettings(SIDD_COMPANY, '%s %s' %(SIDD_APP_NAME, SIDD_VERSION));
-        settings.setValue(self.UI_WINDOW_GEOM, self.saveGeometry());
-        settings.setValue(self.UI_WINDOW_STATE, self.saveState());
+        self.settings.setValue(self.UI_WINDOW_GEOM, self.saveGeometry());
+        self.settings.setValue(self.UI_WINDOW_STATE, self.saveState());
         self.msdb_dao.close()       
         super(AppMainWindow, self).closeEvent(event)
     
@@ -325,6 +328,9 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         self.ui.mainTabs.setTabEnabled(0, True)
         self.tab_result.set_project(project)
         self.ui.mainTabs.setTabEnabled(3, True)
+        self.ui.actionSave.setEnabled(True)
+        self.ui.actionSave_as.setEnabled(True)        
+        
         
         # NOTE: project temp directory is clear everytime the project is closed.
         #       therefore, exposure from previous run cannot be preserved  
@@ -348,10 +354,13 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         self.ui.mainTabs.setTabEnabled(3, False) 
         self.showTab(0)
         # disable menu/menu items
+        self.ui.actionSave.setEnabled(False)
+        self.ui.actionSave_as.setEnabled(False)
         self.ui.actionMapping_Schemes.setEnabled(False)
         self.ui.actionResult.setEnabled(False)
         self.ui.actionProcessing_Options.setEnabled(False)
-        
+        self.proc_options.resetOptions()
+
         if getattr(self, 'project', None) is not None:
             # save existing project is needed
             if self.project.require_save:

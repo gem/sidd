@@ -42,11 +42,12 @@ DEFAULT_HALF_GRID_SIZE = DEFAULT_GRID_SIZE / 2.
 GID_FIELD_NAME = "GID"
 LON_FIELD_NAME = "LON"
 LAT_FIELD_NAME = "LAT"
-AREA_FIELD_NAME = "AREA"
 HT_FIELD_NAME = "HT"
 ZONE_FIELD_NAME = "ZONE"
 TAX_FIELD_NAME = "TAXONOMY"
 CNT_FIELD_NAME = "NUM_BLDGS"
+AREA_FIELD_NAME = "AREA"
+COST_FIELD_NAME = "REPCOST"
 GRP_FIELD_NAME = "GROUP"
 
 # names for template files 
@@ -59,6 +60,7 @@ FootprintTypes = Enum("None", "FootprintHt", "Footprint")
 ZonesTypes = Enum("None", "Landuse", "LanduseCount")
 SurveyTypes = Enum("None", "CompleteSurvey", "SampledSurvey")
 OutputTypes = Enum("Zone", "Grid")
+PopGridTypes = Enum("None", "Grid")
 ExportTypes = Enum("Shapefile", "KML", "NRML", "CSV")
 SyncModes = Enum("Read", "Write")
 

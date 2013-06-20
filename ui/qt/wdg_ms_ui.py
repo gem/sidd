@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qt\wdg_ms.ui'
 #
-# Created: Tue May 07 14:54:15 2013
+# Created: Wed Jun 19 10:41:23 2013
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -25,7 +25,7 @@ class Ui_widgetMappingSchemes(object):
         self.btn_build_exposure.setGeometry(QtCore.QRect(780, 620, 131, 31))
         self.btn_build_exposure.setObjectName(_fromUtf8("btn_build_exposure"))
         self.lb_panel_title = QtGui.QLabel(widgetMappingSchemes)
-        self.lb_panel_title.setGeometry(QtCore.QRect(10, 0, 891, 31))
+        self.lb_panel_title.setGeometry(QtCore.QRect(10, 0, 501, 31))
         font = QtGui.QFont()
         font.setPointSize(12)
         font.setWeight(75)
@@ -213,7 +213,7 @@ class Ui_widgetMappingSchemes(object):
         self.btn_del_lib_ms.setIcon(icon9)
         self.btn_del_lib_ms.setObjectName(_fromUtf8("btn_del_lib_ms"))
         self.widget_ms_leaves = QtGui.QWidget(widgetMappingSchemes)
-        self.widget_ms_leaves.setGeometry(QtCore.QRect(890, 30, 561, 531))
+        self.widget_ms_leaves.setGeometry(QtCore.QRect(220, 640, 561, 531))
         self.widget_ms_leaves.setObjectName(_fromUtf8("widget_ms_leaves"))
         self.table_ms_leaves = QtGui.QTableView(self.widget_ms_leaves)
         self.table_ms_leaves.setGeometry(QtCore.QRect(40, 50, 521, 441))
@@ -244,6 +244,12 @@ class Ui_widgetMappingSchemes(object):
         self.ck_use_modifier = QtGui.QCheckBox(self.widget_ms_leaves)
         self.ck_use_modifier.setGeometry(QtCore.QRect(300, 0, 131, 17))
         self.ck_use_modifier.setObjectName(_fromUtf8("ck_use_modifier"))
+        self.lb_gem_logo = QtGui.QLabel(widgetMappingSchemes)
+        self.lb_gem_logo.setGeometry(QtCore.QRect(830, 0, 121, 61))
+        self.lb_gem_logo.setText(_fromUtf8(""))
+        self.lb_gem_logo.setPixmap(QtGui.QPixmap(_fromUtf8(":/imgs/gem_logo_120X60.png")))
+        self.lb_gem_logo.setScaledContents(True)
+        self.lb_gem_logo.setObjectName(_fromUtf8("lb_gem_logo"))
 
         self.retranslateUi(widgetMappingSchemes)
         QtCore.QMetaObject.connectSlotsByName(widgetMappingSchemes)

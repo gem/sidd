@@ -120,6 +120,11 @@ SIDD_UI_STRINGS = {
     "widget.input.zone.file.missing":QApplication.translate('app.input', 'Homogeneous zone input file not specified', None, QApplication.UnicodeUTF8),
     "widget.input.zone.zonefield.missing":QApplication.translate('app.input', 'Land use/class field not specified', None, QApplication.UnicodeUTF8),
     "widget.input.zone.countfield.missing":QApplication.translate('app.input', 'Building count field not specified', None, QApplication.UnicodeUTF8),
+    # pop grid
+    "widget.input.popgrid.file.open":QApplication.translate('app.input', 'Open Population Grid File', None, QApplication.UnicodeUTF8),
+    "widget.input.popgrid.file.missing":QApplication.translate('app.input', 'Population Grid file not specified', None, QApplication.UnicodeUTF8),
+    "widget.input.popgrid.popfield.missing":QApplication.translate('app.input', 'Population field not specified', None, QApplication.UnicodeUTF8),
+    "widget.input.popgrid.poptobldg.missing":QApplication.translate('app.input', 'Average Person per Building not specified', None, QApplication.UnicodeUTF8),
     # verification messages
     "widget.input.verify.sucess":QApplication.translate('app.input', 'Datasets complete\nProceed to create exposure', None, QApplication.UnicodeUTF8),
     "widget.input.verify.datarequired":QApplication.translate('app.input', 'Following dataset required for building exposure', None, QApplication.UnicodeUTF8),
@@ -130,6 +135,15 @@ SIDD_UI_STRINGS = {
     ######################
     "widget.ms.tree.title":QApplication.translate('app.ms', 'Mapping Scheme', None, QApplication.UnicodeUTF8),
     "widget.ms.distribution.title":QApplication.translate('app.ms', 'Building Distribution', None, QApplication.UnicodeUTF8),
+    "widget.ms.distribution.value":QApplication.translate('app.ms', 'Value', None, QApplication.UnicodeUTF8),
+    "widget.ms.distribution.weight":QApplication.translate('app.ms', 'Percentage', None, QApplication.UnicodeUTF8),
+    "widget.ms.distribution.size":QApplication.translate('app.ms', 'Size', None, QApplication.UnicodeUTF8),
+    "widget.ms.distribution.cost":QApplication.translate('app.ms', 'Cost', None, QApplication.UnicodeUTF8),
+    "widget.ms.distribution.value.desc":QApplication.translate('app.ms', 'Building Type Taxonomy String', None, QApplication.UnicodeUTF8),
+    "widget.ms.distribution.weight.desc":QApplication.translate('app.ms', 'Percentage of Exposure', None, QApplication.UnicodeUTF8),
+    "widget.ms.distribution.size.desc":QApplication.translate('app.ms', 'Average Size of Building (m2)', None, QApplication.UnicodeUTF8),
+    "widget.ms.distribution.cost.desc":QApplication.translate('app.ms', 'Replacement Cost of Size Unit', None, QApplication.UnicodeUTF8),
+
     "widget.ms.library.title":QApplication.translate('app.ms', 'Mapping Scheme Library', None, QApplication.UnicodeUTF8),
     "widget.ms.library.enable":QApplication.translate('app.ms', 'Enable Mapping Scheme Library', None, QApplication.UnicodeUTF8),
     "widget.ms.library.delete.denied":QApplication.translate('app.ms', 'Only allowed to delete user-defined mapping scheme', None, QApplication.UnicodeUTF8),
@@ -155,6 +169,7 @@ SIDD_UI_STRINGS = {
     "widget.result.layer.survey":QApplication.translate('app.result', 'Surveys', None, QApplication.UnicodeUTF8),
     "widget.result.layer.footprint":QApplication.translate('app.result', 'Footprints', None, QApplication.UnicodeUTF8),
     "widget.result.layer.zones":QApplication.translate('app.result', 'Zones', None, QApplication.UnicodeUTF8),
+    "widget.result.layer.popgrid":QApplication.translate('app.result', 'Population Grid', None, QApplication.UnicodeUTF8),    
     "widget.result.layers.theme.title":QApplication.translate('app.result', 'Change Thematic for %s', None, QApplication.UnicodeUTF8),
     "widget.result.info.notfound":QApplication.translate('app.result', 'Nothing not found at location', None, QApplication.UnicodeUTF8),
     
@@ -177,6 +192,8 @@ SIDD_UI_STRINGS = {
     ######################
     "dlg.msbranch.edit.tableheader.value":QApplication.translate('app.msbranch', 'Value', None, QApplication.UnicodeUTF8),
     "dlg.msbranch.edit.tableheader.weight":QApplication.translate('app.msbranch', 'Percentage', None, QApplication.UnicodeUTF8),
+    "dlg.msbranch.edit.tableheader.size":QApplication.translate('app.msbranch', 'Average Size', None, QApplication.UnicodeUTF8),
+    "dlg.msbranch.edit.tableheader.cost":QApplication.translate('app.msbranch', 'Unit Cost', None, QApplication.UnicodeUTF8),
     "dlg.msbranch.edit.warning.invalidweight":QApplication.translate('app.msbranch', 'weight value must be a numeric value between 0 and 100', None, QApplication.UnicodeUTF8),
     "dlg.msbranch.edit.warning.node.required":QApplication.translate('app.msbranch', 'Node from Mapping Scheme Tree must be selected first', None, QApplication.UnicodeUTF8),
     "dlg.msbranch.error.attribute.exists": QApplication.translate('app.msbranch', 'Attribute value %s is already defined in same level', None, QApplication.UnicodeUTF8),
@@ -197,6 +214,7 @@ SIDD_UI_STRINGS = {
     "message.sidd.operator.loaders.ms.MappingSchemeLoader":QApplication.translate('app.processing', 'Loading Mapping Scheme  ...', None, QApplication.UnicodeUTF8),
     "message.sidd.operator.loaders.survey.GEMDBSurveyLoader":QApplication.translate('app.processing', 'Loading Survey from GEMDB ...', None, QApplication.UnicodeUTF8),
     "message.sidd.operator.loaders.survey.CSVSurveyLoader":QApplication.translate('app.processing', 'Loading Survey from CSV ...', None, QApplication.UnicodeUTF8),
+    "message.sidd.operator.loaders.popgrid.PopGridLoader":QApplication.translate('app.processing', 'Loading Population Grid ...', None, QApplication.UnicodeUTF8),
     "message.sidd.operator.loaders.zones.ZoneLoader":QApplication.translate('app.processing', 'Loading Zones ...', None, QApplication.UnicodeUTF8),
     "message.sidd.operator.loaders.zones.ZoneCountLoader":QApplication.translate('app.processing', 'Loading Zones with Building Counts ...', None, QApplication.UnicodeUTF8),
     "message.sidd.operator.processors.aggregate.FootprintAggregator":QApplication.translate('app.processing', 'Counting Footprints for GEM grids ...', None, QApplication.UnicodeUTF8),
@@ -208,6 +226,7 @@ SIDD_UI_STRINGS = {
     "message.sidd.operator.processors.grid.GridGeometryWriter":QApplication.translate('app.processing', 'Generating GEM grid Geometry ...', None, QApplication.UnicodeUTF8),
     "message.sidd.operator.processors.grids.ZoneToGrid":QApplication.translate('app.processing', 'Creating Grid from Zone ...', None, QApplication.UnicodeUTF8),
     "message.sidd.operator.processors.grids.FootprintZoneToGrid":QApplication.translate('app.processing', 'Creating Grid from Footprint and Zone ...', None, QApplication.UnicodeUTF8),
+    "message.sidd.operator.processors.grids.PopgridZoneToGrid":QApplication.translate('app.processing', 'Creating Grid from Population Grid and Zone ...', None, QApplication.UnicodeUTF8),
     "message.sidd.operator.processors.join.ZoneGridMerger":QApplication.translate('app.processing', 'Assigning GEM Grids to Zones ...', None, QApplication.UnicodeUTF8),
     "message.sidd.operator.processors.join.ZoneFootprintMerger":QApplication.translate('app.processing', 'Assigning Footprints to Zones ...', None, QApplication.UnicodeUTF8),
     "message.sidd.operator.processors.join.ZoneFootprintCounter":QApplication.translate('app.processing', 'Counting Footprints to in Zones ...', None, QApplication.UnicodeUTF8),

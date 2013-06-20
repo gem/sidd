@@ -22,7 +22,7 @@ from PyQt4.QtGui import QWidget, QMessageBox, QDialog, QAbstractItemView, QFileD
 from PyQt4.QtCore import QObject, QSize, QPoint, pyqtSlot, QString, Qt
 
 from utils.system import get_app_dir
-from sidd.ms import MappingScheme, MappingSchemeZone, Statistics  
+from sidd.ms import MappingScheme, MappingSchemeZone, Statistics, StatisticNode
 from sidd.exception import SIDDException
 
 from ui.exception import SIDDUIException
@@ -31,9 +31,11 @@ from ui.dlg_ms_branch import DialogEditMS
 from ui.dlg_save_ms import DialogSaveMS
 from ui.dlg_build_ms import DialogMSOptions 
 from ui.dlg_edit_zone import DialogEditZoneName
+from ui.dlg_size_input import  DialogSizeInput
 from ui.helper.ms_tree import MSTreeModel
 from ui.helper.vlabel import VerticalQLabel
 from ui.helper.ms_level_table import MSLevelTableModel
+from ui.helper.ms_leaves_table import MSLeavesTableModel
 from ui.qt.wdg_ms_ui import Ui_widgetMappingSchemes
 
 class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
@@ -56,12 +58,16 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
                     retval =  f(*args, **kw)
                     return retval                
                 except SIDDUIException as err:
-                    logUICall.log(get_ui_string("app.error.unexpected"), logUICall.WARNING)
+                    logUICall.log(self.errString(get_ui_string("app.error.unexpected"), err), logUICall.WARNING)
                 except SIDDException as err:
-                    logUICall.log(get_ui_string("app.error.model"), logUICall.WARNING)
+                    logUICall.log(self.errString(get_ui_string("app.error.model"), err), logUICall.WARNING)
                 except Exception as err:
-                    logUICall.log(get_ui_string("app.error.ui"), logUICall.ERROR)
+                    logUICall.log(self.errString(get_ui_string("app.error.ui"),err), logUICall.ERROR)
             return wrapper
+        
+        def errString(self, title, err):
+            return '%s\n%s' % (title, err)
+            
         
     uiCallChecker = UICallChecker()
 
@@ -73,6 +79,13 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         self.ui.setupUi(self)
 
         # vertical label for toggle mapping scheme library 
+        # table header
+        self.table_ms_headers = []
+        self.table_ms_headers.append([get_ui_string('widget.ms.distribution.value'), get_ui_string('widget.ms.distribution.value.desc')])
+        self.table_ms_headers.append([get_ui_string('widget.ms.distribution.weight'), get_ui_string('widget.ms.distribution.weight.desc')])
+        self.table_ms_headers.append([get_ui_string('widget.ms.distribution.size'), get_ui_string('widget.ms.distribution.size.desc')])
+        self.table_ms_headers.append([get_ui_string('widget.ms.distribution.cost'), get_ui_string('widget.ms.distribution.cost.desc')])
+        self.table_ms_display_formats = ['%s', '%.2f', '%.2f', '%.2f']
 
         self.ms_library_vlabel = VerticalQLabel(self)
         self.ms_library_vlabel.setText(get_ui_string('widget.ms.library.title'))
@@ -86,10 +99,14 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         self.bldg_dist_vlabel.setText(get_ui_string('widget.ms.distribution.title'))
         self.bldg_dist_vlabel.clicked.connect(self.showBuildingDistribution)
         
+        # fix selection mode for tree view
+        self.ui.tree_ms.setSelectionMode(QAbstractItemView.SingleSelection)        
+        
         # fix column size for leaf table
         self.ui.table_ms_leaves.verticalHeader().hide()
         self.ui.table_ms_leaves.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.ui.table_ms_leaves.setSortingEnabled(True)
+        self.ui.table_ms_leaves.setSelectionMode(QAbstractItemView.SingleSelection)
 
         self.app = app
         self.ms = None
@@ -109,6 +126,9 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         self.dlgMSOptions.setModal(True)
         self.dlgEditZone = DialogEditZoneName()
         self.dlgEditZone.setModal(True)
+
+        self.dlgSizeInput = DialogSizeInput(self.app)        
+        self.dlgSizeInput.setModal(True)
 
         # connect slots (ui event)
         self.ui.btn_create_ms.clicked.connect(self.createMS)        
@@ -134,9 +154,11 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         
         self.ui.btn_secondary_mod.clicked.connect(self.setModifiers)
         self.ui.btn_build_exposure.clicked.connect(self.applyMS)
+        self.ui.table_ms_leaves.doubleClicked.connect(self.editAdditionalAttributes)
         
         self.ms_library_visible = True
         self.setMSLibraryVisible(False)
+        self.ui.btn_save_bldg_distribution.setVisible(False)
 
     # UI event handling calls
     ###############################
@@ -169,6 +191,9 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         ui.tree_ms.resize(QSize(ui.widget_ms_tree.width(), ui.widget_ms_tree.height()-ui.tree_ms.y()))
         ui.widget_ms_buttons_r.move(
             QPoint(ui.widget_ms_tree.width()-ui.widget_ms_buttons_r.width(), ui.widget_ms_buttons_r.y()))
+
+        # logo
+        self.ui.lb_gem_logo.move(self.width()-self.ui.lb_gem_logo.width(), self.ui.lb_gem_logo.y())
         
     @uiCallChecker
     @pyqtSlot()
@@ -452,27 +477,33 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
 
     @uiCallChecker
     @pyqtSlot(str)
-    def refreshLeaves(self, value):        
-        values, weights = [], []
+    def refreshLeaves(self, value): 
+        if self.ms is None or self.ui.cb_ms_zones.count() == 0:
+            return       
+        values = []
         total_weights = 0
         use_modifier = self.ui.ck_use_modifier.isChecked()
         zone_selected = str(self.ui.cb_ms_zones.currentText())
         try:
-            stats = self.ms.get_assignment_by_name(zone_selected)            
-            for leaf in stats.get_leaves(True, use_modifier):
-                values.append(leaf[0])
-                weight = leaf[1]*100.0
-                weights.append(weight)
-                total_weights += weight
-        except:
-            pass
+            stats = self.ms.get_assignment_by_name(zone_selected)
+            stats.refresh_leaves(use_modifier)
+            for _val, _wt, _node in stats.leaves:
+                _weight = _wt *100.0
+                _size = _node.get_additional_float(StatisticNode.AverageSize)
+                _cost = _node.get_additional_float(StatisticNode.UnitCost)                
+                total_weights += _weight
+                values.append([_val, _weight, _size, _cost, _node])
+        except Exception, err:
+            raise SIDDException(str(err))
         try:
-            self.ui.table_ms_leaves.setModel(MSLevelTableModel(values, weights, self.ms.taxonomy, self.ms.taxonomy.codes, 
-                                                               is_editable=[False, False]))
-        except:
-            pass
-        self.ui.table_ms_leaves.horizontalHeader().resizeSection(0, self.ui.table_ms_leaves.width() * 0.75)
-        self.ui.table_ms_leaves.horizontalHeader().resizeSection(1, self.ui.table_ms_leaves.width() * 0.25)  
+            self.ui.table_ms_leaves.setModel(MSLeavesTableModel(values, self.table_ms_headers, self.table_ms_display_formats,
+                                                                self.ms.taxonomy, self.ms.taxonomy.codes))
+        except Exception, err:
+            raise SIDDException(str(err))
+        self.ui.table_ms_leaves.horizontalHeader().resizeSection(0, self.ui.table_ms_leaves.width() * 0.60)
+        self.ui.table_ms_leaves.horizontalHeader().resizeSection(1, self.ui.table_ms_leaves.width() * 0.14)  
+        self.ui.table_ms_leaves.horizontalHeader().resizeSection(2, self.ui.table_ms_leaves.width() * 0.13)
+        self.ui.table_ms_leaves.horizontalHeader().resizeSection(3, self.ui.table_ms_leaves.width() * 0.13)
         self.ui.txt_leaves_total.setText('%.1f' % total_weights)
     
     @uiCallChecker
@@ -489,6 +520,18 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
                                                "*.csv")
         if not filename.isNull(): 
             self.app.exportMSLeaves(filename)
+
+    @uiCallChecker
+    @pyqtSlot()
+    def editAdditionalAttributes(self):
+        selected =self.ui.table_ms_leaves.selectedIndexes()
+        if (len(selected) > 0):            
+            self.dlgSizeInput.setNode(selected[0].internalPointer(), self.ms)
+            if self.dlgSizeInput.exec_() == QDialog.Accepted:
+                self.dlgSizeInput.node.set_additional(StatisticNode.AverageSize, self.dlgSizeInput.avg_size)
+                self.dlgSizeInput.node.set_additional(StatisticNode.UnitCost, self.dlgSizeInput.unit_cost)
+                self.refreshLeaves(self.ui.cb_ms_zones.currentText())                
+        return
     
     # public methods
     ###############################
@@ -499,7 +542,6 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         treeUI = self.ui.tree_ms
         self.tree_model = MSTreeModel(ms)        
         treeUI.setModel(self.tree_model)
-        treeUI.setSelectionMode(QAbstractItemView.SingleSelection)
         self.ui.tree_ms.setEnabled(True)
         self.ui.tree_ms.expandAll()
 

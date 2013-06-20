@@ -24,11 +24,10 @@ from qgis.core import QgsVectorFileWriter, QgsFeature, QgsField, QgsGeometry
 from utils.shapefile import load_shapefile, layer_features, layer_field_index, remove_shapefile
 from utils.system import get_unique_filename
 from utils.grid import latlon_to_grid
- 
-from sidd.constants import logAPICall, \
-                           ExtrapolateOptions, \
-                           GID_FIELD_NAME, LON_FIELD_NAME, LAT_FIELD_NAME, CNT_FIELD_NAME, TAX_FIELD_NAME, ZONE_FIELD_NAME, \
-                           DEFAULT_GRID_SIZE, MAX_FEATURES_IN_MEMORY
+ from sidd.constants import logAPICall, ExtrapolateOptions, \
+    GID_FIELD_NAME, LON_FIELD_NAME, LAT_FIELD_NAME, CNT_FIELD_NAME, TAX_FIELD_NAME, \
+    ZONE_FIELD_NAME, AREA_FIELD_NAME, COST_FIELD_NAME, \
+    DEFAULT_GRID_SIZE, MAX_FEATURES_IN_MEMORY
 from sidd.operator import Operator, OperatorError
 from sidd.operator.data import OperatorDataTypes
 
@@ -49,7 +48,9 @@ class GridMSApplier(Operator):
                         2: QgsField(LAT_FIELD_NAME, QVariant.Double),
                         3: QgsField(TAX_FIELD_NAME, QVariant.String, "", 255),
                         4: QgsField(ZONE_FIELD_NAME, QVariant.String),
-                        5: QgsField(CNT_FIELD_NAME, QVariant.Int)}        
+                        5: QgsField(CNT_FIELD_NAME, QVariant.Int),
+                        6: QgsField(AREA_FIELD_NAME, QVariant.Double),
+                        7: QgsField(COST_FIELD_NAME, QVariant.Double),}        
         if self._extrapolationOption != ExtrapolateOptions.RandomWalk:
             self._fields[5]=QgsField(CNT_FIELD_NAME, QVariant.Double)
         
@@ -125,6 +126,12 @@ class GridMSApplier(Operator):
 
         default_stats = ms.get_assignment(ms.get_zones()[0])
         try:
+            for zone, stats in ms.assignments():
+                stats.refresh_leaves(with_modifier=True, order_attributes=True)
+        except Exception as err:
+            raise OperatorError("error accessing mapping scheme: %s" % err, self.__class__)
+            
+        try:
             writer = QgsVectorFileWriter(exposure_file, "utf-8", self._fields, provider.geometryType(), self._crs, "ESRI Shapefile")
             out_feature = QgsFeature()
             
@@ -136,6 +143,9 @@ class GridMSApplier(Operator):
                 count = in_feature.attributeMap()[count_idx].toDouble()[0]
                 
                 count = int(count+0.5)
+                if count == 0:
+                    continue                            
+                
                 stats = ms.get_assignment_by_name(zone_str)
                 
                 # use default stats if missing
@@ -143,17 +153,23 @@ class GridMSApplier(Operator):
                     stats = default_stats
                     
                 gid += 1
-                for _l, _c in stats.get_samples(count, self._extrapolationOption).iteritems():
+                for _sample in stats.get_samples(count, self._extrapolationOption):
                     # write out if there are structures assigned
-                    if _c > 0:
+                    _type = _sample[0]
+                    _cnt = _sample[1]
+                    _size = _sample[2]
+                    _cost = _sample[3]
+                    if _cnt > 0:
                         out_feature.setGeometry(geom)
                         #out_feature.addAttribute(0, QVariant(gid))
                         out_feature.addAttribute(0, QVariant(latlon_to_grid(centroid.y(), centroid.x())))
                         out_feature.addAttribute(1, QVariant(centroid.x()))
                         out_feature.addAttribute(2, QVariant(centroid.y()))
-                        out_feature.addAttribute(3, QVariant(_l))
+                        out_feature.addAttribute(3, QVariant(_type))
                         out_feature.addAttribute(4, QVariant(zone_str))
-                        out_feature.addAttribute(5, QVariant(_c))
+                        out_feature.addAttribute(5, QVariant(_cnt))
+                        out_feature.addAttribute(6, QVariant(_size))
+                        out_feature.addAttribute(7, QVariant(_cost))
                         writer.addFeature(out_feature)
             del writer, out_feature
         except Exception as err:

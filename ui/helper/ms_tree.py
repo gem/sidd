@@ -120,7 +120,9 @@ class MSTreeModel(QAbstractItemModel):
             elif isinstance(item, StatisticNode):                
                 return build_attribute_tooltip(self.valid_codes, self.ms.taxonomy.parse(item.value))
             else:
-                return ""                
+                return "" 
+        elif role == Qt.UserRole:            
+            return index.internalPointer()
         else:
             return None
         
@@ -216,24 +218,10 @@ class MSTreeModel(QAbstractItemModel):
 
     def match(self, index, role, value, hits=1, flags=Qt.MatchStartsWith | Qt.MatchWrap):
         found = []
-        if index.isValid():
-            item = index.internalPointer()
-            if item == self.rootNode:
-                # root node
-                node_value = 'ROOT'
-            elif isinstance(item, MappingSchemeZone):
-                # zone node(first level under root node)
-                # statistic in each zone should be 100%
-                node_value = item.name
-            else:
-                # statistic node 
-                # show weight for node                
-                node_value = item.value           
-        else:
-            node_value = 'ROOT'                
-        if node_value == value:
+        data = self.data(index, role)
+        if data == value:
             found.append(index)
-            hits -= 1
+            hits -= 1            
         if hits>0:
             for i in range(self.rowCount(index)):
                 child = self.index(i, 1, index)

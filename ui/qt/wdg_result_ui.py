@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qt\wdg_result.ui'
 #
-# Created: Tue May 07 14:56:31 2013
+# Created: Wed Jun 19 10:41:24 2013
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -19,7 +19,7 @@ class Ui_widgetResult(object):
         widgetResult.setObjectName(_fromUtf8("widgetResult"))
         widgetResult.resize(941, 655)
         self.widget_export = QtGui.QWidget(widgetResult)
-        self.widget_export.setGeometry(QtCore.QRect(650, 30, 281, 181))
+        self.widget_export.setGeometry(QtCore.QRect(650, 70, 281, 181))
         self.widget_export.setObjectName(_fromUtf8("widget_export"))
         self.btn_export_select_path = QtGui.QToolButton(self.widget_export)
         self.btn_export_select_path.setGeometry(QtCore.QRect(250, 70, 21, 20))
@@ -57,7 +57,7 @@ class Ui_widgetResult(object):
         self.lb_export_format.setFont(font)
         self.lb_export_format.setObjectName(_fromUtf8("lb_export_format"))
         self.widget_dq_test = QtGui.QWidget(widgetResult)
-        self.widget_dq_test.setGeometry(QtCore.QRect(650, 220, 281, 401))
+        self.widget_dq_test.setGeometry(QtCore.QRect(650, 260, 281, 361))
         self.widget_dq_test.setObjectName(_fromUtf8("widget_dq_test"))
         self.lbl_dq_test_title = QtGui.QLabel(self.widget_dq_test)
         self.lbl_dq_test_title.setGeometry(QtCore.QRect(10, 10, 251, 31))
@@ -149,6 +149,12 @@ class Ui_widgetResult(object):
         font.setBold(True)
         self.lb_panel_title.setFont(font)
         self.lb_panel_title.setObjectName(_fromUtf8("lb_panel_title"))
+        self.lb_gem_logo = QtGui.QLabel(widgetResult)
+        self.lb_gem_logo.setGeometry(QtCore.QRect(820, 0, 121, 61))
+        self.lb_gem_logo.setText(_fromUtf8(""))
+        self.lb_gem_logo.setPixmap(QtGui.QPixmap(_fromUtf8(":/imgs/gem_logo_120X60.png")))
+        self.lb_gem_logo.setScaledContents(True)
+        self.lb_gem_logo.setObjectName(_fromUtf8("lb_gem_logo"))
 
         self.retranslateUi(widgetResult)
         QtCore.QMetaObject.connectSlotsByName(widgetResult)

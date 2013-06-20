@@ -29,7 +29,7 @@ from utils.shapefile import remove_shapefile
 
 from sidd.constants import logAPICall, \
                            FILE_PROJ_TEMPLATE, \
-                           FootprintTypes, OutputTypes, SurveyTypes, ZonesTypes, \
+                           FootprintTypes, OutputTypes, SurveyTypes, ZonesTypes, PopGridTypes, \
                            ProjectStatus, ExtrapolateOptions, SyncModes, ExportTypes, \
                            ProjectErrors
 from sidd.ms import MappingScheme
@@ -124,7 +124,14 @@ class Project (object):
         self.survey_type = survey_type
         self.survey_format = survey_format
         self.require_save = True
-        
+
+    @logAPICall
+    def set_popgrid(self, popgrid_type, popgrid_file='', pop_field='', pop_to_bldg=1):
+        self.popgrid_type = popgrid_type
+        self.popgrid_file = popgrid_file
+        self.pop_field = pop_field
+        self.pop_to_bldg = pop_to_bldg
+
     @logAPICall
     def set_output_type(self, output_type):
         self.output_type = output_type
@@ -153,6 +160,11 @@ class Project (object):
         self.zone_file = ''
         self.zone_field = '' 
         self.zone_count_field = ''
+
+        self.popgrid_type= PopGridTypes.None
+        self.popgrid_file = ''
+        self.pop_field = ''
+        self.pop_to_bldg = 1
         
         self.ms = None
         self.output_type = OutputTypes.Grid
@@ -204,6 +216,14 @@ class Project (object):
     @logAPICall
     def load_survey(self):
         self.survey, self.survey_tmp_file = self._load_data('survey_file', 'survey', 'survey_file') 
+        return 
+    
+    @logAPICall
+    def load_popgrid(self):
+        if self.popgrid_type == PopGridTypes.None:
+            return
+                
+        self.survey, self.survey_tmp_file = self._load_data('popgrid_file', 'popgrid', 'popgrid_file') 
         return 
     
     @logAPICall
@@ -383,6 +403,20 @@ class Project (object):
                                    self._get_project_data('data.zones.file'),
                                    self._get_project_data('data.zones.class_field'),
                                    self._get_project_data('data.zones.count_field'))
+                    
+            # load popgrid
+            _pop_type = self._get_project_data('data.popgrid')
+            if _pop_type is None:
+                self.popgrid =None
+                self.popgrid_type = PopGridTypes.None
+                self.popgrid_file = None
+                self.pop_field = ''
+            else:
+                self.set_popgrid(PopGridTypes.Grid,
+                                 self._get_project_data('data.popgrid.file'),
+                                 self._get_project_data('data.popgrid.pop_field'),
+                                 self._get_project_data('data.popgrid.pop_to_bldg')) 
+            
             # load output type
             _output_type = self._get_project_data('data.output')
             if _output_type == "Zone":
@@ -417,7 +451,7 @@ class Project (object):
                 #       because comparison of str vs. enum is not valid            
                 self.operator_options["proc.extrapolation"] = makeEnum(ExtrapolateOptions, extrapolation)
             else:
-                self.operator_options["proc.extrapolation"] = ExtrapolateOptions.RandomWalk
+                self.operator_options["proc.extrapolation"] = ExtrapolateOptions.Fraction
             
             # load export settings 
             export_type = self._get_project_data('export.type')
@@ -428,10 +462,6 @@ class Project (object):
                 self.export_path = export_path
             
         else:
-            if not self.require_save:
-                logAPICall.log("nothing changed since last save", logAPICall.DEBUG)
-                return 
-                
             logAPICall.log("store existing datasets into DB", logAPICall.DEBUG)            
             # store footprint            
             if self.fp_type == FootprintTypes.None:
@@ -469,6 +499,18 @@ class Project (object):
                     self._save_project_data('data.zones.count_field', self.zone_count_field)
                 else:
                     self._save_project_data('data.zones.count_field', None)
+            
+            # store popgrid
+            if self.popgrid_type == PopGridTypes.None:
+                self._save_project_data('data.popgrid', None)
+                self._save_project_data('data.popgrid.file', None)
+                self._save_project_data('data.popgrid.pop_field', None)
+                self._save_project_data('data.popgrid.pop_to_bldg', None)
+            else:
+                self._save_project_data('data.popgrid', self.popgrid_type)
+                self._save_project_data('data.popgrid.file', self.popgrid_file)
+                self._save_project_data('data.popgrid.pop_field', self.pop_field)
+                self._save_project_data('data.popgrid.pop_to_bldg', self.pop_to_bldg)
             
             # store output type
             self._save_project_data('data.output', self.output_type)
@@ -539,6 +581,8 @@ class Project (object):
                     workflow = builder.build_load_zones_workflow(self)
                 elif input_param == 'survey_file':
                     workflow = builder.build_load_survey_workflow(self)
+                elif input_param == 'popgrid_file':
+                    workflow = builder.build_load_popgrid_workflow(self)
                 else:
                     raise Exception('Data Type Not Recognized %s' % input_param)
                 
@@ -575,7 +619,7 @@ class Project (object):
         if useSampling:
             self.zone_stats = ms_workflow.operator_data['zone_stats'].value
         for zone, stats in self.ms.assignments():
-            stats.get_leaves(True)
+            stats.refresh_leaves()
             
         logAPICall.log('mapping scheme created', logAPICall.INFO)
         self.require_save = True

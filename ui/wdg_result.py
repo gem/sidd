@@ -51,17 +51,19 @@ class WidgetResult(Ui_widgetResult, QWidget):
         get_ui_string("app.extension.csv"):ExportTypes.CSV,
     };
     ''' enumeration of Layer to be previewed '''
-    EXPOSURE, SURVEY, FOOTPRINT, ZONES = range(4);
+    EXPOSURE, SURVEY, POP_GRID, FOOTPRINT, ZONES = range(5);
     ''' name for Layer to be previewed '''
     LAYER_NAMES = [
         get_ui_string("widget.result.layer.exposure"),        
         get_ui_string("widget.result.layer.survey"),
-        get_ui_string("widget.result.layer.footprint"),
+        get_ui_string("widget.result.layer.popgrid"),
+        get_ui_string("widget.result.layer.footprint"),        
         get_ui_string("widget.result.layer.zones"),
     ];    
     LAYER_STYLES = [
         '<!DOCTYPE renderer><renderer-v2 symbollevels="0" type="singleSymbol"><symbols><symbol outputUnit="MM" alpha="1" type="fill" name="0"><layer pass="0" class="SimpleLine" locked="0"><prop k="capstyle" v="square"/><prop k="color" v="0,0,0,255"/><prop k="customdash" v="5;2"/><prop k="joinstyle" v="bevel"/><prop k="offset" v="0"/><prop k="penstyle" v="solid"/><prop k="use_custom_dash" v="0"/><prop k="width" v="0.26"/></layer></symbol></symbols><rotation field=""/><sizescale field=""/></renderer-v2>',
         '<!DOCTYPE renderer><renderer-v2 symbollevels="0" type="singleSymbol"><symbols><symbol outputUnit="MM" alpha="1" type="marker" name="0"><layer pass="0" class="SimpleMarker" locked="0"><prop k="angle" v="0"/><prop k="color" v="0,0,255,255"/><prop k="color_border" v="0,0,255,255"/><prop k="name" v="circle"/><prop k="offset" v="0,0"/><prop k="size" v="2"/></layer></symbol></symbols><rotation field=""/><sizescale field=""/></renderer-v2>',
+        '<!DOCTYPE renderer><renderer-v2 symbollevels="0" type="singleSymbol"><symbols><symbol outputUnit="MM" alpha="1" type="marker" name="0"><layer pass="0" class="SimpleMarker" locked="0"><prop k="angle" v="0"/><prop k="color" v="0,255,0,255"/><prop k="color_border" v="0,255,0,255"/><prop k="name" v="rectangle"/><prop k="offset" v="0,0"/><prop k="size" v="4"/></layer></symbol></symbols><rotation field=""/><sizescale field=""/></renderer-v2>',
         '<!DOCTYPE renderer><renderer-v2 symbollevels="0" type="singleSymbol"><symbols><symbol outputUnit="MM" alpha="1" type="fill" name="0"><layer pass="0" class="SimpleFill" locked="0"><prop k="color" v="170,250,170,255"/><prop k="color_border" v="0,0,0,255"/><prop k="offset" v="0,0"/><prop k="style" v="solid"/><prop k="style_border" v="solid"/><prop k="width_border" v="0.26"/></layer></symbol></symbols><rotation field=""/><sizescale field=""/></renderer-v2>',
         '<!DOCTYPE renderer><renderer-v2 symbollevels="0" type="singleSymbol"><symbols><symbol outputUnit="MM" alpha="1" type="fill" name="0"><layer pass="0" class="SimpleFill" locked="0"><prop k="color" v="211,211,158,200"/><prop k="color_border" v="0,0,0,255"/><prop k="offset" v="0,0"/><prop k="style" v="solid"/><prop k="style_border" v="solid"/><prop k="width_border" v="0.26"/></layer></symbol></symbols><rotation field=""/><sizescale field=""/></renderer-v2>',
     ]
@@ -147,7 +149,7 @@ class WidgetResult(Ui_widgetResult, QWidget):
         # find left coordinate for right side panels
         x_right_side = self.width()-self.ui.widget_export.width()-UI_PADDING
         # adjust right side panels
-        self.ui.widget_export.move(x_right_side, 30)
+        self.ui.widget_export.move(x_right_side, self.ui.widget_map.y()+30)
         self.ui.widget_dq_test.move(x_right_side, self.ui.widget_export.y()+self.ui.widget_export.height()+UI_PADDING)
         # adjust map panel (left side)        
         self.ui.widget_map.resize(x_right_side-UI_PADDING, self.height()-2*UI_PADDING)
@@ -160,6 +162,8 @@ class WidgetResult(Ui_widgetResult, QWidget):
         self.ui.widget_map_menu_r.move(
             self.ui.widget_map.width()-self.ui.widget_map_menu_r.width(),   # right align with map panel 
             0)
+        # logo
+        self.ui.lb_gem_logo.move(self.width()-self.ui.lb_gem_logo.width(), self.ui.lb_gem_logo.y())
 
     @logUICall
     @pyqtSlot()
@@ -382,6 +386,14 @@ class WidgetResult(Ui_widgetResult, QWidget):
                 self.showDataLayer(self.map_layers[self.SURVEY], self.map_layer_renderer[self.SURVEY])
         else:            
             self.removeDataLayer(self.SURVEY)
+        
+        if self._project.popgrid_file is not None and exists(self._project.popgrid_file):
+            if getattr(self._project, 'popgrid', None) is None:
+                self._project.load_popgrid()
+                self.map_layers[self.POP_GRID] = self._project.survey 
+                self.showDataLayer(self.map_layers[self.POP_GRID], self.map_layer_renderer[self.POP_GRID])
+        else:            
+            self.removeDataLayer(self.POP_GRID)
         
         # set export options
         for idx, export_format in enumerate(self.EXPORT_FORMATS.values()):

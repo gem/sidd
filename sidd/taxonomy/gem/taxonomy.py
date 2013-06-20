@@ -35,7 +35,7 @@ class GemTaxonomy(Taxonomy):
     """
     
     # protected member attributes
-    __GEM_TAXONOMY_FILE = 'gem_v1.0.3.db'
+    __GEM_TAXONOMY_FILE = 'gemdb.db'
     __attrs = []
     __codes = {}
     __empty = []
@@ -237,7 +237,6 @@ class GemTaxonomy(Taxonomy):
             else:
                 raise TaxonomyParseError("attribute format not recognized for %s" % _attr)
         
-        GemTaxonomy.__attr_orders = [attr.name for attr in GemTaxonomy.__attrs]
         # load codes
         sql = """
             select code, description, gem_attribute, level, scope 
@@ -283,7 +282,7 @@ class GemTaxonomyAttribute(TaxonomyAttribute):
                     continue
                 if parent.level >= code.level:
                     continue
-            elif code.level != level:
+            elif level > 0 and code.level != level:
                 continue
             yield code
 

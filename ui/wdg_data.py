@@ -19,14 +19,14 @@ Widget (Panel) for specifying data inputs
 
 import os
 
-from PyQt4.QtGui import QWidget, QFileDialog, QPixmap
+from PyQt4.QtGui import QWidget, QFileDialog, QPixmap, QDoubleValidator
 from PyQt4.QtCore import pyqtSlot
 
 from utils.shapefile import shapefile_fields, shapefile_projection
 from utils.system import get_app_dir
 
 from sidd.constants import logAPICall, \
-                           FootprintTypes, OutputTypes, SurveyTypes, ZonesTypes, \
+                           FootprintTypes, OutputTypes, SurveyTypes, ZonesTypes, PopGridTypes, \
                            ProjectStatus
 
 from ui.constants import logUICall, get_ui_string, UI_PADDING
@@ -73,11 +73,20 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
         self.project = None
         WidgetDataInput.uiCallChecker.project_is_required = False
 
+        self.showPopgrid = (app.app_config.get('options', 'allow_popgrid', 0, int) == 1)        
+        if not self.showPopgrid:
+            self.ui.widgetPop.setVisible(False)
+            self.ui.img_lb_verify_pop.setVisible(False)
+            self.ui.lb_verify_pop.setVisible(False)
+            self.ui.img_lb_verify_svy.move(self.ui.img_lb_verify_svy.x(), self.ui.img_lb_verify_pop.y())
+            self.ui.lb_verify_svy.move(self.ui.lb_verify_svy.x(), self.ui.lb_verify_pop.y())            
+        
         # default input data setting
         self.ui.radio_fp_no_data.setChecked(True)        
         self.ui.radio_svy_no_data.setChecked(True)
         self.ui.radio_zones_no_data.setChecked(True)
-        self.ui.radio_aggr_zones.setChecked(True)       
+        self.ui.radio_aggr_zones.setChecked(True)
+        self.ui.radio_pop_no_data.setChecked(True)      
         
         # connect slots (ui event)
         # footprint
@@ -101,6 +110,13 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
         # aggregation
         self.ui.radio_aggr_zones.toggled.connect(self.setAggregateType)
         self.ui.radio_aggr_grid.toggled.connect(self.setAggregateType)
+        # population grid
+        self.ui.btn_pop_select_file.clicked.connect(self.openPopGridData)
+        self.ui.radio_pop_no_data.toggled.connect(self.setPopGridType)
+        self.ui.radio_pop_grid.toggled.connect(self.setPopGridType)  
+        self.ui.cb_pop_pop_field.currentIndexChanged[str].connect(self.setPopField)
+        self.ui.txt_pop_bldg_ratio.setValidator(QDoubleValidator(0, 10000000,  2, self))
+        self.ui.txt_pop_bldg_ratio.editingFinished.connect(self.setPopToBldg)
         # verify
         self.ui.btn_verify.clicked.connect(self.verifyInput)
         
@@ -142,16 +158,32 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
         self.ui.cb_fp_proj.resize(combo_width, combo_ht)
         self.ui.cb_fp_proj.move(width_panel-combo_width-UI_PADDING,
                                 self.ui.cb_fp_proj.y())         
+
+        self.ui.widgetPop.resize(width_panel, self.ui.widgetPop.height())
+        self.ui.widgetPop.move(UI_PADDING, self.ui.widgetPop.y())
+        self.ui.btn_pop_select_file.move(width_panel-button_width-UI_PADDING,
+                                         self.ui.btn_pop_select_file.y())
+        self.ui.txt_pop_select_file.resize(self.ui.btn_pop_select_file.x()-self.ui.txt_pop_select_file.x()-UI_PADDING,
+                                           self.ui.txt_pop_select_file.height())
+        self.ui.cb_pop_pop_field.resize(combo_width, combo_ht)
+        self.ui.cb_pop_pop_field.move(width_panel-combo_width-UI_PADDING,
+                                       self.ui.cb_pop_pop_field.y())         
+        self.ui.txt_pop_bldg_ratio.resize(combo_width, combo_ht)
+        self.ui.txt_pop_bldg_ratio.move(width_panel-combo_width-UI_PADDING,
+                                        self.ui.txt_pop_bldg_ratio.y())
+        self.ui.cb_pop_proj.resize(combo_width, combo_ht)
+        self.ui.cb_pop_proj.move(width_panel-combo_width-UI_PADDING,
+                                self.ui.cb_pop_proj.y())          
         
+        # right panels        
         # survey panel
         self.ui.widgetSurvey.resize(width_panel, self.ui.widgetSurvey.height())
-        self.ui.widgetSurvey.move(UI_PADDING, self.ui.widgetSurvey.y())
+        self.ui.widgetSurvey.move(width_panel+2*UI_PADDING, self.ui.widgetSurvey.y())
         self.ui.btn_svy_select_file.move(width_panel-button_width-UI_PADDING,
                                          self.ui.btn_svy_select_file.y())
         self.ui.txt_svy_select_file.resize(self.ui.btn_svy_select_file.x()-self.ui.txt_svy_select_file.x()-UI_PADDING,
                                            self.ui.txt_svy_select_file.height())
-        
-        # right panels
+
         # aggregation panel
         self.ui.widgetAggr.resize(width_panel, self.ui.widgetAggr.height())
         self.ui.widgetAggr.move(width_panel+2*UI_PADDING, self.ui.widgetAggr.y())
@@ -162,6 +194,8 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
                                        self.ui.txt_verify_text.height())
         self.ui.btn_verify.move(width_panel-self.ui.btn_verify.width()-UI_PADDING,
                                 self.ui.btn_verify.y())
+        # logo
+        self.ui.lb_gem_logo.move(self.width()-self.ui.lb_gem_logo.width(), self.ui.lb_gem_logo.y())
             
     @uiCallChecker
     @pyqtSlot()
@@ -346,7 +380,7 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
         #   ignore
 
     @uiCallChecker
-    @pyqtSlot(int)
+    @pyqtSlot(str)
     def setZoneField(self, zone_field):
         # update project if project exists
         if self.project is not None:
@@ -356,12 +390,80 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
                 self.project.zone_field = str(zone_field)            
     
     @uiCallChecker
-    @pyqtSlot(int)
+    @pyqtSlot(str)
     def setZoneCountField(self, zone_count_field):        
         # update project if project exists
         if self.project is not None:
             logUICall.log('\tset zone count field %s ...' % zone_count_field, logUICall.DEBUG_L2)
             self.project.zone_count_field = str(zone_count_field)
+
+    @uiCallChecker
+    @pyqtSlot()
+    def openPopGridData(self):
+        """ show open file dialog box for selecting homogenous data file"""
+        filename = QFileDialog.getOpenFileName(self,
+                                               get_ui_string("widget.input.popgrid.file.open"),
+                                               get_app_dir(),
+                                               get_ui_string("app.extension.shapefile"))
+        if not filename.isNull() and os.path.exists(str(filename)):
+            self.setPopGridFile(str(filename))
+                
+    @uiCallChecker
+    @pyqtSlot(bool)
+    def setPopGridType(self, checked=False):
+        """ control UI based on zone data radio button selected """
+        sender = self.sender()
+        if sender.isChecked():
+            if sender == self.ui.radio_pop_no_data:
+                logUICall.log('\tno zone data ...', logUICall.DEBUG_L2)
+                # update UI
+                self.resetUI(resetPop=True)
+                
+                # update project if project exists
+                if self.project is not None:
+                    self.project.popgrid_type = PopGridTypes.None
+                    self.project.popgrid_file = ''
+                    self.project.pop_field = ''
+                    self.project.pop_to_bldg = ''
+                    self.app.refreshPreview()
+                    
+            elif sender == self.ui.radio_pop_grid:
+                logUICall.log('\tpopulation grid...', logUICall.DEBUG_L2)
+                # update UI
+                self.ui.txt_pop_select_file.setEnabled(True)
+                self.ui.btn_pop_select_file.setEnabled(True)
+                self.ui.cb_pop_pop_field.setEnabled(True)
+                self.ui.cb_pop_proj.setEnabled(True)
+                self.ui.txt_pop_bldg_ratio.setEnabled(True)
+
+                # update project if project exists
+                if self.project is not None:
+                    self.project.popgrid_type = PopGridTypes.Grid
+            else:
+                logUICall.log('\tdo nothing. should not even be here',
+                              logUICall.WARNING)
+        #else:
+        #   ignore
+
+    @uiCallChecker
+    @pyqtSlot(str)
+    def setPopField(self, pop_field):
+        # update project if project exists
+        if self.project is not None:
+            logUICall.log('\tset population field %s ...' % pop_field, logUICall.DEBUG_L2)
+            # update project if project exists
+            if self.project is not None:
+                self.project.pop_field = str(pop_field)            
+    
+    @uiCallChecker
+    @pyqtSlot()
+    def setPopToBldg(self):
+        if self.project is not None:
+            pop_to_ratio = self.ui.txt_pop_bldg_ratio.text()
+            logUICall.log('\tset population to building %s ...' % pop_to_ratio, logUICall.DEBUG_L2)
+            # update project if project exists
+            if self.project is not None:
+                self.project.pop_to_bldg = float(pop_to_ratio)            
 
     @uiCallChecker
     @pyqtSlot()
@@ -454,7 +556,26 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
             # zone field must be set
             if self.ui.cb_zones_class_field.currentText() == ' ':
                 logUICall.log(get_ui_string('widget.input.zone.zonefield.missing'), logUICall.WARNING)
-                return False                  
+                return False
+        # pop grid
+        if (self.ui.radio_pop_grid.isChecked()):
+            # file set
+            path = self.ui.txt_pop_select_file.text() 
+            if path == '':              
+                logUICall.log(get_ui_string('widget.input.popgrid.file.missing'), logUICall.WARNING)
+                return False
+            # file must exist
+            if not os.path.exists(path):
+                logUICall.log(get_ui_string('app.error.file.does.not.exist') % path, logUICall.WARNING)
+                return False
+            # zone field must be set
+            if self.ui.cb_pop_pop_field.currentText() == ' ':
+                logUICall.log(get_ui_string('widget.input.popgrid.popfield.missing'), logUICall.WARNING)
+                return False            
+            if self.ui.txt_pop_bldg_ratio.text() == ' ':
+                logUICall.log(get_ui_string('widget.input.popgrid.poptobldg.missing'), logUICall.WARNING)
+                return False
+                
         if (self.ui.radio_zones_count.isChecked()):
             # count field must be set
             if self.ui.cb_zones_count_field.currentText() == ' ':
@@ -511,6 +632,25 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
             self.project.zone_file = filename
             self.app.refreshPreview()
 
+    def setPopGridFile(self, filename):
+        # update UI
+        logUICall.log('\tset pop grid file to %s ...' % filename,logUICall.DEBUG_L2)
+        self.ui.txt_pop_select_file.setText(filename)
+        
+        logUICall.log('\tupdate combo box ...',logUICall.DEBUG_L2)
+        fields = shapefile_fields(filename)
+        self.ui.cb_pop_pop_field.clear()
+        self.ui.cb_pop_pop_field.addItems([' '] + fields)
+
+        self.ui.cb_pop_proj.clear()
+        self.ui.cb_pop_proj.addItem (shapefile_projection(filename))
+        
+        # update project if project exists
+        if self.project is not None:
+            self.project.popgrid_file = filename
+            self.app.refreshPreview()
+        
+
     def setAggrGridFile(self, filename):
         # update UI
         logUICall.log('\tset aggregate file to %s' % filename,logUICall.DEBUG_L2)
@@ -561,6 +701,16 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
             self.ui.cb_zones_count_field.setCurrentIndex(
                 self.ui.cb_zones_count_field.findText(project.zone_count_field))
         
+        if project.popgrid_type == PopGridTypes.None:
+            self.ui.radio_pop_no_data.setChecked(True)
+        else:
+            self.ui.radio_pop_grid.setChecked(True)
+            self.setPopGridFile(project.popgrid_file)
+            if project.pop_to_bldg is not None:
+                self.ui.txt_pop_bldg_ratio.setText(project.pop_to_bldg)
+            self.ui.cb_pop_pop_field.setCurrentIndex(
+                self.ui.cb_pop_pop_field.findText(project.pop_field))
+        
         if project.output_type == OutputTypes.Zone:
             self.ui.radio_aggr_zones.setChecked(True)
         else:
@@ -591,6 +741,11 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
             self.ui.img_lb_verify_zones.setPixmap(QPixmap(NO_KEY))
         else:
             self.ui.img_lb_verify_zones.setPixmap(QPixmap(YES_KEY))
+        
+        if project is None or project.popgrid_type == PopGridTypes.None:
+            self.ui.img_lb_verify_pop.setPixmap(QPixmap(NO_KEY))
+        else:
+            self.ui.img_lb_verify_pop.setPixmap(QPixmap(YES_KEY))        
             
         if project is None or project.output_type == OutputTypes.Grid:
             self.ui.img_lb_verify_agg_grid.setPixmap(QPixmap(YES_KEY))
@@ -625,7 +780,7 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
         self.resetUI(resetFP=True, resetZone=True, resetSurvey=True, resetOutput=True)
 
 
-    def resetUI(self, resetFP=False, resetZone=False, resetSurvey=False, resetOutput=False):
+    def resetUI(self, resetFP=False, resetZone=False, resetSurvey=False, resetPop=False, resetOutput=False):
         if resetFP:
             logUICall.log('\treset footprint inputs ...',logUICall.DEBUG_L2)
             self.ui.radio_fp_no_data.setChecked(True)
@@ -649,6 +804,8 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
             self.ui.cb_zones_count_field.clear()
             self.ui.cb_zones_proj.setEnabled(False)
             self.ui.cb_zones_proj.clear()
+            self.ui.txt_pop_bldg_ratio.setEnabled(False)
+            self.ui.txt_pop_bldg_ratio.clear()
         
         if resetSurvey:
             logUICall.log('\treset survey inputs ...',logUICall.DEBUG_L2)
@@ -656,6 +813,17 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
             self.ui.txt_svy_select_file.setEnabled(False)
             self.ui.txt_svy_select_file.setText('')
             self.ui.btn_svy_select_file.setEnabled(False)
+        
+        if resetPop:
+            logUICall.log('\treset popgrid inputs ...',logUICall.DEBUG_L2)
+            self.ui.radio_pop_no_data.setChecked(True)
+            self.ui.txt_pop_select_file.setEnabled(False)
+            self.ui.txt_pop_select_file.setText('')
+            self.ui.btn_pop_select_file.setEnabled(False)
+            self.ui.cb_pop_pop_field.clear()
+            self.ui.cb_pop_pop_field.setEnabled(False)
+            self.ui.cb_pop_proj.clear()
+            self.ui.cb_pop_proj.setEnabled(False)            
             
         if resetOutput:
             logUICall.log('\treset output inputs ...',logUICall.DEBUG_L2)

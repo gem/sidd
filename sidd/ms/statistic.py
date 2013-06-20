@@ -16,7 +16,11 @@
 """
 Module class for statistic tree handling
 """
+import copy
 from xml.etree import ElementTree
+from random import random 
+
+from utils.enum import Enum
 
 from sidd.constants import logAPICall, ExtrapolateOptions
 from sidd.taxonomy import TaxonomyParseError
@@ -79,7 +83,8 @@ class Statistics (object):
             raise StatisticError('stat is already finalized and cannot be modified')
         
         if parse_order is None:
-            parse_order = [x.name for x in self.taxonomy.attributes]                        
+            parse_order = [x.name for x in self.taxonomy.attributes]
+            print parse_order
         try:
             bldg_attrs = self.taxonomy.parse(taxstr)
             self.root.add(bldg_attrs, 0, parse_order, self.taxonomy.defaults, parse_modifiers)
@@ -113,12 +118,43 @@ class Statistics (object):
         self.finalized = True        
 
     @logAPICall
-    def get_leaves(self, refresh=False, with_modifier=True):
-        if len(self.leaves)==0 or refresh:
-            self.leaves = []
-            for _child in self.root.children:
-                for _val, _wt in _child.leaves(self.taxonomy.attribute_separator, with_modifier):                    
-                    self.leaves.append([_val, _wt])
+    def refresh_leaves(self, with_modifier=True, order_attributes=False):         
+        self.leaves = []
+        for _child in self.root.children:
+            for _val, _wt, _node in _child.leaves(self.taxonomy.attribute_separator, with_modifier):                    
+                self.leaves.append([_val, _wt, _node])
+        
+        if order_attributes:
+            def _sort_key(val):
+                return val.attribute.order
+            
+            try:
+                #_default_order = [a.name for a in self.taxonomy.attributes]
+                _separator = str(self.taxonomy.separator(self.taxonomy.Separators.Attribute))
+                _ordered_leaves = []                        
+                for _val, _wt, _node in self.leaves:
+                    """
+                    _ordered_vals = copy.deepcopy(self.taxonomy.defaults)
+                    _attr_vals = self.taxonomy.parse(_val)
+                    _order_index = -1                
+                    for _attr_val in _attr_vals:
+                        for idx, _default in enumerate(_ordered_vals):
+                            if _attr_val.attribute.name == _default.attribute.name:
+                                _order_index = idx
+                                break
+                         #assignment done here, because for loop uses iterator (inmutable in theory)
+                        _ordered_vals[_order_index] = _attr_val
+                    #_val = _separator.join([str(v) for v in _ordered_vals])
+                    """                    
+                    _attr_vals = self.taxonomy.parse(_val)
+                    _attr_vals.sort(key=_sort_key)
+                    _val = _separator.join([str(v) for v in _attr_vals])
+                    _ordered_leaves.append([_val, _wt, _node])
+                self.leaves = _ordered_leaves
+                
+            except Exception, err:
+                import traceback
+                traceback.print_exc()
         return self.leaves
     
     @logAPICall
@@ -261,23 +297,38 @@ class Statistics (object):
         samples = {}
         _sample = ''
         
-        if method == ExtrapolateOptions.Fraction or method == ExtrapolateOptions.FractionRounded: 
-            leaves = self.get_leaves(refresh=True, with_modifier=True)
-            for leaf in leaves:
-                value = leaf[1] * total
+        if len(self.leaves)==0:
+            self.refresh_leaves(with_modifier=True, order_attributes=True)
+        
+        if method == ExtrapolateOptions.Fraction or method == ExtrapolateOptions.FractionRounded:            
+            # multiple weights, size and replacement cost
+            for _val, _wt, _node in self.leaves:
+                t_count = _wt * total
                 if method == ExtrapolateOptions.FractionRounded:
-                    value = round(value)
-                samples[leaf[0]] = value
-                                            
-        else: # default / method=ExtrapolateOptions.RandomWalk
+                    t_count = round(t_count)
+                _size = _node.get_additional_float(StatisticNode.AverageSize)
+                _cost = _node.get_additional_float(StatisticNode.UnitCost)
+                samples[_val] = (_val, t_count, t_count*_size, t_count*_size*_cost)
+        else: 
+            # method=ExtrapolateOptions.RandomWalk
+            def get_leaf(leaves, thresh):                                
+                for _val, _wt, _node in leaves:
+                    if _wt < thresh:
+                        thresh -= _wt
+                    else:
+                        return _val, _node
+                return _val, _node
+            
             for i in range(total):
-                #while _sample == '':
-                _sample = self.get_sample_walk(False)
-                if samples.has_key(_sample):
-                    samples[_sample]+=1
+                _val, _node = get_leaf(self.leaves, random())
+                _size = _node.get_additional_float(StatisticNode.AverageSize)
+                _cost = _node.get_additional_float(StatisticNode.UnitCost)   
+                if samples.has_key(_val):
+                    t_val, t_count, t_size, t_cost = samples[_val]
+                    samples[_val] = (_val, t_count+1, t_size+_size, t_cost+t_size+_cost)
                 else:
-                    samples[_sample]=1        
-        return samples
+                    samples[_val]=(_val, _size, _size, _size+_cost)
+        return samples.values()
     
     @logAPICall
     def get_tree(self):
@@ -294,13 +345,6 @@ class Statistics (object):
     def get_depth(self):
         """ get depth for underlying tree """
         return self.root.max_level()
-
-    @logAPICall
-    def get_sample_walk(self, skip_details=True):
-        """ get one sample from underlying tree """
-        return self.root.random_walk(self.taxonomy.attribute_separator,
-                                     "",
-                                     skip_details)
 
     @logAPICall
     def to_xml(self, pretty=False):
@@ -330,3 +374,4 @@ class Statistics (object):
         if not isinstance(xmlstr, str):
             raise StatisticError('input must be string')
         self.from_xml(ElementTree.fromstring(xmlstr))
+

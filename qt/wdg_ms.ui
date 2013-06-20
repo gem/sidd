@@ -44,7 +44,7 @@
     <rect>
      <x>10</x>
      <y>0</y>
-     <width>891</width>
+     <width>501</width>
      <height>31</height>
     </rect>
    </property>
@@ -588,8 +588,8 @@
   <widget class="QWidget" name="widget_ms_leaves" native="true">
    <property name="geometry">
     <rect>
-     <x>890</x>
-     <y>30</y>
+     <x>220</x>
+     <y>640</y>
      <width>561</width>
      <height>531</height>
     </rect>
@@ -702,6 +702,25 @@
      <string>Include Modifiers</string>
     </property>
    </widget>
+  </widget>
+  <widget class="QLabel" name="lb_gem_logo">
+   <property name="geometry">
+    <rect>
+     <x>830</x>
+     <y>0</y>
+     <width>121</width>
+     <height>61</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="pixmap">
+    <pixmap resource="resources/SIDDResource.qrc">:/imgs/gem_logo_120X60.png</pixmap>
+   </property>
+   <property name="scaledContents">
+    <bool>true</bool>
+   </property>
   </widget>
  </widget>
  <resources>

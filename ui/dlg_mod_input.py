@@ -16,10 +16,11 @@
 """
 dialog for editing secondary modifiers
 """
-from PyQt4.QtGui import QDialog, QAbstractItemView, QItemSelectionModel
-from PyQt4.QtCore import pyqtSlot, Qt, QObject, QSize, QVariant
+from PyQt4.QtGui import QCloseEvent, QDialog, QAbstractItemView, QItemSelectionModel
+from PyQt4.QtCore import pyqtSlot, Qt, QSettings, QObject, QSize, QVariant
 
 from sidd.ms import StatisticNode
+from sidd.constants import SIDD_COMPANY, SIDD_APP_NAME, SIDD_VERSION
 
 from ui.constants import logUICall, UI_PADDING 
 from ui.qt.dlg_mod_input_ui import Ui_modifierInputDialog
@@ -32,12 +33,20 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
     """
     dialog for editing mapping scheme branches
     """
+    
+    # CONSTANTS
+    #############################    
+    UI_WINDOW_GEOM = 'dlg_mod_input/geometry'
+        
     # constructor
     ###############################    
     def __init__(self, app):
         super(DialogModInput, self).__init__()
         self.ui = Ui_modifierInputDialog()
         self.ui.setupUi(self)
+        
+        self.settings = QSettings(SIDD_COMPANY, '%s %s' %(SIDD_APP_NAME, SIDD_VERSION));
+        self.restoreGeometry(self.settings.value(self.UI_WINDOW_GEOM).toByteArray());
         
         self.app = app
         self.ms = None
@@ -89,6 +98,11 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
                                         w * 0.5, ui.lb_percent.y()-ui.table_mod_values.y()-UI_PADDING)           
         ui.table_mod_values.horizontalHeader().resizeSection(0, ui.table_mod_values.width() * 0.6)
         ui.table_mod_values.horizontalHeader().resizeSection(1, ui.table_mod_values.width() * 0.4)              
+
+    @pyqtSlot(QCloseEvent)
+    def closeEvent(self, event):
+        self.settings.setValue(self.UI_WINDOW_GEOM, self.saveGeometry());
+        super(DialogModInput, self).closeEvent(event)
         
     @logUICall
     @pyqtSlot()
@@ -140,7 +154,7 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
                 attribute = self.ms.taxonomy.get_attribute_by_name(node.name)
                 if attribute.levels > 1:
                     self.ui.cb_attributes.addItem(node.name)
-                    _allow_modifier=True                    
+                    _allow_modifier=True 
                 else:
                     _allow_modifier=False                
                 self.ui.btn_add.setEnabled(_allow_modifier)
@@ -172,10 +186,7 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
                                             taxonomy, attribute,
                                             self.node.value, str(index.data().toString()))
             if edit_dlg.exec_() == QDialog.Accepted:                
-                try:
-                    index.model().setData(index, QVariant(edit_dlg.attribute_value), Qt.EditRole)                  
-                except Exception as err:
-                    print err
+                index.model().setData(index, QVariant(edit_dlg.modifier_value), Qt.EditRole)
 
     # public method
     ###############################
@@ -206,7 +217,7 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
             modidx, modifier, src_node = mod[4:]
 
             # expand tree from root to node 
-            indices = self.tree_model.match(self.ui.tree_ms.rootIndex(), Qt.DisplayRole, src_node.value, 1)            
+            indices = self.tree_model.match(self.ui.tree_ms.rootIndex(), Qt.UserRole, src_node, 1)
             if len(indices)==1:
                 index = indices[0]
                 while index <> self.ui.tree_ms.rootIndex():
