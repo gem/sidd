@@ -68,10 +68,6 @@ class ToGrid(Operator):
         return QGis.WKBPolygon
     
     def _outputGeometryFromLatLon(self, lat, lon):
-        #lon = floor(lon / DEFAULT_GRID_SIZE) * DEFAULT_GRID_SIZE
-        #lat = ceil(lat / DEFAULT_GRID_SIZE) * DEFAULT_GRID_SIZE              
-        #return QgsGeometry.fromRect(QgsRectangle(lon-DEFAULT_HALF_GRID_SIZE, lat-DEFAULT_HALF_GRID_SIZE,
-        #                                         lon+DEFAULT_HALF_GRID_SIZE, lat+DEFAULT_HALF_GRID_SIZE))
         return self._outputGeometryFromGridId(latlon_to_grid(lat, lon)) 
 
     def _outputGeometryFromGridId(self, grid_id):

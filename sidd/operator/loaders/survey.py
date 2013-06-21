@@ -111,7 +111,7 @@ class GEMDBSurveyLoader(Operator):
             
         except Exception as err:
             remove_shapefile(tmp_survey_file)
-            raise OperatorError("Error Loading Survey: %s" % err,
+            raise OperatorError("Error Loading Survey\n%s" % err,
                                 self.__class__)
         try:
             # store loaded data
@@ -119,7 +119,7 @@ class GEMDBSurveyLoader(Operator):
             tmp_survey_layer = load_shapefile_verify(tmp_survey_file, tmp_survey_layername,
                                                      [self._lon_field, self._lat_field, self._tax_field])            
         except Exception as err:
-            raise OperatorError("Error Loading Survey: %s" % err,
+            raise OperatorError("Error Loading Survey\n%s" % err,
                                 self.__class__)
         
         self.outputs[0].value = tmp_survey_layer

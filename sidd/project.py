@@ -331,9 +331,15 @@ class Project (object):
         builder = WorkflowBuilder(self.operator_options)
         try:
             verify_workflow = builder.build_verify_result_workflow(self)
-            # process workflow
-            for step in verify_workflow.nextstep():
+        except WorkflowException:
+            return False
+        # process workflow
+        for step in verify_workflow.nextstep():
+            try:
                 step.do_operation()
+            except Exception as err:
+                logAPICall.log(err, logAPICall.WARNING)
+                return False
             
             self.quality_reports={}
             if verify_workflow.operator_data.has_key('frag_report'):
@@ -341,11 +347,6 @@ class Project (object):
             if verify_workflow.operator_data.has_key('count_report'):
                 self.quality_reports['count'] = verify_workflow.operator_data['count_report'].value
             logAPICall.log('result verification completed', logAPICall.INFO)
-        except WorkflowException:
-            return False
-        except Exception as err:
-            logAPICall.log(err, logAPICall.ERROR)
-            return False
 
     # project database access methods
     ##################################
@@ -573,30 +574,24 @@ class Project (object):
         input_file = getattr(self, input_param, None)
         if input_file is not None:
             builder = WorkflowBuilder(self.operator_options)
-            try:
-                # create workflow
-                if input_param == 'fp_file':
-                    workflow = builder.build_load_fp_workflow(self)
-                elif input_param == 'zone_file':
-                    workflow = builder.build_load_zones_workflow(self)
-                elif input_param == 'survey_file':
-                    workflow = builder.build_load_survey_workflow(self)
-                elif input_param == 'popgrid_file':
-                    workflow = builder.build_load_popgrid_workflow(self)
-                else:
-                    raise Exception('Data Type Not Recognized %s' % input_param)
-                
-                if not workflow.ready:
-                    raise Exception('Cannot load data with %s' % input_param)
-                workflow.process()
-                
-                logAPICall.log('data file %s loaded' % input_file, logAPICall.INFO)
-                return workflow.operator_data[layer].value, workflow.operator_data[output_file].value
-            except WorkflowException:
-                logAPICall.log('Error Loading file %s' % input_file, logAPICall.ERROR)
-            except Exception as err:
-                logAPICall.log(err, logAPICall.ERROR)
-                return False           
+            # create workflow
+            if input_param == 'fp_file':
+                workflow = builder.build_load_fp_workflow(self)
+            elif input_param == 'zone_file':
+                workflow = builder.build_load_zones_workflow(self)
+            elif input_param == 'survey_file':
+                workflow = builder.build_load_survey_workflow(self)
+            elif input_param == 'popgrid_file':
+                workflow = builder.build_load_popgrid_workflow(self)
+            else:
+                raise Exception('Data Type Not Recognized %s' % input_param)
+            
+            if not workflow.ready:
+                raise Exception('Cannot load data with %s' % input_param)
+            workflow.process()
+            
+            logAPICall.log('data file %s loaded' % input_file, logAPICall.INFO)
+            return workflow.operator_data[layer].value, workflow.operator_data[output_file].value
 
     def _build_ms(self, isEmpty=False, useSampling=False):
         """ create mapping scheme """

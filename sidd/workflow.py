@@ -145,6 +145,7 @@ class WorkflowBuilder(object):
             (['fp', 'zone',], OutputTypes.Zone, self._footprint_to_zone_workflow),
             (['zone', 'zone_count_field'], OutputTypes.Zone, self._zonecount_to_zone_workflow),
             (['zone', 'zone_count_field'], OutputTypes.Grid, self._zonecount_to_grid_workflow),
+            (['zone', 'popgrid'], OutputTypes.Zone, self._pop_to_zone_workflow),
             (['zone', 'popgrid'], OutputTypes.Grid, self._pop_to_grid_workflow),
         ]
 
@@ -751,3 +752,43 @@ class WorkflowBuilder(object):
         ms_applier.outputs = [workflow.operator_data['exposure'],
                               workflow.operator_data['exposure_file'],]
         workflow.operators.append(ms_applier)
+
+    def _pop_to_zone_workflow(self, project, workflow):
+        """ create exposure aggregated into zone with population and zone """
+        
+        # action (operator) required
+        # 1 attach population counts to zones (convert to building count in process)
+        # 2 apply mapping scheme to grid
+        ###################################
+        
+        # 1 attach population counts to zones (convert to building count in process)
+        ###################################
+        workflow.operator_data['zone2'] = OperatorData(OperatorDataTypes.Zone)
+        workflow.operator_data['zone_file2'] = OperatorData(OperatorDataTypes.Shapefile)
+        grid_writer = ZonePopgridCounter(self._operator_options)
+        
+        pop_to_bldg = project.pop_to_bldg
+        grid_writer.inputs = [workflow.operator_data['zone'],
+                              workflow.operator_data['zone_field'],
+                              workflow.operator_data['popgrid'],
+                              OperatorData(OperatorDataTypes.NumericAttribute, pop_to_bldg)]                         
+                    
+        grid_writer.outputs = [workflow.operator_data['zone2'],
+                               workflow.operator_data['zone_file2'],]        
+        workflow.operators.append(grid_writer)
+        
+        # 2 apply mapping scheme to grid
+        ###################################
+        workflow.operator_data['exposure'] = OperatorData(OperatorDataTypes.Exposure)
+        workflow.operator_data['exposure_file'] = OperatorData(OperatorDataTypes.Shapefile)
+        
+        ms_applier = ZoneMSApplier(self._operator_options)
+        ms_applier.inputs = [
+            workflow.operator_data['zone2'],
+            workflow.operator_data['zone_field'],
+            OperatorData(OperatorDataTypes.StringAttribute, CNT_FIELD_NAME),
+            workflow.operator_data['ms'],]
+        ms_applier.outputs = [workflow.operator_data['exposure'],
+                              workflow.operator_data['exposure_file'],]        
+        workflow.operators.append(ms_applier)
+                

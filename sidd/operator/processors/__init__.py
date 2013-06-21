@@ -18,7 +18,7 @@ package contains SIDD operators
 """
 from aggregate import FootprintAggregator
 from grid import GridWriter, GridFromRegionWriter, GridGeometryWriter, ExposureGeometryWriter
-from join import ZoneGridMerger, ZoneFootprintMerger, ZoneFootprintCounter
+from join import ZoneGridMerger, ZoneFootprintMerger, ZoneFootprintCounter, ZonePopgridCounter
 from grids import FootprintZoneToGrid, ZoneToGrid, PopgridZoneToGrid
 from exposure import GridMSApplier, ZoneMSApplier, SurveyAggregator
 from ms_create import EmptyMSCreator, EmptyZonesMSCreator, SurveyOnlyMSCreator, \

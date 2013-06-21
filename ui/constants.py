@@ -230,6 +230,7 @@ SIDD_UI_STRINGS = {
     "message.sidd.operator.processors.join.ZoneGridMerger":QApplication.translate('app.processing', 'Assigning GEM Grids to Zones ...', None, QApplication.UnicodeUTF8),
     "message.sidd.operator.processors.join.ZoneFootprintMerger":QApplication.translate('app.processing', 'Assigning Footprints to Zones ...', None, QApplication.UnicodeUTF8),
     "message.sidd.operator.processors.join.ZoneFootprintCounter":QApplication.translate('app.processing', 'Counting Footprints to in Zones ...', None, QApplication.UnicodeUTF8),
+    "message.sidd.operator.processors.join.ZonePopgridCounter":QApplication.translate('app.processing', 'Aggregating Population into Zones ...', None, QApplication.UnicodeUTF8),
     "message.sidd.operator.processors.ms_create.EmptyMSCreator":QApplication.translate('app.processing', 'Creating Empty Mapping Scheme ...', None, QApplication.UnicodeUTF8),
     "message.sidd.operator.processors.ms_create.EmptyZonesMSCreator":QApplication.translate('app.processing', 'Creating Empty Mapping Scheme ...', None, QApplication.UnicodeUTF8),
     "message.sidd.operator.processors.ms_create.SurveyZonesMSCreator":QApplication.translate('app.processing', 'Creating Mapping Scheme from Survey ...', None, QApplication.UnicodeUTF8),

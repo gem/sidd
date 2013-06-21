@@ -452,4 +452,119 @@ class ZoneFootprintCounter(EmptyOperator):
         self.outputs[0].value = output_layer
         self.outputs[1].value = output_file
 
+class ZonePopgridCounter(EmptyOperator):
+    
+    
+    def __init__(self, options=None, name='Zone & Footprint Counter'):
+        super(ZonePopgridCounter, self).__init__(options, name)
+        self._tmp_dir = options['tmp_dir']
+    
+    # self documenting method override
+    ###########################
+    
+    @property
+    def input_types(self):
+        return [OperatorDataTypes.Zone,
+                OperatorDataTypes.StringAttribute,
+                OperatorDataTypes.Population,
+                OperatorDataTypes.NumericAttribute]
+        
+    @property    
+    def input_names(self):
+        return ["Homogenous Zone", "Zone Field", "Population Grid", "Population to Building Ratio"]
+    
+    input_descriptions = input_names
 
+    @property
+    def output_types(self):
+        return [OperatorDataTypes.Zone,
+                OperatorDataTypes.Shapefile]
+        
+    @property    
+    def output_names(self):
+        return ["Zone with building count",
+                "Zone Shapefile"]
+
+    output_descriptions = output_names    
+
+    # public method override
+    ###########################
+    
+    @logAPICall
+    def do_operation(self):
+        """ perform create mapping scheme operation """
+        
+        # input/output verification already performed during set input/ouput
+        zone_layer = self.inputs[0].value
+        zone_field = self.inputs[1].value
+        popgrid_layer = self.inputs[2].value
+        pop_to_bldg = float(self.inputs[3].value)
+        
+        # merge with zone 
+        tmp_join = 'joined_%s' % get_unique_filename()
+        tmp_join_file = '%s%s.shp' % (self._tmp_dir, tmp_join)        
+        analyzer = QgsOverlayAnalyzer()
+        try:
+            analyzer.intersection(popgrid_layer, zone_layer, tmp_join_file)
+            tmp_join_layer = load_shapefile(tmp_join_file, tmp_join)
+        except AssertionError as err:
+            raise OperatorError(str(err), self.__class__)
+        except Exception as err:
+            raise OperatorError(str(err), self.__class__)
+        
+        # count footprint in each zone
+        stats = {}
+        _gid_idx = layer_field_index(tmp_join_layer, GID_FIELD_NAME + "_")        
+        _cnt_idx = layer_field_index(tmp_join_layer, CNT_FIELD_NAME)
+        for _f in layer_features(tmp_join_layer):
+            # retrieve count from statistic
+            _gid = _f.attributeMap()[_gid_idx].toString()
+            _count = _f.attributeMap()[_cnt_idx].toString()
+            if stats.has_key(_gid):
+                stats[_gid]+=float(_count) / pop_to_bldg
+            else:
+                stats[_gid]=float(_count)  / pop_to_bldg          
+        
+        output_layername = 'zone_%s' % get_unique_filename()
+        output_file = '%s%s.shp' % (self._tmp_dir, output_layername)
+        logAPICall.log('create outputfile %s ... ' % output_file, logAPICall.DEBUG)
+        try:            
+            fields ={
+                0 : QgsField(GID_FIELD_NAME, QVariant.Int),
+                1 : QgsField(zone_field, QVariant.String),
+                2 : QgsField(CNT_FIELD_NAME, QVariant.Int),
+            }
+            writer = QgsVectorFileWriter(output_file, "utf-8", fields, QGis.WKBPolygon, self._crs, "ESRI Shapefile")                     
+            f = QgsFeature()            
+            for _f in layer_features(zone_layer):
+                
+                # write to file
+                f.setGeometry(_f.geometry())
+                f.addAttribute(0, _f.attributeMap()[0])
+                f.addAttribute(1, _f.attributeMap()[1])                
+                
+                # retrieve count from statistic
+                try:
+                    gid = _f.attributeMap()[0].toString()
+                    bldg_count = stats[gid]
+                except:
+                    bldg_count = 0
+                f.addAttribute(2, QVariant(bldg_count))
+                writer.addFeature(f)
+            
+            del writer, f
+        except Exception as err:            
+            remove_shapefile(output_file)
+            raise OperatorError("error creating zone: %s" % err, self.__class__)
+
+        # clean up
+        del tmp_join_layer
+        remove_shapefile(tmp_join_file)
+
+        # store data in output
+        output_layer = load_shapefile(output_file, output_layername)
+        if not output_layer:
+            raise OperatorError('Error loading footprint centroid file' % (output_file), self.__class__)        
+        self.outputs[0].value = output_layer
+        self.outputs[1].value = output_file
+    
