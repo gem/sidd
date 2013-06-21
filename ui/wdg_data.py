@@ -73,6 +73,7 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
         self.project = None
         WidgetDataInput.uiCallChecker.project_is_required = False
 
+        # show/hide popgrid based on configuration  
         self.showPopgrid = (app.app_config.get('options', 'allow_popgrid', 0, int) == 1)        
         if not self.showPopgrid:
             self.ui.widgetPop.setVisible(False)
@@ -80,6 +81,14 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
             self.ui.lb_verify_pop.setVisible(False)
             self.ui.img_lb_verify_svy.move(self.ui.img_lb_verify_svy.x(), self.ui.img_lb_verify_pop.y())
             self.ui.lb_verify_svy.move(self.ui.lb_verify_svy.x(), self.ui.lb_verify_pop.y())            
+        
+        # hide help labels
+        self.ui.img_lb_fp_desc_help.setVisible(False)
+        self.ui.img_lb_zones_desc_help.setVisible(False)
+        self.ui.img_lb_pop_desc_help.setVisible(False)
+        self.ui.img_lb_svy_desc_help.setVisible(False)
+        self.ui.img_lb_aggr_desc_help.setVisible(False)        
+        
         
         # default input data setting
         self.ui.radio_fp_no_data.setChecked(True)        

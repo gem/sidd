@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qt\wdg_mod.ui'
 #
-# Created: Wed Jun 19 10:41:23 2013
+# Created: Fri Jun 21 14:28:00 2013
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -62,7 +62,7 @@ class Ui_widgetSecondaryModifier(object):
         self.lb_gem_logo.setGeometry(QtCore.QRect(800, 0, 121, 61))
         self.lb_gem_logo.setText(_fromUtf8(""))
         self.lb_gem_logo.setPixmap(QtGui.QPixmap(_fromUtf8(":/imgs/gem_logo_120X60.png")))
-        self.lb_gem_logo.setScaledContents(True)
+        self.lb_gem_logo.setScaledContents(False)
         self.lb_gem_logo.setObjectName(_fromUtf8("lb_gem_logo"))
 
         self.retranslateUi(widgetSecondaryModifier)

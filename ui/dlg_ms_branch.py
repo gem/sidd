@@ -121,6 +121,7 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
         if self.dlgAttrRange.exec_() == QDialog.Accepted:
             self._ranges[attribute_name] = {'min_values':self.dlgAttrRange.min_values,
                                             'max_values':self.dlgAttrRange.max_values}
+            self.attributeUpdated(self.ui.cb_attributes.currentText())
 
     @logUICall
     @pyqtSlot()
@@ -162,30 +163,22 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
             # retrieve range if exists
             if self._ranges.has_key(str(attribute_name)):
                 ranges = self._ranges[str(attribute_name)]                
-            else:
-                # allow user to input range
-                self.dlgAttrRange.set_values(attribute_name, [], [])
-                if self.dlgAttrRange.exec_() == QDialog.Accepted:
-                    self._ranges[attribute_name] = {'min_values':self.dlgAttrRange.min_values,
-                                                    'max_values':self.dlgAttrRange.max_values}
-                    ranges = self._ranges[attribute_name]
-                else:
-                    # range is required, otherwise, nothing to show in drop-down
-                    return
-            
-            # add all ranges to list of codes for drop-down
-            for min_val, max_val in map(None, ranges['min_values'], ranges['max_values']):
-                value = attribute.make_string([min_val, max_val])
-                self.valid_codes[value] = value
 
-            # test for range [0,0], which is the unknown case
-            if ranges['min_values'] >0 and ranges['max_values']>0:
-                value = attribute.make_string([None, None])
-                self.valid_codes[value] = value
-                
+                # add all ranges to list of codes for drop-down
+                for min_val, max_val in map(None, ranges['min_values'], ranges['max_values']):
+                    value = attribute.make_string([min_val, max_val])
+                    self.valid_codes[value] = value
+    
+                # test for range [0,0], which is the unknown case
+                if ranges['min_values'] >0 and ranges['max_values']>0:
+                    value = attribute.make_string([None, None])
+                    self.valid_codes[value] = value
+                    
+            else:
+                # allow user use inputbox
+                pass            
             # enable button for editing ranges 
-            self.ui.btn_range.setEnabled(True)             
-        
+            self.ui.btn_range.setEnabled(True)
         else:               # code only types that cannot have ranges
             # find appropriate level 1 code
             # and add to list of codes for drop-down
@@ -196,7 +189,7 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
             self.ui.btn_range.setEnabled(False)            
         
         # set list of values to table editor 
-        if len(self.valid_codes) > 0:
+        if len(self.valid_codes) > 1:
             attr_editor = MSAttributeItemDelegate(self.ui.table_ms_level, self.valid_codes, 0)
             self.ui.table_ms_level.setItemDelegateForColumn(0, attr_editor)
         else:

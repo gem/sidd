@@ -719,7 +719,7 @@
     <pixmap resource="resources/SIDDResource.qrc">:/imgs/gem_logo_120X60.png</pixmap>
    </property>
    <property name="scaledContents">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </widget>
  </widget>

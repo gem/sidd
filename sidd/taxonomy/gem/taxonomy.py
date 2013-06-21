@@ -290,6 +290,11 @@ class GemTaxonomyAttribute(TaxonomyAttribute):
         if self.type == 1:
             return '+'.join([str(v) for v in values])
         else:
+            if qualifier is None:
+                if (values[0] is not None and values[1] is not None):
+                    qualifier=GemTaxonomyAttribute.RANGE
+                else:
+                    qualifier=GemTaxonomyAttribute.EXACT                    
             if self.name == "Height":                
                 # construct valid height string from given values
                 if (values[0] is None or values[1] is None) or (values[0] == 0 and values[1] == 0):

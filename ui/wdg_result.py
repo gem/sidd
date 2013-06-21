@@ -389,8 +389,7 @@ class WidgetResult(Ui_widgetResult, QWidget):
         
         if self._project.popgrid_file is not None and exists(self._project.popgrid_file):
             if getattr(self._project, 'popgrid', None) is None:
-                self._project.load_popgrid()
-                self.map_layers[self.POP_GRID] = self._project.survey 
+                self.map_layers[self.POP_GRID] = load_shapefile(self._project.popgrid_file, 'popgrid') 
                 self.showDataLayer(self.map_layers[self.POP_GRID], self.map_layer_renderer[self.POP_GRID])
         else:            
             self.removeDataLayer(self.POP_GRID)

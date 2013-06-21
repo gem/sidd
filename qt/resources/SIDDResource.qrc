@@ -1,7 +1,7 @@
 <RCC>
   <qresource prefix="imgs">
-    <file>gem_logo_120X60.png</file>
     <file>icon.png</file>
+    <file>gem_logo_120X60.png</file>
     <file>logo.png</file>
     <file>icons/arrow_bottom.png</file>
     <file>icons/arrow_top.png</file>

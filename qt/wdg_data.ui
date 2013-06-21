@@ -1056,7 +1056,7 @@ p, li { white-space: pre-wrap; }
     <pixmap resource="resources/SIDDResource.qrc">:/imgs/gem_logo_120X60.png</pixmap>
    </property>
    <property name="scaledContents">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
   </widget>
   <widget class="QWidget" name="widgetPop" native="true">
@@ -1300,15 +1300,6 @@ p, li { white-space: pre-wrap; }
     </property>
    </widget>
   </widget>
-  <zorder>widgetSurvey</zorder>
-  <zorder>widgetResult</zorder>
-  <zorder>widgetAggr</zorder>
-  <zorder>widgetFootprint</zorder>
-  <zorder>widgetTitle</zorder>
-  <zorder>widgetZones</zorder>
-  <zorder>lb_gem_logo</zorder>
-  <zorder>widgetPop</zorder>
-  <zorder>lb_pop_title</zorder>
  </widget>
  <tabstops>
   <tabstop>radio_fp_no_data</tabstop>

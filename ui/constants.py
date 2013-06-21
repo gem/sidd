@@ -58,7 +58,7 @@ SIDD_UI_STRINGS = {
     ######################
     "app.extension.shapefile":QApplication.translate('app.extension', 'Shapefile (*.shp)', None, QApplication.UnicodeUTF8),
     "app.extension.csv":QApplication.translate('app.extension', 'CSV data(*.csv)', None, QApplication.UnicodeUTF8),
-    "app.extension.db":QApplication.translate('app.extension', 'DB file(*.db)', None, QApplication.UnicodeUTF8),
+    "app.extension.db":QApplication.translate('app.extension', 'SIDD file(*.db)', None, QApplication.UnicodeUTF8),
     "app.extension.kml":QApplication.translate('app.extension', 'KML (*.kml)', None, QApplication.UnicodeUTF8),
     "app.extension.xml":QApplication.translate('app.extension', 'XML(*.xml)', None, QApplication.UnicodeUTF8),
     "app.extension.nrml":QApplication.translate('app.extension', 'NRML(*.xml)', None, QApplication.UnicodeUTF8),

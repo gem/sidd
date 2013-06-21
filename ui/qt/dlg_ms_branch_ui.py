@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qt\dlg_ms_branch.ui'
 #
-# Created: Mon Apr 29 16:49:29 2013
+# Created: Fri Jun 21 10:53:02 2013
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -96,7 +96,7 @@ class Ui_editMSDialog(object):
         self.btn_close.setText(QtGui.QApplication.translate("editMSDialog", "Close", None, QtGui.QApplication.UnicodeUTF8))
         self.btn_save.setToolTip(QtGui.QApplication.translate("editMSDialog", "Save Mapping Scheme Branch", None, QtGui.QApplication.UnicodeUTF8))
         self.lb_attribute.setText(QtGui.QApplication.translate("editMSDialog", "Attribute Name", None, QtGui.QApplication.UnicodeUTF8))
-        self.lb_total_weights.setText(QtGui.QApplication.translate("editMSDialog", "Some of Weights", None, QtGui.QApplication.UnicodeUTF8))
+        self.lb_total_weights.setText(QtGui.QApplication.translate("editMSDialog", "Sum of weights", None, QtGui.QApplication.UnicodeUTF8))
         self.lb_percent.setText(QtGui.QApplication.translate("editMSDialog", "%", None, QtGui.QApplication.UnicodeUTF8))
         self.btn_range.setToolTip(QtGui.QApplication.translate("editMSDialog", "Edit Value Grouping", None, QtGui.QApplication.UnicodeUTF8))
 

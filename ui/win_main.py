@@ -155,6 +155,11 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
             # cleanup is not-critical. no action taken even if fails
             pass
 
+        # hide view menu
+        self.ui.menuView.menuAction().setVisible(False)
+        # hide data wizard
+        self.ui.actionUsing_Data_Wizard.setVisible(False)
+
         # enable following during development
         #self._dev_short_cut()
         

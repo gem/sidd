@@ -37,6 +37,10 @@ def load_shapefile(input_file, layer_name):
     _layer = False
     if os.path.exists(input_file):
         _layer = QgsVectorLayer(input_file, layer_name, 'ogr')
+        # create spatial index if missing
+        # QGIS spatial index file has ,qix extension  
+        if not os.path.exists('%s.qix'%input_file[:-4]):
+            _layer.dataProvider().createSpatialIndex()       
     return _layer
 
 def shapefile_fields(input_file):
@@ -51,8 +55,10 @@ def shapefile_fields(input_file):
 
 def shapefile_projection(input_file):
     layer = load_shapefile(input_file, get_random_name())
-    crs_string = layer.crs().description()
-    del layer
+    crs_string = ''
+    if layer:
+        crs_string = layer.crs().description()
+        del layer
     return crs_string
 
 def remove_shapefile(input_file):    
