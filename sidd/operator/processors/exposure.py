@@ -120,7 +120,10 @@ class GridMSApplier(Operator):
         count_idx = layer_field_index(src_layer, count_field)
         if count_idx == -1:
             raise OperatorError("field %s not found in input layer" % count_field, self.__class__)
-         
+        gid_idx = layer_field_index(src_layer, GID_FIELD_NAME)
+        if gid_idx == -1:
+            raise OperatorError("field %s not found in input layer" % GID_FIELD_NAME, self.__class__)
+        
         provider.select(provider.attributeIndexes(), provider.extent())
         provider.rewind()
 
@@ -139,6 +142,7 @@ class GridMSApplier(Operator):
             for in_feature in layer_features(src_layer):
                 geom = in_feature.geometry()
                 centroid = geom.centroid().asPoint ()
+                gid = in_feature.attributeMap()[gid_idx]
                 zone_str = str(in_feature.attributeMap()[zone_idx].toString())
                 count = in_feature.attributeMap()[count_idx].toDouble()[0]
                 
@@ -151,8 +155,7 @@ class GridMSApplier(Operator):
                 # use default stats if missing
                 if stats is None:
                     stats = default_stats
-                    
-                gid += 1
+                
                 for _sample in stats.get_samples(count, self._extrapolationOption):
                     # write out if there are structures assigned
                     _type = _sample[0]
@@ -162,7 +165,7 @@ class GridMSApplier(Operator):
                     if _cnt > 0:
                         out_feature.setGeometry(geom)
                         #out_feature.addAttribute(0, QVariant(gid))
-                        out_feature.addAttribute(0, QVariant(latlon_to_grid(centroid.y(), centroid.x())))
+                        out_feature.addAttribute(0, gid)
                         out_feature.addAttribute(1, QVariant(centroid.x()))
                         out_feature.addAttribute(2, QVariant(centroid.y()))
                         out_feature.addAttribute(3, QVariant(_type))

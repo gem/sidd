@@ -111,7 +111,7 @@ class Statistics (object):
         self.finalized = True        
 
     @logAPICall
-    def refresh_leaves(self, with_modifier=True, order_attributes=False):         
+    def refresh_leaves(self, with_modifier=True, order_attributes=False, fill_missing=True):         
         self.leaves = []
         for _child in self.root.children:
             for _val, _wt, _node in _child.leaves(self.taxonomy.attribute_separator, with_modifier):                    
@@ -125,10 +125,27 @@ class Statistics (object):
                 _separator = str(self.taxonomy.separator(self.taxonomy.Separators.Attribute))
                 _ordered_leaves = []                        
                 for _val, _wt, _node in self.leaves:
-                    _attr_vals = self.taxonomy.parse(_val)
-                    _attr_vals.sort(key=_sort_key)
-                    _val = _separator.join([str(v) for v in _attr_vals])
+                    _attr_vals = self.taxonomy.parse(_val)                        
+                    if fill_missing:
+                        # must deep copy defaults, slow
+                        _ordered_vals = copy.deepcopy(self.taxonomy.defaults)
+                        _order_index = -1
+                        for _attr_val in _attr_vals:
+                            for idx, _default in enumerate(_ordered_vals):
+                                if _attr_val.attribute.name == _default.attribute.name:
+                                    _order_index = idx
+                                    break
+                            #assignment done here, because for loop uses iterator (inmutable in theory)                    
+                            _ordered_vals[_order_index] = _attr_val
+                        _val = _separator.join([str(v) for v in _ordered_vals])                        
+                    else:
+                        # this method is much quicker
+                        _attr_vals = self.taxonomy.parse(_val)
+                        _attr_vals.sort(key=_sort_key)
+                        _val = _separator.join([str(v) for v in _attr_vals])
+                    
                     _ordered_leaves.append([_val, _wt, _node])
+                        
                 self.leaves = _ordered_leaves                
             except Exception, err:
                 import traceback

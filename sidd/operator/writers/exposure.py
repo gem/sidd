@@ -86,10 +86,10 @@ class ExposureSHPWriter(NullWriter):
                                          exp_layer.crs(), "ESRI Shapefile")
             out_feature = QgsFeature()
             for feature in layer_features(exp_layer):
-                gid = feature.attributeMap()[gid_idx]                
+                gid = str(feature.attributeMap()[gid_idx].toString())
                 # only write out once 
                 if not db.has_key(gid):
-                    db[gid]=1
+                    db[gid]= '1'    # bsddb only accepts string 
                     out_feature.addAttribute(0, gid)
                     out_feature.setGeometry(feature.geometry())
                     writer.addFeature(out_feature)

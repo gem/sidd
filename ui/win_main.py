@@ -159,27 +159,7 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         self.ui.menuView.menuAction().setVisible(False)
         # hide data wizard
         self.ui.actionUsing_Data_Wizard.setVisible(False)
-
-        # enable following during development
-        #self._dev_short_cut()
-        
-    def _dev_short_cut(self):
-        self.ui.mainTabs.setTabEnabled (1, True)
-        self.ui.mainTabs.setTabEnabled (2, True)
-        self.ui.mainTabs.setTabEnabled (3, True)
-
-        from os import curdir        
-        project = Project(self.app_config, self.taxonomy)
-        project.set_project_path(curdir + "/test.db")
-        project.sync(SyncModes.Read)
-        self.setProject(project)
-        
-        self.project.build_exposure()
-        self.project.verify_result()
-        # show result
-        self.tab_result.refreshResult()        
-        self.showTab(3)
-
+
     # event handlers
     #############################
     @pyqtSlot(QCloseEvent)
@@ -228,7 +208,7 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
             # return to normal window
             # these calls are reached 
             # 1. in case any exception occurs,
-            # 2. wizard cancelled  
+            # 2. wizard finished or cancelled  
             self.setVisible(True)
             self.previewInput = True
     

@@ -298,15 +298,15 @@ class Project (object):
         builder = WorkflowBuilder(self.operator_options)
         try:
             export_workflow = builder.build_export_workflow(self)
+        except WorkflowException as err:
+            raise SIDDException("error creating workflow for exporting data\n%s" % err)
+        try:
             # process workflow 
             for step in export_workflow.nextstep():
                 step.do_operation()
             logAPICall.log('data export completed', logAPICall.INFO)            
-        except WorkflowException:
-            return False
         except Exception as err:
-            logAPICall.log(err, logAPICall.ERROR)
-            return False
+            raise SIDDException("error exporting data\n" % err)
     
     @logAPICall
     def export_ms_leaves(self, path):

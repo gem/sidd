@@ -90,17 +90,8 @@ class ZoneGridMerger(EmptyOperator):
         count_field = self.inputs[2].value
         grid_layer = self.inputs[3].value        
 
-        # calculate zone building count statistics
-        # store into DB in feature exceed max allowed         
-        use_zone_db = zone_layer.dataProvider().featureCount() > MAX_FEATURES_IN_MEMORY
-        if use_zone_db:            
-            tmp_zone_db_file = '%sdb_%s.db' % (self._tmp_dir, get_unique_filename())
-            zone_stats = bsddb.btopen(tmp_zone_db_file, 'c')
-            tmp_zone_count_db_file = '%sdb_%s.db' % (self._tmp_dir, get_unique_filename())
-            zone_count_stats = bsddb.btopen(tmp_zone_count_db_file, 'c')
-        else:
-            zone_stats = {}
-            zone_count_stats = {}
+        zone_stats = {}
+        zone_count_stats = {}
         gid_idx = layer_field_index(zone_layer, self._gid_field)         
         count_idx = layer_field_index(zone_layer, count_field)
         for _f in layer_features(zone_layer):
@@ -110,7 +101,7 @@ class ZoneGridMerger(EmptyOperator):
         
         # create storage for temporary output data
         use_grid_db = grid_layer.dataProvider().featureCount() > MAX_FEATURES_IN_MEMORY
-        if use_grid_db:
+        if False:
             tmp_grid_db_file = '%sdb_%s.db' % (self._tmp_dir, get_unique_filename())
             grid_points = bsddb.btopen(tmp_grid_db_file, 'c')
         else:
@@ -149,7 +140,7 @@ class ZoneGridMerger(EmptyOperator):
 
                 # update stats
                 zone_stats[gid] += 1
-                grid_points[self._make_key(zone_str, gid, lon, lat)] = 1 
+                grid_points[self._make_key(zone_str, gid, lon, lat)] = 1
         except Exception as err:
             raise OperatorError("error processing joined layer: " % err, self.__class__)
 
@@ -172,7 +163,7 @@ class ZoneGridMerger(EmptyOperator):
 
                     #self._write_feature(writer, f, lon, lat, zone_str, count_val)
                     zone_stats[gid] += 1                                        
-                    grid_points[self._make_key(zone_str, gid, lon, lat)] = 1                                
+                    grid_points[self._make_key(zone_str, gid, lon, lat)] = 1                             
         except Exception as err:
             raise OperatorError("error processing missing points: " % err, self.__class__)
 
@@ -200,7 +191,7 @@ class ZoneGridMerger(EmptyOperator):
                 writer.addFeature(f)
                 """
                 value = float(value) / zone_stats[zone_gid] * zone_count_stats[zone_gid]
-                grid_points[key] = value 
+                #grid_points[key] = value 
                 self._write_feature(writer, f, lon, lat, zone, value)
             del writer
         except Exception as err:
@@ -214,14 +205,6 @@ class ZoneGridMerger(EmptyOperator):
         # clean up
         del tmp_join_layer
         remove_shapefile(tmp_join_file)
-        if use_zone_db:
-            zone_stats.close()
-            os.remove(tmp_zone_db_file)
-            zone_count_stats.close()
-            os.remove(tmp_zone_count_db_file)
-        if use_grid_db:
-            grid_points.close()
-            os.remove(tmp_grid_db_file)
         
         self.outputs[0].value = grid_layer
         self.outputs[1].value = grid_file
