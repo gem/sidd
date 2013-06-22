@@ -573,11 +573,19 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         self.ui.widget_ms_leaves.setVisible(not visible)
         if not visible:
             self.resetMSLibrary()
-            self.ms_library_vlabel.setEnabled(True)
+            self.ms_library_vlabel.setEnabled(True)            
+            # set Disable stops event
             self.bldg_dist_vlabel.setEnabled(False)
+            # Selected label is black, not selected is gray 
+            self.ms_library_vlabel.setSelected(False)
+            self.bldg_dist_vlabel.setSelected(True)
         else:
+            # set Disable stops event
             self.ms_library_vlabel.setEnabled(False)
             self.bldg_dist_vlabel.setEnabled(True)
+            # Selected label is black, not selected is gray 
+            self.ms_library_vlabel.setSelected(True)
+            self.bldg_dist_vlabel.setSelected(False)
 
     def getSelectedNode(self, tree):
         """ retrieve currently selected node from given tree """

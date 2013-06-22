@@ -84,16 +84,9 @@ class Statistics (object):
         
         if parse_order is None:
             parse_order = [x.name for x in self.taxonomy.attributes]
-            print parse_order
-        try:
-            bldg_attrs = self.taxonomy.parse(taxstr)
-            self.root.add(bldg_attrs, 0, parse_order, self.taxonomy.defaults, parse_modifiers)
-        except TaxonomyParseError as perr:
-            logAPICall.log("error parsing case %s, %s" % (str(taxstr), str(perr)), logAPICall.WARNING)
-        except Exception as err:     
-            import traceback
-            traceback.print_exc()       
-            logAPICall.log("error adding case %s, %s" % (str(taxstr), str(err)), logAPICall.WARNING)         
+
+        bldg_attrs = self.taxonomy.parse(taxstr)
+        self.root.add(bldg_attrs, 0, parse_order, self.taxonomy.defaults, parse_modifiers)
 
     @logAPICall
     def finalize(self):
@@ -126,32 +119,17 @@ class Statistics (object):
         
         if order_attributes:
             def _sort_key(val):
-                return val.attribute.order
-            
+                return val.attribute.order            
             try:
                 #_default_order = [a.name for a in self.taxonomy.attributes]
                 _separator = str(self.taxonomy.separator(self.taxonomy.Separators.Attribute))
                 _ordered_leaves = []                        
                 for _val, _wt, _node in self.leaves:
-                    """
-                    _ordered_vals = copy.deepcopy(self.taxonomy.defaults)
-                    _attr_vals = self.taxonomy.parse(_val)
-                    _order_index = -1                
-                    for _attr_val in _attr_vals:
-                        for idx, _default in enumerate(_ordered_vals):
-                            if _attr_val.attribute.name == _default.attribute.name:
-                                _order_index = idx
-                                break
-                         #assignment done here, because for loop uses iterator (inmutable in theory)
-                        _ordered_vals[_order_index] = _attr_val
-                    #_val = _separator.join([str(v) for v in _ordered_vals])
-                    """                    
                     _attr_vals = self.taxonomy.parse(_val)
                     _attr_vals.sort(key=_sort_key)
                     _val = _separator.join([str(v) for v in _attr_vals])
                     _ordered_leaves.append([_val, _wt, _node])
-                self.leaves = _ordered_leaves
-                
+                self.leaves = _ordered_leaves                
             except Exception, err:
                 import traceback
                 traceback.print_exc()

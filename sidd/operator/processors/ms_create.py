@@ -24,7 +24,7 @@ from utils.system import get_unique_filename, get_temp_dir, get_dictionary_value
 
 from sidd.constants import logAPICall, AREA_FIELD_NAME, GRP_FIELD_NAME, TAX_FIELD_NAME, HT_FIELD_NAME
 from sidd.ms import MappingScheme, MappingSchemeZone, Statistics
-from sidd.taxonomy import get_taxonomy
+from sidd.taxonomy import get_taxonomy, TaxonomyParseError
 from sidd.operator import Operator, OperatorError
 from sidd.operator.data import OperatorDataTypes
 
@@ -201,7 +201,10 @@ class SurveyZonesMSCreator(EmptyMSCreator):
             _tax_str = str(_f.attributeMap()[tax_idx].toString())
             
             logAPICall.log('zone %s => %s' % (_zone_str, _tax_str) , logAPICall.DEBUG_L2)
-            ms.get_assignment_by_name(_zone_str).add_case(_tax_str, self._parse_order, self._parse_modifiers)
+            try:
+                ms.get_assignment_by_name(_zone_str).add_case(_tax_str, self._parse_order, self._parse_modifiers)
+            except TaxonomyParseError as perr:
+                logAPICall.log("error parsing case %s, %s" % (str(_tax_str), str(perr)), logAPICall.WARNING)
             
         
         # store data in output
@@ -255,8 +258,11 @@ class SurveyOnlyMSCreator(EmptyMSCreator):
         tax_idx = layer_field_index(survey_layer, tax_field)
         
         for _f in layer_features(survey_layer):
-            _tax_str = str(_f.attributeMap()[tax_idx].toString())            
-            stats.add_case(_tax_str, self._parse_order, self._parse_modifiers)
+            _tax_str = str(_f.attributeMap()[tax_idx].toString())      
+            try:      
+                stats.add_case(_tax_str, self._parse_order, self._parse_modifiers)
+            except TaxonomyParseError as perr:
+                logAPICall.log("error parsing case %s, %s" % (str(_tax_str), str(perr)), logAPICall.WARNING)
         
         # store data in output
         stats.finalize()        
@@ -486,7 +492,10 @@ class StratifiedMSCreator(EmptyMSCreator):
             # use building ratio to create statistic
             for _tax_str, _e_exp in _zone_e_exp[_zone].iteritems():
                 for i in range(int(_e_exp*1000)):
-                    stats.add_case(_tax_str, self._parse_order, self._parse_modifiers)
+                    try:
+                        stats.add_case(_tax_str, self._parse_order, self._parse_modifiers)
+                    except TaxonomyParseError as perr:
+                        logAPICall.log("error parsing case %s, %s" % (str(_tax_str), str(perr)), logAPICall.WARNING)                        
             # finalize call is required 
             stats.finalize()
             ms.assign(MappingSchemeZone(_zone), stats)            

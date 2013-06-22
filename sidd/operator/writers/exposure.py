@@ -86,8 +86,7 @@ class ExposureSHPWriter(NullWriter):
                                          exp_layer.crs(), "ESRI Shapefile")
             out_feature = QgsFeature()
             for feature in layer_features(exp_layer):
-                gid = feature.attributeMap()[gid_idx].toInt()[0]
-                
+                gid = feature.attributeMap()[gid_idx]                
                 # only write out once 
                 if not db.has_key(gid):
                     db[gid]=1
@@ -138,7 +137,7 @@ class ExposureCSVWriter(ExposureSHPWriter):
                 csvwriter.writerow(row)
             csvfile.close()
         except Exception as err:
-            raise OperatorError("error exporting CSV: %s" % err, self.__class__)    
+            raise OperatorError("error exporting CSV: %s" % err, self.__class__)
         
 class ExposureKMLWriter(ExposureSHPWriter):    
     def __init__(self, options=None, name="Grid Writer"):

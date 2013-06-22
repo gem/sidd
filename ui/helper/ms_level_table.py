@@ -19,6 +19,7 @@ dialog for editing mapping scheme branches
 from PyQt4.QtCore import Qt, QVariant, QString, QAbstractTableModel
 from ui.constants import logUICall, get_ui_string
 from ui.helper.common import build_attribute_tooltip
+from sidd.exception import SIDDException
 
 class MSLevelTableModel(QAbstractTableModel):
     """
@@ -38,6 +39,7 @@ class MSLevelTableModel(QAbstractTableModel):
         self.valid_codes=valid_codes
         self.values, self.weights = self._sort(values, weights)
         self.is_editable = is_editable
+        self.editable_indices = {}
     
     def columnCount(self, parent):
         """ only two columns exist. always return 2 """
@@ -120,10 +122,10 @@ class MSLevelTableModel(QAbstractTableModel):
                 (dVal, sucess) = value.toDouble()
                 # conversion to double failed
                 if not sucess:
-                    raise Exception(get_ui_string("dlg.msbranch.edit.warning.invalidweight"))
+                    raise SIDDException(get_ui_string("dlg.msbranch.edit.warning.invalidweight"))
                 # make sure 0 <= dVal <= 100
                 if dVal < 0 or dVal > 100:
-                    raise Exception(get_ui_string("dlg.msbranch.edit.warning.invalidweight"))
+                    raise SIDDException(get_ui_string("dlg.msbranch.edit.warning.invalidweight"))
                                     
                 # passed all checks. set value
                 self.weights[index.row()] = round(dVal, 1)
@@ -131,7 +133,7 @@ class MSLevelTableModel(QAbstractTableModel):
             self.dataChanged.emit(self.createIndex(0, 0), self.createIndex(self.rowCount(0),self.columnCount(0)))
             return True
         return False
-    
+        
     def flags(self, index):
         """ cell condition flag """
         # NOTE: 
@@ -139,9 +141,17 @@ class MSLevelTableModel(QAbstractTableModel):
         _combined_flag = Qt.ItemIsEnabled | Qt.ItemIsSelectable  
         if index.column() < 0 and index.column() > len(self.is_editable):
             return _combined_flag
-        if self.is_editable[index.column()]:
+        if self.is_editable[index.column()] or self.editable_indices.has_key((index.column(), index.row())):
             _combined_flag = _combined_flag | Qt.ItemIsEditable
         return _combined_flag 
+
+    def set_cell_editable(self, column, row, editable=True):
+        key = (column, row)
+        if editable:
+            self.editable_indices[key] = editable
+        else:
+            if self.editable_indices.has_key(key):
+                self.editable_indices.pop(key) 
 
     def sort(self, ncol, order):
         """ sort table """

@@ -212,10 +212,13 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
         """ show open file dialog box for selecting footprint data file"""
         filename = QFileDialog.getOpenFileName(self,
                                                get_ui_string("widget.input.fp.file.open"),
-                                               get_app_dir(),
+                                               self.app.getLastOpenDir(),
                                                get_ui_string("app.extension.shapefile"))
-        if not filename.isNull() and os.path.exists(str(filename)):
-            self.setFootprintFile(str(filename))     
+        if not filename.isNull():
+            filename = str(filename)
+            if os.path.exists(filename):
+                self.setFootprintFile(filename)
+                self.app.saveLastOpenDir(filename[0:filename.rfind("/")])     
 
     @logUICall
     @pyqtSlot(bool)
@@ -284,11 +287,14 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
         """ show open file dialog box for selecting survey data file"""
         filename = QFileDialog.getOpenFileName(self,
                                                get_ui_string("widget.input.survey.file.open"),
-                                               get_app_dir(),
+                                               self.app.getLastOpenDir(),
                                                get_ui_string("app.extension.gemdb"))
-        if not filename.isNull() and os.path.exists(str(filename)):
-            self.setSurveyFile(str(filename))
-
+        if not filename.isNull():
+            filename = str(filename)
+            if os.path.exists(filename):
+                self.setSurveyFile(filename)
+                self.app.saveLastOpenDir(filename[0:filename.rfind("/")])     
+                
     @uiCallChecker
     @pyqtSlot(bool)   
     def setSurveyDataType(self, checked=False):
@@ -335,11 +341,14 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
         """ show open file dialog box for selecting homogenous data file"""
         filename = QFileDialog.getOpenFileName(self,
                                                get_ui_string("widget.input.zone.file.open"),
-                                               get_app_dir(),
+                                               self.app.getLastOpenDir(),
                                                get_ui_string("app.extension.shapefile"))
-        if not filename.isNull() and os.path.exists(str(filename)):
-            self.setZonesFile(str(filename))
-                
+        if not filename.isNull():
+            filename = str(filename)
+            if os.path.exists(filename):
+                self.setZonesFile(filename)
+                self.app.saveLastOpenDir(filename[0:filename.rfind("/")]) 
+                                
     @uiCallChecker
     @pyqtSlot(bool)
     def setZoneDataType(self, checked=False):
@@ -412,11 +421,14 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
         """ show open file dialog box for selecting homogenous data file"""
         filename = QFileDialog.getOpenFileName(self,
                                                get_ui_string("widget.input.popgrid.file.open"),
-                                               get_app_dir(),
+                                               self.app.getLastOpenDir(),
                                                get_ui_string("app.extension.shapefile"))
-        if not filename.isNull() and os.path.exists(str(filename)):
-            self.setPopGridFile(str(filename))
-                
+        if not filename.isNull():
+            filename = str(filename)
+            if os.path.exists(filename):
+                self.setPopGridFile(filename)
+                self.app.saveLastOpenDir(filename[0:filename.rfind("/")]) 
+                                
     @uiCallChecker
     @pyqtSlot(bool)
     def setPopGridType(self, checked=False):
@@ -480,10 +492,13 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
         """ show open file dialog box for selecting GED compatible grid file"""
         filename = QFileDialog.getOpenFileName(self,
                                                get_ui_string("widget.input.agg.file.open"),
-                                               get_app_dir(),
+                                               self.app.getLastOpenDir(),
                                                get_ui_string("app.extension.shapefile"))
-        if not filename.isNull() and os.path.exists(str(filename)):
-            self.setAggGridFile(str(filename))
+        if not filename.isNull():
+            filename = str(filename)
+            if os.path.exists(filename):
+                self.setAggGridFile(filename)
+                self.app.saveLastOpenDir(filename[0:filename.rfind("/")])             
 
     @uiCallChecker
     @pyqtSlot(bool)    

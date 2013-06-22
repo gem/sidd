@@ -180,13 +180,15 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
                     attribute = _attribute
                     break
             """
-            if attribute is None:
-                return
-            edit_dlg = DialogEditAttributes(self.app,
-                                            taxonomy, attribute,
-                                            self.node.value, str(index.data().toString()))
-            if edit_dlg.exec_() == QDialog.Accepted:                
-                index.model().setData(index, QVariant(edit_dlg.modifier_value), Qt.EditRole)
+            if attribute is not None:
+                index.model().set_cell_editable(index.column(), index.row(), False)
+                edit_dlg = DialogEditAttributes(self.app,
+                                                taxonomy, attribute,
+                                                self.node.value, str(index.data().toString()))
+                if edit_dlg.exec_() == QDialog.Accepted:                
+                    index.model().setData(index, QVariant(edit_dlg.modifier_value), Qt.EditRole)
+            else:
+                index.model().set_cell_editable(index.column(), index.row())            
 
     # public method
     ###############################

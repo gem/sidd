@@ -238,16 +238,18 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         """ open file dialog to load an existing application """        
         filename = QFileDialog.getOpenFileName(self,
                                                get_ui_string("app.window.msg.project.open"),
-                                               get_app_dir(),
+                                               self.getLastOpenDir(),
                                                get_ui_string("app.extension.db"))
         # no need to check for file exists, because QFileDialog return is always valid path or null 
         if not filename.isNull():        
             # open existing project 
             project = Project(self.app_config, self.taxonomy)
-            project.set_project_path(str(filename))
+            filename = str(filename)
+            project.set_project_path(filename)
             project.sync(SyncModes.Read)
             # open project and sync UI        
             self.setProject(project)
+            self.saveLastOpenDir(filename[0:filename.rfind("/")]) 
             self.ui.statusbar.showMessage(get_ui_string("app.status.project.loaded"))
     
     @logUICall
@@ -274,8 +276,10 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
                                                get_ui_string("app.extension.db"))
         # no need to check for file overwrite, because QFileDialog return always confirmed overwrite       
         if not filename.isNull():
-            self.project.set_project_path(str(filename))    
+            filename = str(filename)
+            self.project.set_project_path(filename)                
             self.project.sync(SyncModes.Write)
+            self.saveLastOpenDir(filename[0:filename.rfind("/")])            
             self.ui.statusbar.showMessage(get_ui_string("app.status.project.saved"))                
 
     @logUICall
@@ -565,3 +569,14 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         """ display the given mapping scheme in Mapping scheme and Modifier tabs"""
         self.tab_ms.showMappingScheme(ms)
         self.tab_mod.showMappingScheme(ms)
+
+    def getLastOpenDir(self):
+        last_dir = self.settings.value('LAST_OPEN_DIR').toString()
+        if last_dir is None:
+            return get_app_dir()
+        else:
+            return str(last_dir)
+        
+    def saveLastOpenDir(self, dir_path):
+        self.settings.setValue('LAST_OPEN_DIR', dir_path)
+    

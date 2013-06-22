@@ -51,9 +51,10 @@ def suite():
     #suite.addTest(OperatorTestCase('test_StratifiedSampleMS'))
     #suite.addTest(OperatorTestCase('test_ZoneFootprintToGridJoin'))
     #suite.addTest(OperatorTestCase('test_ZoneToGridJoin'))
+    suite.addTest(OperatorTestCase('test_ZonePopGridJoin'))
     
     # taxonomy tests    
-    suite.addTest(TaxonomyTestCase('test_Load'))
+    #suite.addTest(TaxonomyTestCase('test_Load'))
     #suite.addTest(TaxonomyTestCase('test_Parse'))
     
     # project tests

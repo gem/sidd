@@ -172,11 +172,10 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
                 # test for range [0,0], which is the unknown case
                 if ranges['min_values'] >0 and ranges['max_values']>0:
                     value = attribute.make_string([None, None])
-                    self.valid_codes[value] = value
-                    
-            else:
-                # allow user use inputbox
-                pass            
+                    self.valid_codes[value] = value                    
+            #else:
+                # allow user use default edit feature
+                            
             # enable button for editing ranges 
             self.ui.btn_range.setEnabled(True)
         else:               # code only types that cannot have ranges

@@ -57,6 +57,12 @@ class OperatorTestCase(SIDDTestCase):
         self.zone3_field = "ZONE"
         self.zone3_bldgcount_field = 'NumBldgs'
         
+        self.popgrid_path = self.test_data_dir + 'popgrid.shp'
+        self.pop_field = "Population"
+        self.popgrid_feature_count = 4 
+        self.popgrid_zone_path = self.test_data_dir + 'popgrid_zone.shp'
+        self.popgrid_zone_field = "ZONE"
+        
         self.grid_path = self.test_data_dir +  "grid.shp"
         self.grid2_path = self.test_data_dir +  "grid2.shp"
         
@@ -125,6 +131,25 @@ class OperatorTestCase(SIDDTestCase):
         del layer
         self._clean_layer(loader.outputs)  
     
+    def test_LoadPopGrid(self, skipTest=False):
+        logging.debug('test_LoadPopGrid %s' % skipTest)
+        """ create operator for loading zone data and add to workflow """
+        # required operator_data for additional processing
+        loader = PopGridLoader(self.operator_options)
+        loader.inputs = [OperatorData(OperatorDataTypes.Shapefile, self.popgrid_path),
+                         OperatorData(OperatorDataTypes.StringAttribute, self.pop_field)]        
+        loader.outputs = [OperatorData(OperatorDataTypes.Population),
+                          OperatorData(OperatorDataTypes.Shapefile)]
+        # add to workflow
+        loader.do_operation()
+        if skipTest:
+            return loader.outputs
+        layer = loader.outputs[0].value        
+        self.assertEquals(self.popgrid_feature_count, layer.dataProvider().featureCount())        
+        
+        del layer
+        self._clean_layer(loader.outputs)  
+                
 
     def test_LoadZone(self, skipTest=False, zone=1):
         logging.debug('test_LoadZone %s' % skipTest)
@@ -135,9 +160,12 @@ class OperatorTestCase(SIDDTestCase):
         elif zone ==2:
             zone_path = self.zone2_path
             zone_field = self.zone2_field
-        else:
+        elif zone ==3:
             zone_path = self.zone3_path
             zone_field = self.zone3_field
+        elif zone==4:            
+            zone_path = self.popgrid_zone_path
+            zone_field = self.popgrid_zone_field
         
         loader = ZoneLoader(self.operator_options)
         loader.inputs = [
@@ -750,7 +778,34 @@ class OperatorTestCase(SIDDTestCase):
         #print report.value
         self.assertEquals(report.value['total_source'], report.value['total_exposure'])
     
-    
+    def test_ZonePopGridJoin(self):
+        # 1 attach population counts to zones (convert to building count in process)
+        ###################################        
+        
+        pop_grid = self.test_LoadPopGrid(skipTest=True)
+        zone = self.test_LoadZone(skipTest=True, zone=4)
+
+        grid_writer = ZonePopgridCounter(self.operator_options)
+        grid_writer.inputs = [zone[0],
+                              OperatorData(OperatorDataTypes.StringAttribute, self.popgrid_zone_field),                              
+                              pop_grid[0],
+                              OperatorData(OperatorDataTypes.NumericAttribute, 10)]                         
+                    
+        grid_writer.outputs = [OperatorData(OperatorDataTypes.Zone),
+                               OperatorData(OperatorDataTypes.Shapefile),]        
+        grid_writer.do_operation()
+                
+        grid_writer = PopgridZoneToGrid(self.operator_options)
+        grid_writer.inputs = [pop_grid[0],
+                              zone[0],
+                              OperatorData(OperatorDataTypes.StringAttribute, self.popgrid_zone_field),                              
+                              OperatorData(OperatorDataTypes.NumericAttribute, 10)]                         
+                    
+        grid_writer.outputs = [OperatorData(OperatorDataTypes.Grid),
+                               OperatorData(OperatorDataTypes.Shapefile),]        
+        grid_writer.do_operation()
+
+            
     def _clean_layer(self, output):
         del output[0].value
         remove_shapefile(output[1].value)

@@ -46,7 +46,7 @@ class WidgetResult(Ui_widgetResult, QWidget):
     ''' supported export formats '''
     EXPORT_FORMATS = {
         get_ui_string("app.extension.shapefile"):ExportTypes.Shapefile,
-        get_ui_string("app.extension.kml"):ExportTypes.KML,
+        #get_ui_string("app.extension.kml"):ExportTypes.KML,
         #get_ui_string("app.extension.nrml"):ExportTypes.NRML,
         get_ui_string("app.extension.csv"):ExportTypes.CSV,
     };
@@ -256,7 +256,7 @@ class WidgetResult(Ui_widgetResult, QWidget):
         """
         event handler for btn_export_select_path 
         - open save file dialog box to select file name for export 
-        """     
+        """
         #folder = QFileDialog.getExistingDirectory(self, get_ui_string("widget.result.export.path.dialog"))            
         #if not folder.isNull():
         #    self.ui.txt_export_select_path.setText(folder)
@@ -274,6 +274,7 @@ class WidgetResult(Ui_widgetResult, QWidget):
         event handler for cb_export_format 
         - update selected file after format change
         """
+        self.ui.txt_export_select_path.setText("")
         self.export_format = self.EXPORT_FORMATS[str(selected_val)]
         
     @logUICall

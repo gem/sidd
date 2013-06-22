@@ -196,11 +196,11 @@ class Operator(object):
     
     def _test_layer_loaded(self, layer):        
         if layer.dataProvider() is None:
-            raise OperatorDataError("layer %s not correctly loaded" % layer.name(), self.__class__)
+            raise OperatorDataError("layer %s not correctly loaded" % layer.name())
     
     def _test_layer_field_exists(self, layer, field):
         if layer_field_index(layer, field) == -1:
-            raise OperatorDataError("field %s not found in input layer" % field, self.__class__)          
+            raise OperatorDataError("field %s not found in input layer" % field)          
 
 class EmptyOperator(Operator):
     '''
