@@ -331,22 +331,28 @@ class Project (object):
         builder = WorkflowBuilder(self.operator_options)
         try:
             verify_workflow = builder.build_verify_result_workflow(self)
-        except WorkflowException:
-            return False
+        except WorkflowException as err:
+            raise SIDDException("error creating workflow for result verification\n%s" % err)
         # process workflow
         for step in verify_workflow.nextstep():
             try:
                 step.do_operation()
             except Exception as err:
                 logAPICall.log(err, logAPICall.WARNING)
-                return False
-            
-            self.quality_reports={}
-            if verify_workflow.operator_data.has_key('frag_report'):
-                self.quality_reports['fragmentation'] = verify_workflow.operator_data['frag_report'].value
-            if verify_workflow.operator_data.has_key('count_report'):
-                self.quality_reports['count'] = verify_workflow.operator_data['count_report'].value
-            logAPICall.log('result verification completed', logAPICall.INFO)
+                pass                
+
+        self.quality_reports={}
+        if verify_workflow.operator_data.has_key('frag_report'):
+            self.quality_reports['fragmentation'] = verify_workflow.operator_data['frag_report'].value
+        if verify_workflow.operator_data.has_key('count_report'):
+            self.quality_reports['count'] = verify_workflow.operator_data['count_report'].value
+            try:
+                if self.zone_type == ZonesTypes.LanduseCount and self.output_type == OutputTypes.Grid:
+                    self.quality_reports['count']['_note'] = ''
+            except:
+                pass
+                
+        logAPICall.log('result verification completed', logAPICall.INFO)
 
     # project database access methods
     ##################################

@@ -181,9 +181,11 @@ SIDD_UI_STRINGS = {
     "widget.result.dq.tests.count":QApplication.translate('app.result', 'Verifying Building Count', None, QApplication.UnicodeUTF8),
     "widget.result.dq.tests.count.total_source":QApplication.translate('app.result', 'Total Buildings in Source Data: %.0f', None, QApplication.UnicodeUTF8),
     "widget.result.dq.tests.count.total_exposure":QApplication.translate('app.result', 'Total Buildings in Generated Exposure: %.0f', None, QApplication.UnicodeUTF8),
+    "widget.result.dq.tests.count._note":QApplication.translate('app.result', 'NOTE: Distribution from Zone to Grid could cause minor error in total count.', None, QApplication.UnicodeUTF8),
     "widget.result.dq.tests.fragmentation":QApplication.translate('app.result', 'Number of Fractional Records', None, QApplication.UnicodeUTF8),
     "widget.result.dq.tests.fragmentation.record_count":QApplication.translate('app.result', 'Total Records in Generated Exposure: %.0f', None, QApplication.UnicodeUTF8),
     "widget.result.dq.tests.fragmentation.fraction_count":QApplication.translate('app.result', 'Total Records with Fractional Building Count: %.0f', None, QApplication.UnicodeUTF8),
+    
 
     # data input wizard (wizard re-uses a lot of message from widget data input 
     ######################

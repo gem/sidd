@@ -438,11 +438,10 @@ class WidgetResult(Ui_widgetResult, QWidget):
             
             # detail for each test
             for key, report in self._project.quality_reports.iteritems():
-                report_lines.append(get_ui_string('widget.result.dq.tests.%s' % key))
+                report_lines.append(get_ui_string('widget.result.dq.tests.%s' % key))            
                 for title, value in report.iteritems():
                     report_lines.append( get_ui_string('widget.result.dq.tests.%s.%s' % (key, title), value) )
                 report_lines.append('')                    
-            
             self.ui.txt_dq_test_details.setText("\n".join(report_lines))
 
 
