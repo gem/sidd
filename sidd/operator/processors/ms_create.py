@@ -22,8 +22,8 @@ from utils.shapefile import load_shapefile, layer_features, layer_field_index, r
                             layer_fields_stats
 from utils.system import get_unique_filename, get_temp_dir, get_dictionary_value
 
-from sidd.constants import logAPICall, AREA_FIELD_NAME, GRP_FIELD_NAME, TAX_FIELD_NAME, HT_FIELD_NAME
-from sidd.ms import MappingScheme, MappingSchemeZone, Statistics
+from sidd.constants import logAPICall, AREA_FIELD_NAME, GRP_FIELD_NAME, TAX_FIELD_NAME, HT_FIELD_NAME, COST_FIELD_NAME
+from sidd.ms import MappingScheme, MappingSchemeZone, Statistics, StatisticNode
 from sidd.taxonomy import get_taxonomy, TaxonomyParseError
 from sidd.operator import Operator, OperatorError
 from sidd.operator.data import OperatorDataTypes
@@ -33,7 +33,6 @@ class EmptyMSCreator(Operator):
         super(EmptyMSCreator, self).__init__(options, name)
         self._tmp_dir = get_dictionary_value(options, 'tmp_dir', get_temp_dir())
         self._taxonomy = get_dictionary_value(options, 'taxonomy', get_taxonomy('GEM'))  
-        self._skips = get_dictionary_value(options, 'skips', [])
         self._parse_modifiers = get_dictionary_value(options, 'parse_modifiers', True)
         self._parse_order = get_dictionary_value(options, 'attribute.order', None)
 
@@ -71,8 +70,6 @@ class EmptyMSCreator(Operator):
         ms = MappingScheme(self._taxonomy)
         zone = MappingSchemeZone('ALL')
         stats = Statistics(self._taxonomy)
-        for _idx in self._skips:
-            stats.set_attribute_skip(_idx, True)
         stats.finalize()
         stats.get_tree().value = zone.name
         ms.assign(zone, stats)
@@ -126,8 +123,6 @@ class EmptyZonesMSCreator(EmptyMSCreator):
         ms = MappingScheme(self._taxonomy)
         for _zone, _count in zone_classes.iteritems():
             stats = Statistics(self._taxonomy)
-            for _idx in self._skips:
-                stats.set_attribute_skip(_idx, True)
             stats.finalize()
             stats.get_tree().value = _zone                
             ms.assign(MappingSchemeZone(_zone), stats)
@@ -188,24 +183,29 @@ class SurveyZonesMSCreator(EmptyMSCreator):
         ms = MappingScheme(self._taxonomy)
         for _zone, _count in zone_classes.iteritems():
             stats = Statistics(self._taxonomy)
-            for _idx in self._skips:
-                stats.set_attribute_skip(_idx, True)
             ms.assign(MappingSchemeZone(_zone), stats)
         
         # loop through all input features
         zone_idx = layer_field_index(tmp_join_layer, zone_field)
         tax_idx = layer_field_index(tmp_join_layer, tax_field)
+        area_idx = layer_field_index(tmp_join_layer, AREA_FIELD_NAME)
+        cost_idx = layer_field_index(tmp_join_layer, COST_FIELD_NAME)
         
         for _f in layer_features(tmp_join_layer):
             _zone_str = str(_f.attributeMap()[zone_idx].toString())            
             _tax_str = str(_f.attributeMap()[tax_idx].toString())
-            
+            additional = {}
+            _area = _f.attributeMap()[area_idx].toDouble()[0]
+            if _area > 0:
+                additional = {StatisticNode.AverageSize: _area} 
+            _cost = _f.attributeMap()[cost_idx].toDouble()[0]
+            if _cost > 0:
+                additional = {StatisticNode.UnitCost: _cost}                            
             logAPICall.log('zone %s => %s' % (_zone_str, _tax_str) , logAPICall.DEBUG_L2)
             try:
-                ms.get_assignment_by_name(_zone_str).add_case(_tax_str, self._parse_order, self._parse_modifiers)
+                ms.get_assignment_by_name(_zone_str).add_case(_tax_str, self._parse_order, self._parse_modifiers, additional)
             except TaxonomyParseError as perr:
                 logAPICall.log("error parsing case %s, %s" % (str(_tax_str), str(perr)), logAPICall.WARNING)
-            
         
         # store data in output
         for _zone, _stats in ms.assignments():
@@ -250,17 +250,24 @@ class SurveyOnlyMSCreator(EmptyMSCreator):
         # merge to create stats
         ms = MappingScheme(self._taxonomy)
         stats = Statistics(self._taxonomy)
-        for _idx in self._skips:
-            stats.set_attribute_skip(_idx, True)
         ms.assign(MappingSchemeZone('ALL'), stats)
         
         # loop through all input features
         tax_idx = layer_field_index(survey_layer, tax_field)
+        area_idx = layer_field_index(survey_layer, AREA_FIELD_NAME)
+        cost_idx = layer_field_index(survey_layer, COST_FIELD_NAME)
         
         for _f in layer_features(survey_layer):
-            _tax_str = str(_f.attributeMap()[tax_idx].toString())      
-            try:      
-                stats.add_case(_tax_str, self._parse_order, self._parse_modifiers)
+            _tax_str = str(_f.attributeMap()[tax_idx].toString())
+            additional = {}
+            _area = _f.attributeMap()[area_idx].toDouble()[0]
+            if _area > 0:
+                additional = {StatisticNode.AverageSize: _area} 
+            _cost = _f.attributeMap()[cost_idx].toDouble()[0]
+            if _cost > 0:
+                additional = {StatisticNode.UnitCost: _cost}                            
+            try:
+                stats.add_case(_tax_str, self._parse_order, self._parse_modifiers, additional)
             except TaxonomyParseError as perr:
                 logAPICall.log("error parsing case %s, %s" % (str(_tax_str), str(perr)), logAPICall.WARNING)
         

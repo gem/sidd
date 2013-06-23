@@ -74,7 +74,7 @@ class Statistics (object):
         return self.root.has_child_node(node)
 
     @logAPICall
-    def add_case(self, taxstr, parse_order=None, parse_modifiers=True):
+    def add_case(self, taxstr, parse_order=None, parse_modifiers=True, additional_data={}):
         """
         add new case of the strutural type (taxstr) to the distribution tree
         """
@@ -86,7 +86,7 @@ class Statistics (object):
             parse_order = [x.name for x in self.taxonomy.attributes]
 
         bldg_attrs = self.taxonomy.parse(taxstr)
-        self.root.add(bldg_attrs, 0, parse_order, self.taxonomy.defaults, parse_modifiers)
+        self.root.add(bldg_attrs, 0, parse_order, self.taxonomy.defaults, parse_modifiers, additional_data)
 
     @logAPICall
     def finalize(self):

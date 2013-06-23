@@ -119,7 +119,12 @@ class MSTableModel(QAbstractTableModel):
             # construct data for display in tooltip
             _mod = self._get_modifier(row)
             _idx = row - _mod[self.STR_INDEX]
-            if (col==2):
+            if col==1:
+                if (_idx == 0):                    
+                    return build_attribute_tooltip(self.valid_codes, self.ms.taxonomy.parse(_mod[col]))
+                else:
+                    return QVariant()
+            elif col==2:
                 _key = sorted(_mod[self.MOD_INDEX].keys())[_idx]
                 if _key is not None:
                     return build_attribute_tooltip(self.valid_codes, self.ms.taxonomy.parse(_key))

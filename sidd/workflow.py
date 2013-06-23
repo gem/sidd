@@ -551,7 +551,8 @@ class WorkflowBuilder(object):
         else:
             svy_loader = GEMDBSurveyLoader(self._operator_options)
         svy_loader.inputs = [workflow.operator_data['survey_input_file'],
-                             OperatorData(OperatorDataTypes.StringAttribute, project.survey_format),]
+                             OperatorData(OperatorDataTypes.StringAttribute, project.survey_format),
+                             OperatorData(OperatorDataTypes.StringAttribute, getattr(project, 'proj_uid', None))]
         svy_loader.outputs = [workflow.operator_data['survey'],
                               workflow.operator_data['survey_file'],]
 

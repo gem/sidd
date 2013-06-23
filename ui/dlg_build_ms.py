@@ -101,6 +101,8 @@ class DialogMSOptions(Ui_msOptionsDialog, QDialog):
         self._attr_names = order
         self.refreshAttributeList(self._attr_names)
         self.refreshNotIncludedList()
+        if len(order) > 0:
+            self.ui.radioBuildMS.setChecked(True)
 
     @property
     def attribute_ranges(self):

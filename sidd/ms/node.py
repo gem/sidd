@@ -219,7 +219,7 @@ class StatisticNode (object):
         # add space to make it pretty
         for i in range(self.level):
             outstr.append('  ')
-        # add current node        
+        # add current node
         outstr.append('%s:[%s=%s (%s, %s, %2.1f%% - %d)]'
                       % (self.level, self.name, self.value, self.is_default,
                          self.is_skipped, self.weight, self.count))
@@ -227,7 +227,9 @@ class StatisticNode (object):
         for mod in self.modifiers:           
             outstr.append(str(mod))
         outstr.append('\n')
-        
+        if self.is_leaf:
+            outstr.append(str(self.additional))
+            
         # add children
         for child in self.children:
             outstr.append(str(child))
@@ -456,6 +458,18 @@ class StatisticNode (object):
         for mod in self.modifiers:            
             mod.calculate_weights(self.count)
         
+        if self.is_leaf:
+            # update additional values
+            _total_size = self.count    # set to default for unitCost calculation
+            if self.additional.has_key(self.AverageSize):
+                # _size is total             
+                _total_size = self.additional[self.AverageSize]
+                self.additional[self.AverageSize] = float(_total_size) / self.count
+            if self.additional.has_key(self.UnitCost):
+                # _total_size defaults to 0, 
+                # so should not break even if AverageSize is not set 
+                self.additional[self.UnitCost] /= _total_size
+        
         # recursively travese down to all children
         # will be skipped by leaf nodes
         for child in self.children:
@@ -464,8 +478,8 @@ class StatisticNode (object):
     # tree modifying methods
     ###########################
     @logAPICall
-    def add(self, attr_vals, level, parse_order, default_attributes, parse_modifiers=True):
-        """        
+    def add(self, attr_vals, level, parse_order, default_attributes, parse_modifiers=True, additional_data={}):
+        """ 
         recursively update statistic @ node and @ child nodes
         using attr_val, defaults, skips at idx
         """
@@ -492,6 +506,9 @@ class StatisticNode (object):
         # the ending condition for the recursive call
         # NOTE: is_leaf is not used here, this process should work on a empty tree
         if (len(parse_order) <= level):
+            # leaf node also aggregate additional data
+            self.increment_additonal(self.AverageSize, additional_data)            
+            self.increment_additonal(self.UnitCost, additional_data)
             return
         
         logAPICall.log('processing %d %s' %(level, parse_order[level]), logAPICall.DEBUG)
@@ -536,7 +553,7 @@ class StatisticNode (object):
                 child.add_modifier(modifiers)
                 
                 # recursive call to process next level
-                child.add(attr_vals, level+1, parse_order, default_attributes, parse_modifiers)
+                child.add(attr_vals, level+1, parse_order, default_attributes, parse_modifiers, additional_data)
                 return 
 
         # if no children found, then add new node for value and add modifier
@@ -547,7 +564,7 @@ class StatisticNode (object):
             child.add_modifier(modifiers)
 
             # recursive call to process next level
-            child.add(attr_vals, level+1, parse_order, default_attributes, parse_modifiers)
+            child.add(attr_vals, level+1, parse_order, default_attributes, parse_modifiers, additional_data)
         return
     
     @logAPICall
@@ -562,7 +579,7 @@ class StatisticNode (object):
             node.count = self.count
             level = 1
         elif self.is_skipped:
-            node = parent            
+            node = parent
         else:
             node = StatisticNode(parent, self.name, self.value, level,
                                  self.is_default, self.is_skipped)            
@@ -583,6 +600,7 @@ class StatisticNode (object):
             node.modifiers.append(self.modifiers[0])
         
         if self.is_leaf:
+            node.additional = self.additional
             return
         else:
             self.children.sort(key=attrgetter('value'))
@@ -806,6 +824,13 @@ class StatisticNode (object):
         if modidx < 0 or len(self.modifiers) <= modidx:
             raise StatisticNodeError('modifier with index %s does not exist' % modidx)
         del self.modifiers[modidx]
+    
+    def increment_additonal(self, key, values):
+        if values.has_key(key):
+            if not self.additional.has_key(key):
+                self.additional[key]=0
+            self.additional[key]+= values[key]
+        
     
     def set_additional(self, key, value):
         if self.is_leaf:

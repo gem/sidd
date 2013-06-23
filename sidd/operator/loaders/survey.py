@@ -31,7 +31,7 @@ from utils.system import get_unique_filename
 from sidd.taxonomy.gem import GemTaxonomyAttribute
 from sidd.constants import logAPICall, \
                            GID_FIELD_NAME, LON_FIELD_NAME, LAT_FIELD_NAME, TAX_FIELD_NAME, \
-                           GRP_FIELD_NAME, AREA_FIELD_NAME, HT_FIELD_NAME
+                           GRP_FIELD_NAME, AREA_FIELD_NAME, HT_FIELD_NAME, COST_FIELD_NAME
 from sidd.operator import Operator,OperatorError, OperatorDataError
 from sidd.operator.data import OperatorDataTypes
 
@@ -65,24 +65,25 @@ class GEMDBSurveyLoader(Operator):
                 self.yr_ranges = options[self.YR_ATTRIBUTE_NAME]
             
         self._fields = {
-            0 : QgsField(GID_FIELD_NAME, QVariant.Int),
+            0 : QgsField(GID_FIELD_NAME, QVariant.String),
             1 : QgsField(LON_FIELD_NAME, QVariant.Double),
             2 : QgsField(LAT_FIELD_NAME, QVariant.Double),
             3 : QgsField(TAX_FIELD_NAME, QVariant.String, "", 255),
             4 : QgsField(GRP_FIELD_NAME, QVariant.String),
             5 : QgsField(AREA_FIELD_NAME, QVariant.String),
             6 : QgsField(HT_FIELD_NAME, QVariant.String),
+            7 : QgsField(COST_FIELD_NAME, QVariant.String),
         }
     # self documenting method override
     ###########################
  
     @property
     def input_types(self):
-        return [OperatorDataTypes.File, OperatorDataTypes.StringAttribute]
+        return [OperatorDataTypes.File, OperatorDataTypes.StringAttribute, OperatorDataTypes.StringAttribute]
         
     @property    
     def input_names(self):
-        return ["Survey Input File", "Survey data type"]
+        return ["Survey Input File", "Survey data type", "Project Filter"]
     
     input_descriptions = input_names
 
@@ -103,11 +104,12 @@ class GEMDBSurveyLoader(Operator):
         """ perform survey data loading """        
         # input/output data checking already done during property set
         survey = self.inputs[0].value
+        project = self.inputs[2].value
         
         tmp_survey_file = '%ssurvey_%s.shp' % (self._tmp_dir, get_unique_filename())
         # load survey        
         try:
-            self._loadSurvey(survey, tmp_survey_file)
+            self._loadSurvey(survey, tmp_survey_file, project)
             
         except Exception as err:
             remove_shapefile(tmp_survey_file)
@@ -139,9 +141,9 @@ class GEMDBSurveyLoader(Operator):
 
     # internal helper methods
     ####################################
-    def _loadSurvey(self, sqlitepath, shapefilepath):
+    def _loadSurvey(self, sqlitepath, shapefilepath, filter=None):
         # load data
-        sql = """select X, Y, SAMPLE_GRP, PLAN_AREA,
+        sql = """select OBJ_UID, X, Y, SAMPLE_GRP, PLAN_AREA, REPLC_COST,
                 MAT_TYPE_L, MAT_TECH_L, MAS_REIN_L, MAS_MORT_L, STEELCON_L, 
                 LLRS_L, LLRS_DCT_L,  
                 ROOFSYSMAT, ROOFSYSTYP,  
@@ -151,6 +153,8 @@ class GEMDBSurveyLoader(Operator):
                 STR_IRREG, STR_HZIR_P, STR_HZIR_S, STR_VEIR_P, STR_VEIR_S, 
                 OCCUPCY, OCCUPCY_DT
                 from GEM_OBJECT o LEFT JOIN GED g on o.OBJ_UID=g.GEMOBJ_UID"""
+        if filter is not None:
+            sql = "%s WHERE PROJ_UID='%s'" % (sql, filter)
         conn = sqlite3.connect(sqlitepath)
         c = conn.cursor()
         c.execute(sql)        
@@ -161,31 +165,32 @@ class GEMDBSurveyLoader(Operator):
     def _buildSurveyLayer(self, data,  shapefilepath):
         writer = QgsVectorFileWriter(shapefilepath, "utf-8", self._fields, QGis.WKBPoint, self._crs, "ESRI Shapefile")
         f = QgsFeature()
-        gid = 0
         for row in data:
-            lon = self._tofloat(row[0])
-            lat = self._tofloat(row[1])
-            sample_grp = str(row[2])
-            plan_area = self._tofloat(row[3])
-            tax_string = self._make_gem_taxstring(row[4:])
-            ht = self._get_height(row[4:]) 
+            obj_uid = str(row[0])
+            lon = self._tofloat(row[1])
+            lat = self._tofloat(row[2])
+            sample_grp = str(row[3])
+            plan_area = self._tofloat(row[4])
+            rep_cost = self._tofloat(row[5])
+            tax_string = self._make_gem_taxstring(row[6:])
+            ht = self._get_height(row[6:]) 
             
             f.setGeometry(QgsGeometry.fromPoint(QgsPoint(lon, lat)))
-            gid+=1
-            f.addAttribute(0, QVariant(gid))
+            f.addAttribute(0, QVariant(obj_uid))
             f.addAttribute(1, QVariant(lon))
             f.addAttribute(2, QVariant(lat))
             f.addAttribute(3, QVariant(tax_string))
             f.addAttribute(4, QVariant(sample_grp))
             f.addAttribute(5, QVariant(plan_area))
             f.addAttribute(6, QVariant(ht))
+            f.addAttribute(7, QVariant(rep_cost))
             writer.addFeature(f)
         del writer, f
         
     def _make_gem_taxstring(self, data):
         (mat_type_l, mat_tech_l, mas_rein_l, mas_mort_l, steel_con_l, 
          llrs_l, llrs_duct_l, 
-         roofsysmat, roofsystyp,  
+         roofsysmat, roofsystyp,
          floor_mat, floor_type, 
          story_ag_q, story_ag_1, story_ag_2,
          yr_built_q, yr_built_1, yr_built_2,
@@ -270,10 +275,8 @@ class GEMDBSurveyLoader(Operator):
             yr_string = attribute.make_string(yr_ranges, GemTaxonomyAttribute.RANGE)
             
         # irregularity
-        ir_string = self._coalesce(str_irreg) \
-            + self._append_not_null(str_hzir_p,separator) + self._append_not_null(str_hzir_s,separator) \
-            + self._append_not_null(str_veir_p,separator) + self._append_not_null(str_veir_s,separator) 
-        
+        ir_string = self._append_no_repeat([str_irreg, str_hzir_p, str_hzir_s, str_veir_p, str_veir_s], 
+                                           separator, exclude="IRN")
         # occupancy
         occ_string = self._coalesce(occupcy) + self._append_not_null(occupcy_dt,separator)
         
@@ -320,6 +323,14 @@ class GEMDBSurveyLoader(Operator):
             return ""
         else:
             return separator + str(val)
+
+    def _append_no_repeat(self, vals, separator, exclude=''):
+        no_repeat = {}
+        for val in vals:
+            if val is None or val == "" or val == exclude:
+                continue
+            no_repeat[val]=1
+        return str(separator).join(no_repeat.keys())
 
     def _find_range(self, value, min_values, max_values):
         # less than minimum

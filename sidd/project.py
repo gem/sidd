@@ -50,8 +50,7 @@ class Project (object):
         self.app_config = app_config
         self.operator_options = {
             'tmp_dir': self.temp_dir,
-            'taxonomy':taxonomy,
-            'skips': app_config.get('options', 'skips', [], types.ListType),            
+            'taxonomy':taxonomy,            
         }
         self.reset()
 
