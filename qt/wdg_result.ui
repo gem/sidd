@@ -388,6 +388,26 @@ p, li { white-space: pre-wrap; }
        <normaloff>:/imgs/icons/world.png</normaloff>:/imgs/icons/world.png</iconset>
      </property>
     </widget>
+    <widget class="QPushButton" name="btn_stop">
+     <property name="geometry">
+      <rect>
+       <x>120</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Cancel Rendering</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/stop.png</normaloff>:/imgs/icons/stop.png</iconset>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QLabel" name="lb_panel_title">

@@ -65,7 +65,7 @@ class ExposureSHPWriter(NullWriter):
             
             # store id of distinct features            
             total_features = exp_layer.dataProvider().featureCount()
-            if total_features > MAX_FEATURES_IN_MEMORY:
+            if True:#total_features > MAX_FEATURES_IN_MEMORY:
                 # use bsddb to store id in case number of features is too large
                 tmp_db_file = '%sdb_%s.db' % (self._tmp_dir, get_unique_filename())
                 db = bsddb.btopen(tmp_db_file, 'c')

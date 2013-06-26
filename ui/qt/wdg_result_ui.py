@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qt\wdg_result.ui'
 #
-# Created: Fri Jun 21 14:28:03 2013
+# Created: Tue Jun 25 16:36:42 2013
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -141,6 +141,13 @@ class Ui_widgetResult(object):
         icon7.addPixmap(QtGui.QPixmap(_fromUtf8(":/imgs/icons/world.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.btn_zoom_full.setIcon(icon7)
         self.btn_zoom_full.setObjectName(_fromUtf8("btn_zoom_full"))
+        self.btn_stop = QtGui.QPushButton(self.widget_map_menu_l)
+        self.btn_stop.setGeometry(QtCore.QRect(120, 0, 31, 23))
+        self.btn_stop.setText(_fromUtf8(""))
+        icon8 = QtGui.QIcon()
+        icon8.addPixmap(QtGui.QPixmap(_fromUtf8(":/imgs/icons/stop.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.btn_stop.setIcon(icon8)
+        self.btn_stop.setObjectName(_fromUtf8("btn_stop"))
         self.lb_panel_title = QtGui.QLabel(widgetResult)
         self.lb_panel_title.setGeometry(QtCore.QRect(10, 0, 591, 31))
         font = QtGui.QFont()
@@ -181,6 +188,7 @@ class Ui_widgetResult(object):
         self.btn_pan.setToolTip(QtGui.QApplication.translate("widgetResult", "Pan", None, QtGui.QApplication.UnicodeUTF8))
         self.btn_zoom_out.setToolTip(QtGui.QApplication.translate("widgetResult", "Zoom Out", None, QtGui.QApplication.UnicodeUTF8))
         self.btn_zoom_full.setToolTip(QtGui.QApplication.translate("widgetResult", "Zoom to Full Extent", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_stop.setToolTip(QtGui.QApplication.translate("widgetResult", "Cancel Rendering", None, QtGui.QApplication.UnicodeUTF8))
         self.lb_panel_title.setText(QtGui.QApplication.translate("widgetResult", "Preview", None, QtGui.QApplication.UnicodeUTF8))
 
 import SIDDResource_rc

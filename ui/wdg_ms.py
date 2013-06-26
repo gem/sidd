@@ -74,7 +74,12 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
     # constructor / destructor
     ###############################    
     def __init__(self, app):
-        QWidget.__init__(self)        
+        """
+        constructor
+        - initialize UI elements
+        - connect UI elements to callback            
+        """
+        super(WidgetMappingSchemes, self).__init__()
         self.ui = Ui_widgetMappingSchemes()
         self.ui.setupUi(self)
 
@@ -166,17 +171,11 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
     def resizeEvent(self, event):
         """ handle window resize """ 
         ui = self.ui
-        # adjust location of vertical label 
+        # adjust location of vertical label
         self.bldg_dist_vlabel.move(self.width()-self.bldg_dist_vlabel.width(),
                                       self.ui.widget_ms_library.y())        
         self.ms_library_vlabel.move(self.width()-self.ms_library_vlabel.width(),
                                     self.ui.widget_ms_library.y()+self.bldg_dist_vlabel.height())
-        # right align ms_library and ms_leaves 
-        # NOTE: they occupy the same location (same size)
-        ui.widget_ms_library.move(self.width()-self.ms_library_vlabel.width()-ui.widget_ms_library.width()-UI_PADDING,
-                                  ui.widget_ms_library.y())
-        ui.widget_ms_leaves.move(self.width()-self.ms_library_vlabel.width()-ui.widget_ms_leaves.width()-UI_PADDING,
-                                 ui.widget_ms_library.y())
 
         # move buttons to bottom right
         ui.btn_build_exposure.move(self.width()-ui.btn_build_exposure.width()-UI_PADDING,
@@ -184,14 +183,28 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         ui.btn_secondary_mod.move(
             QPoint(ui.btn_build_exposure.x()-ui.btn_secondary_mod.width()-UI_PADDING,
                    ui.btn_build_exposure.y()))
+        
+        panel_width = (self.width() - self.bldg_dist_vlabel.width()) / 2 - UI_PADDING
+        panel_height = ui.btn_build_exposure.y()- ui.widget_ms_library.y()
         # adjust widget_ms_tree
-        ui.widget_ms_tree.resize(
-            QSize(ui.widget_ms_library.x()-ui.widget_ms_tree.x()-(UI_PADDING/2),
-                  ui.btn_build_exposure.y()-ui.widget_ms_tree.y()-UI_PADDING))        
-        ui.tree_ms.resize(QSize(ui.widget_ms_tree.width(), ui.widget_ms_tree.height()-ui.tree_ms.y()))
+        ui.widget_ms_tree.resize(panel_width, panel_height)       
+        ui.tree_ms.resize(QSize(ui.widget_ms_tree.width(), ui.widget_ms_tree.height()-ui.tree_ms.y()))        
         ui.widget_ms_buttons_r.move(
             QPoint(ui.widget_ms_tree.width()-ui.widget_ms_buttons_r.width(), ui.widget_ms_buttons_r.y()))
-
+        
+        # right align ms_library and ms_leaves 
+        # NOTE: they occupy the same location (same size)
+        ui.widget_ms_library.setGeometry(ui.widget_ms_tree.x()+ui.widget_ms_tree.width(),   # x
+                                         ui.widget_ms_library.y(),                          # y
+                                         panel_width, panel_height)        
+        ui.widget_ms_leaves.setGeometry(ui.widget_ms_tree.x()+ui.widget_ms_tree.width(),    # x
+                                        ui.widget_ms_library.y(),                          # y
+                                        panel_width, panel_height)
+        ui.txt_leaves_total.move(ui.widget_ms_leaves.width() - ui.txt_leaves_total.width()-2*UI_PADDING, 
+                                 panel_height-ui.txt_leaves_total.height()-2*UI_PADDING)
+        ui.lb_leaves_total.move(ui.txt_leaves_total.x() - ui.txt_leaves_total.width(),
+                                ui.txt_leaves_total.y())
+        ui.table_ms_leaves.resize(panel_width - 6*UI_PADDING, ui.lb_leaves_total.y()-ui.table_ms_leaves.y() - 2*UI_PADDING)
         # logo
         self.ui.lb_gem_logo.move(self.width()-self.ui.lb_gem_logo.width(), self.ui.lb_gem_logo.y())
         

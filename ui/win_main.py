@@ -17,6 +17,7 @@
 Main application window
 """
 import functools
+import os
 from time import sleep
 
 from PyQt4.QtCore import pyqtSlot, QSettings
@@ -88,8 +89,11 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
     # constructor / destructor
     #############################    
     def __init__(self, qtapp, app_config):
-        """ constructor """
-        
+        """
+        constructor
+        - initialize UI elements
+        - connect UI elements to callback            
+        """
         # create UI
         super(AppMainWindow, self).__init__()
         AppMainWindow.apiCallChecker.setWindow(self)
@@ -155,6 +159,7 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
             # cleanup is not-critical. no action taken even if fails
             pass
 
+        # hide features 
         # hide view menu
         self.ui.menuView.menuAction().setVisible(False)
         # hide data wizard
@@ -215,22 +220,12 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
     @logUICall 
     @pyqtSlot()   
     def loadProj(self):
-        """ open file dialog to load an existing application """        
-        filename = QFileDialog.getOpenFileName(self,
-                                               get_ui_string("app.window.msg.project.open"),
-                                               self.getLastOpenDir(),
-                                               get_ui_string("app.extension.db"))
-        # no need to check for file exists, because QFileDialog return is always valid path or null 
-        if not filename.isNull():        
-            # open existing project 
-            project = Project(self.app_config, self.taxonomy)
-            filename = str(filename)
-            project.set_project_path(filename)
-            project.sync(SyncModes.Read)
-            # open project and sync UI        
-            self.setProject(project)
-            self.saveLastOpenDir(filename[0:filename.rfind("/")]) 
-            self.ui.statusbar.showMessage(get_ui_string("app.status.project.loaded"))
+        """ open file dialog to load an existing application """
+        self.getOpenFileName(self, 
+                             get_ui_string("app.window.msg.project.open"),
+                             get_ui_string("app.extension.db"), 
+                             self.openProjectFile)
+        self.ui.statusbar.showMessage(get_ui_string("app.status.project.loaded"))
     
     @logUICall
     @pyqtSlot()    
@@ -299,13 +294,28 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
             logUICall.log('\tdo nothing. should not even be here', logUICall.WARNING)
 
     # public methods    
-    #############################    
+    #############################
+    @apiCallChecker
+    def openProjectFile(self, path_to_file):
+        """ 
+        load project from given path
+        shows error if path does not exist 
+        """
+        # NOTE: set_project_path will create new project if path_to_file
+        #       does not exist, os.path.exists check is not optional
+        if os.path.exists(path_to_file):
+            # read file to create project
+            project = Project(self.app_config, self.taxonomy)
+            project.set_project_path(path_to_file)
+            project.sync(SyncModes.Read)
+            # open project and sync UI        
+            self.setProject(project)
+    
     @apiCallChecker
     def setProject(self, project, skipVerify=False):
         """ open a project and sync UI accordingly"""        
         # close and reset UI 
         self.closeProject()
-
         self.project = project        
         
         # sync ui
@@ -315,11 +325,10 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
             self.ui.mainTabs.setTabEnabled(1, True)
             self.ui.mainTabs.setTabEnabled(2, True)                           
         self.ui.mainTabs.setTabEnabled(0, True)
-        self.tab_result.set_project(project)
         self.ui.mainTabs.setTabEnabled(3, True)
         self.ui.actionSave.setEnabled(True)
         self.ui.actionSave_as.setEnabled(True)        
-        
+        self.tab_result.set_project(project)        
         
         # NOTE: project temp directory is clear everytime the project is closed.
         #       therefore, exposure from previous run cannot be preserved  
@@ -329,6 +338,7 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
                 setattr(self.proc_options, attribute, self.project.operator_options['proc.%s'%attribute])
         
         if not skipVerify:
+            # verify to make sure input file are still in same place
             self.verifyInputs()
 
     @apiCallChecker    
@@ -400,6 +410,7 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         try:
             invoke_async(get_ui_string("app.status.processing"), self.project.build_ms)
         except SIDDException as err:
+            # different error message used in this case
             raise SIDDUIException(get_ui_string('project.error.sampling', str(err)))
         
         self.visualizeMappingScheme(self.project.ms)
@@ -528,35 +539,44 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
             self.ui.mainTabs.setCurrentIndex(3)
             self.ui.statusbar.showMessage(get_ui_string("app.status.exposure.created"))       
     
-    # safe methods
-    # methods below only makes UI change
-    # no need to check call
-    ###############################
-    @logAPICall
     def showTab(self, index):
         """ switch view to tab with given index. do nothing if index is not valid """
         if index >=0 and index <=3:
             self.ui.mainTabs.setCurrentIndex(index)
     
-    @logAPICall
     def refreshPreview(self):
         """ refresh all layers shown in Preview tab """
         if self.previewInput:
             self.tab_result.refreshView()
 
-    @logAPICall
     def visualizeMappingScheme(self, ms):
         """ display the given mapping scheme in Mapping scheme and Modifier tabs"""
         self.tab_ms.showMappingScheme(ms)
         self.tab_mod.showMappingScheme(ms)
+         
+    # utility methods    
+    # no error checking is performed in these functions
+    # caller must catch possible exception
+    ###############################
+    def getOpenFileName(self, parent, title, extension, callback):
+        """ show open file dialog box to get a filename """
+        filename = QFileDialog.getOpenFileName(parent, title, self.getLastOpenDir(), extension)
+        if not filename.isNull():
+            filename = str(filename)
+            if os.path.exists(filename):                
+                # store directory to file, so next Open will be in same dir
+                self.saveLastOpenDir(filename[0:filename.rfind("/")])
+                callback(filename)  # no error catching to make sure callback is actually a function
+
+    def saveLastOpenDir(self, dir_path):
+        """ store path so it can be retrieved by other parts of the application """
+        self.settings.setValue('LAST_OPEN_DIR', dir_path)
 
     def getLastOpenDir(self):
+        """ retrieve remembered path """
         last_dir = self.settings.value('LAST_OPEN_DIR').toString()
         if last_dir is None:
             return get_app_dir()
         else:
             return str(last_dir)
-        
-    def saveLastOpenDir(self, dir_path):
-        self.settings.setValue('LAST_OPEN_DIR', dir_path)
     

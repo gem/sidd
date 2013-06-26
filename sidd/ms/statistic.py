@@ -47,9 +47,11 @@ class Statistics (object):
         self.root = StatisticNode(None, 'root', 'root')
         self.attributes = []
         self.leaves = []
+        self.leaves_ordered = False
         self.taxonomy = taxonomy
         self.skips.append(False)
         self.finalized = False
+        self.default_parse_order =  [x.name for x in self.taxonomy.attributes]
         
         for attr in self.taxonomy.attributes:
             self.defaults.append(attr.default)
@@ -74,31 +76,42 @@ class Statistics (object):
         return self.root.has_child_node(node)
 
     @logAPICall
-    def add_case(self, taxstr, parse_order=None, parse_modifiers=True, additional_data={}):
+    def add_case(self, taxstr, parse_order=None, parse_modifiers=True, additional_data={}, add_times=1):
         """
-        add new case of the strutural type (taxstr) to the distribution tree
+        add new case of the structural type (taxstr) to the distribution tree
+        using given parse_order
+        additional_data is aggregated at the leaf node only                
         """
         # assert valid condition
         if self.finalized:
-            raise StatisticError('stat is already finalized and cannot be modified')
+            raise StatisticError('Statistics is already finalized and cannot be modified')
         
+        # set parse_order
         if parse_order is None:
-            parse_order = [x.name for x in self.taxonomy.attributes]
+            parse_order = self.default_parse_order
 
+        # parse string
         bldg_attrs = self.taxonomy.parse(taxstr)
-        self.root.add(bldg_attrs, 0, parse_order, self.taxonomy.defaults, parse_modifiers, additional_data)
+        # update tree starting from root
+        for i in range(add_times):
+            self.root.add(bldg_attrs, 0, parse_order, self.taxonomy.defaults, parse_modifiers, additional_data)
 
     @logAPICall
     def finalize(self):
         """
         collapse the statistic tree and create weights
         required step before sampling and modification can be performed
+        NOTE: add case accumulates counts, finalize call is required to 
+              convert the counts into weights
         """
+        # do nothing if finalized
         if self.finalized:
             return
         
+        # DEPRECATED: collapse tree by eliminating all skipped levels
         new_root = StatisticNode(None, 'root')
         self.root.collapse_tree(new_root)
+        # convert counts into weight         
         new_root.calculate_weights()
         self.root = new_root
         self.attributes = self.get_attributes(self.root)
@@ -111,23 +124,27 @@ class Statistics (object):
         self.finalized = True        
 
     @logAPICall
-    def refresh_leaves(self, with_modifier=True, order_attributes=False, fill_missing=True):         
+    def refresh_leaves(self, with_modifier=True, order_attributes=False, fill_missing=True):     
+        """
+        collapse weights at all levels of tree into distribution (leaves)
+        """
+        # do nothing if finalized            
         self.leaves = []
         for _child in self.root.children:
             for _val, _wt, _node in _child.leaves(self.taxonomy.attribute_separator, with_modifier):                    
                 self.leaves.append([_val, _wt, _node])
         
-        if order_attributes:
+        # order attribute into default order        
+        if not self.leaves_ordered and order_attributes:
             def _sort_key(val):
                 return val.attribute.order            
             try:
-                #_default_order = [a.name for a in self.taxonomy.attributes]
                 _separator = str(self.taxonomy.separator(self.taxonomy.Separators.Attribute))
                 _ordered_leaves = []                        
                 for _val, _wt, _node in self.leaves:
                     _attr_vals = self.taxonomy.parse(_val)                        
                     if fill_missing:
-                        # must deep copy defaults, slow
+                        # must deep copy defaults, slow 
                         _ordered_vals = copy.deepcopy(self.taxonomy.defaults)
                         _order_index = -1
                         for _attr_val in _attr_vals:
@@ -146,10 +163,11 @@ class Statistics (object):
                     
                     _ordered_leaves.append([_val, _wt, _node])
                         
-                self.leaves = _ordered_leaves                
+                self.leaves = _ordered_leaves
+                self.leaves_ordered = True                
             except Exception, err:
-                import traceback
-                traceback.print_exc()
+                # failing to order does not kill process
+                logAPICall.log("failed to order attributes\n%s"% err, logAPICall.WARNING)
         return self.leaves
     
     @logAPICall
@@ -161,12 +179,14 @@ class Statistics (object):
         if len(values) == 0:
             return None
         node = self.root
+        # non-recursive search implementation
+        # can be optimized by using a recursive search        
         for value in values:
-            for child in node.children:
+            for child in node.children: 
                 if value == child.value:
                     node = child
-                    break        
-        if node == self.root:
+                    break
+        if node == self.root:   # this means not find
             return None
         return node
     
@@ -179,6 +199,8 @@ class Statistics (object):
         # assert valid condition
         if not self.finalized:
             raise StatisticError('stat must be finalized before modification')
+        
+        # recursive delete, see StatisticNodes.delete_node
         parent = node.parent
         parent.delete_node(node)
     
@@ -207,7 +229,7 @@ class Statistics (object):
                     existing_attributes.index(attr)
                     # if attr already in attribute list, it means repeat
                     # which in this case is an error
-                    raise StatisticError('Cannot perform append to node, Repeating attributes\nexisting attributes %s\nnew attributes %s' % (existing_attributes, attributes_to_insert))
+                    raise StatisticError('Cannot perform append to node. Repeating attributes\nexisting attributes %s\nnew attributes %s' % (existing_attributes, attributes_to_insert))
                 except ValueError:
                     # error means attr not in attributes
                     # which is the acceptable condition
@@ -252,25 +274,8 @@ class Statistics (object):
     
     @logAPICall
     def get_attributes(self, rootnode):
-        """ get name of all attributes in the tree"""
+        """ get name of all attributes in the for given rootnode """
         return rootnode.descendant_names
-        """
-        names = []
-        node = rootnode
-        found_leaf = False
-        while not found_leaf:
-            if (node.level > 0):
-                attr_values = self.taxonomy.parse(node.value)                
-                for attr_val, attr in map(None, attr_values, self.taxonomy.attributes):                    
-                    if not attr_val.is_empty:
-                        names.append(attr.name)
-                        break                        
-            if node.is_leaf:
-                found_leaf=True
-            else:
-                node = node.children[0]
-        return names
-        """
     
     @logAPICall
     def set_child_weights(self, node, weights):
@@ -280,7 +285,7 @@ class Statistics (object):
         # assert valid condition
         if not self.finalized:
             raise StatisticError('stat must be finalized before modification')
-        # TODO assert node is in tree        
+        # recursively set weights, see StatisticNodes.set_child_weights
         node.set_child_weights(weights)
     
     @logAPICall
@@ -332,7 +337,7 @@ class Statistics (object):
 
     @logAPICall
     def get_modifiers(self, max_level):
-        """ get list of modifiers up to max_level """
+        """ generator for modifiers up to max_level """
         for node, idx, mod in self.root.get_modifiers(max_level):            
             yield node, idx, mod
 

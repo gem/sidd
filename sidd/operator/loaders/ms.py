@@ -14,7 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 """
-module constains class for loading mapping scheme files
+module contains class for loading mapping scheme files
 mapping scheme format defined in ms module
 """
 from os.path import exists

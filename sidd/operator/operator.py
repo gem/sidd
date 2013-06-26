@@ -199,8 +199,10 @@ class Operator(object):
             raise OperatorDataError("layer %s not correctly loaded" % layer.name())
     
     def _test_layer_field_exists(self, layer, field):
-        if layer_field_index(layer, field) == -1:
-            raise OperatorDataError("field %s not found in input layer" % field)          
+        idx = layer_field_index(layer, field) 
+        if idx == -1:
+            raise OperatorDataError("field %s not found in input layer" % field)
+        return idx
 
 class EmptyOperator(Operator):
     '''

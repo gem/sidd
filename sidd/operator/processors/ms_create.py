@@ -498,11 +498,7 @@ class StratifiedMSCreator(EmptyMSCreator):
 
             # use building ratio to create statistic
             for _tax_str, _e_exp in _zone_e_exp[_zone].iteritems():
-                for i in range(int(_e_exp*1000)):
-                    try:
-                        stats.add_case(_tax_str, self._parse_order, self._parse_modifiers)
-                    except TaxonomyParseError as perr:
-                        logAPICall.log("error parsing case %s, %s" % (str(_tax_str), str(perr)), logAPICall.WARNING)                        
+                stats.add_case(_tax_str, self._parse_order, self._parse_modifiers, add_times=int(_e_exp*1000))                                            
             # finalize call is required 
             stats.finalize()
             ms.assign(MappingSchemeZone(_zone), stats)            

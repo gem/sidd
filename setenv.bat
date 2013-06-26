@@ -3,9 +3,9 @@
 REM Change LIB_HOME to root directory of Quantum GIS installation
 REM The following are example installation directories
 REM - use local package (when available as part of local packaging)
-REM SET LIB_HOME=%CD%
+SET LIB_HOME=%CD%
 REM - as part of OSGeo packages
-SET LIB_HOME=C:\OSGeo4W
+REM SET LIB_HOME=C:\OSGeo4W
 REM - as Stand-alone installation
 REM SET LIB_HOME=C:\Program Files\Quantum GIS\
 

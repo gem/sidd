@@ -255,6 +255,7 @@ class DialogMSOptions(Ui_msOptionsDialog, QDialog):
         indices = self.ui.lst_attributes_not_included.selectedIndexes()
         self.ui.btn_move_left.setEnabled(len(indices) == 1)
     
+    @logUICall
     def resetList(self):
         self._attr_names = []
         try:

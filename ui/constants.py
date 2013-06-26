@@ -52,7 +52,7 @@ SIDD_UI_STRINGS = {
     "project.error.NeedsMS":QApplication.translate('project.error', 'Mapping Scheme is needed', None, QApplication.UnicodeUTF8),
     "project.error.NeedSurvey":QApplication.translate('project.error', 'Survey data is required', None, QApplication.UnicodeUTF8),
     "project.error.NoActionDefined":QApplication.translate('project.error', 'No action is defined for type of data provided', None, QApplication.UnicodeUTF8),
-    "project.error.NotEnoughData":QApplication.translate('project.error', 'No action is defined for type of data provided', None, QApplication.UnicodeUTF8),
+    "project.error.NotEnoughData":QApplication.translate('project.error', 'Missing required data for exposure processing', None, QApplication.UnicodeUTF8),
     "project.error.sampling":QApplication.translate('project.error', """Error Creating Mapping Scheme with Stratified Sampling method:\n%s\nPlease use deselect "Use Stratified sampling" option and try again.""", None, QApplication.UnicodeUTF8),
     # common messages
     ######################

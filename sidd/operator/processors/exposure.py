@@ -23,7 +23,7 @@ from qgis.core import QgsVectorFileWriter, QgsFeature, QgsField, QgsGeometry
 
 from utils.shapefile import load_shapefile, layer_features, layer_field_index, remove_shapefile
 from utils.system import get_unique_filename
-from utils.grid import latlon_to_grid
+from utils.grid import latlon_to_grid, grid_to_latlon
  from sidd.constants import logAPICall, ExtrapolateOptions, \
     GID_FIELD_NAME, LON_FIELD_NAME, LAT_FIELD_NAME, CNT_FIELD_NAME, TAX_FIELD_NAME, \
     ZONE_FIELD_NAME, AREA_FIELD_NAME, COST_FIELD_NAME, \
@@ -123,6 +123,7 @@ class GridMSApplier(Operator):
         gid_idx = layer_field_index(src_layer, GID_FIELD_NAME)
         if gid_idx == -1:
             raise OperatorError("field %s not found in input layer" % GID_FIELD_NAME, self.__class__)
+        area_idx = layer_field_index(src_layer, AREA_FIELD_NAME)
         
         provider.select(provider.attributeIndexes(), provider.extent())
         provider.rewind()
@@ -145,6 +146,10 @@ class GridMSApplier(Operator):
                 gid = in_feature.attributeMap()[gid_idx]
                 zone_str = str(in_feature.attributeMap()[zone_idx].toString())
                 count = in_feature.attributeMap()[count_idx].toDouble()[0]
+                if area_idx > 0:
+                    area = in_feature.attributeMap()[area_idx].toDouble()[0]
+                else:
+                    area = 0
                 
                 count = int(count+0.5)
                 if count == 0:
@@ -160,8 +165,19 @@ class GridMSApplier(Operator):
                     # write out if there are structures assigned
                     _type = _sample[0]
                     _cnt = _sample[1]
-                    _size = _sample[2]
-                    _cost = _sample[3]
+                    
+                    if area > 0:
+                        # use area provided by footprint/zone if defined
+                        _size = area * ( float(_sample[1]) / count )
+                        if _sample[3] > 0 and _sample[2] > 0:
+                            _cost = (_sample[3] / _sample[2]) * area
+                        else:
+                            _cost = 0
+                    else:
+                        # use mapping scheme generic area otherwise
+                        _size = _sample[2]
+                        _cost = _sample[3]
+                    
                     if _cnt > 0:
                         out_feature.setGeometry(geom)
                         #out_feature.addAttribute(0, QVariant(gid))
@@ -258,27 +274,28 @@ class SurveyAggregator(GridMSApplier, ToGrid):
         if total_features > MAX_FEATURES_IN_MEMORY:
             # use bsddb to store temporary lat/lon
             tmp_db_file = '%sdb_%s.db' % (self._tmp_dir, get_unique_filename())
-            db = bsddb.btopen(tmp_db_file, 'c')
+            db = bsddb.btopen(tmp_db_file, 'c')            
         else:
             db = {}
 
+        # tally statistics for each grid_id/building type combination
         tax_idx = layer_field_index(svy_layer, TAX_FIELD_NAME)
         for f in layer_features(svy_layer):
             geom = f.geometry()
+            centroid  = geom.centroid().asPoint()
+            grid_id = latlon_to_grid(centroid.y(), centroid.x())                        
             tax_str = str(f.attributeMap()[tax_idx].toString())
-            centroid  = geom.centroid().asPoint()                        
-            x = round(centroid.x() / DEFAULT_GRID_SIZE)
-            y = round(centroid.y() / DEFAULT_GRID_SIZE)            
-            key = '%s %d %d' % (tax_str, x,y)
+
+            key = '%s %s' % (tax_str, grid_id)
             if db.has_key(key):
-                db[key] = str(int(db[key]) + 1)
+                db[key] = str(int(db[key]) + 1) # value as string required by bsddb
             else:
-                db[key] = '1'
+                db[key] = '1'                   # value as string required by bsddb
 
         # loop through all zones and assign mapping scheme
         # outputs
         exposure_layername = 'exp_%s' % get_unique_filename()
-        exposure_file = '%sexp_%s.shp' % (self._tmp_dir, exposure_layername)
+        exposure_file = '%s%s.shp' % (self._tmp_dir, exposure_layername)
 
         try:
             writer = QgsVectorFileWriter(exposure_file, "utf-8", 
@@ -287,12 +304,13 @@ class SurveyAggregator(GridMSApplier, ToGrid):
             f = QgsFeature()            
             gid = 0
             for key, val in db.iteritems():
-                (tax_str, x, y) = key.split(' ')
-                lon, lat = int(x)*DEFAULT_GRID_SIZE, int(y)*DEFAULT_GRID_SIZE
-                f.setGeometry(self._outputGeometryFromLatLon(lat, lon))
-                f.addAttribute(0, QVariant(latlon_to_grid(lat, lon)))
-                f.addAttribute(1, QVariant(lat))
-                f.addAttribute(2, QVariant(lon))
+                (tax_str, grid_id) = key.split(' ')
+                lon, lat = grid_to_latlon(int(grid_id))
+                
+                f.setGeometry(self._outputGeometryFromGridId(grid_id))
+                f.addAttribute(0, QVariant(grid_id))
+                f.addAttribute(1, QVariant(lon))
+                f.addAttribute(2, QVariant(lat))
                 f.addAttribute(3, QVariant(tax_str))
                 f.addAttribute(4, QVariant(''))
                 f.addAttribute(5, QVariant(val))

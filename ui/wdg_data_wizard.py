@@ -27,11 +27,17 @@ from ui.wdg_data import WidgetDataInput
 
 class WidgetDataWizard(Ui_widgetDataWizard, QWizard, WidgetDataInput):
     """
-    Widget (Panel) for specifying data inputs
+    Data Widget for specifying data inputs
+    This wizard will guide user through different inputs pages by redirecting to 
+    appropriate next input based on user data availability      
     """
     PAGE_ZONE, PAGE_FOOTPRINT, PAGE_POPGRID, PAGE_SURVEY, PAGE_AGGREGATE, PAGE_VERIFY = range(6)    
     def __init__(self, app, project):
-        """ constructor """
+        """
+        constructor
+        - initialize UI elements
+        - connect UI elements to callback            
+        """
         QWizard.__init__(self)
         
         self._initilizing = True
@@ -147,6 +153,12 @@ class WidgetDataWizard(Ui_widgetDataWizard, QWizard, WidgetDataInput):
         super(WidgetDataWizard, self).setAggregateType(checked) 
     
     def nextId(self):
+        """
+        find appropriate page to display next based on current
+        data combination
+        this method is implicitly invokes by the wizard when 
+        "Next" button is clicked.
+        """
         cur_id = self.currentId()
         # make sure input data set has correct combination
         # and all the files specified do exist
@@ -173,7 +185,8 @@ class WidgetDataWizard(Ui_widgetDataWizard, QWizard, WidgetDataInput):
             next_id = self.PAGE_VERIFY
         else: # cur_id == self.PAGE_VERIFY:
             next_id = -1 # finish
-                    
+        
+        # verify data 
         if next_id == self.PAGE_VERIFY:
             self.project.verify_data()
             self.showVerificationResults()

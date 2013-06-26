@@ -73,10 +73,10 @@ QgsApplication.initQgis()
 # initialize and show main window
 mainWin = AppMainWindow(qtApp, sidd_config)
 mainWin.show()
-
+if len(sys.argv) == 2:
+    mainWin.openProjectFile(sys.argv[1])
 splash.finish(mainWin)
 
 #exit
 sys.exit(qtApp.exec_())
 QgsApplication.exitQgis()
-

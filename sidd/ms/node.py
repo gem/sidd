@@ -68,7 +68,7 @@ class StatisticModifier(object):
             outstr.append("%s: %2.1f%%  " % (k, v))
         outstr.append(')')
         # return joined string 
-        return ''.join(outstr)    
+        return ''.join(outstr)
 
     @logAPICall
     def to_xml(self, pretty=False):
@@ -217,8 +217,7 @@ class StatisticNode (object):
         outstr = []
         
         # add space to make it pretty
-        for i in range(self.level):
-            outstr.append('  ')
+        outstr.append('  ' * self.level)
         # add current node
         outstr.append('%s:[%s=%s (%s, %s, %2.1f%% - %d)]'
                       % (self.level, self.name, self.value, self.is_default,
@@ -226,10 +225,12 @@ class StatisticNode (object):
         # add modifiers for current node
         for mod in self.modifiers:           
             outstr.append(str(mod))
-        outstr.append('\n')
-        if self.is_leaf:
+        
+        # show additional data in leaf node
+        if self.is_leaf:            
             outstr.append(str(self.additional))
-            
+        
+        outstr.append('\n')
         # add children
         for child in self.children:
             outstr.append(str(child))

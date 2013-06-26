@@ -27,8 +27,12 @@ from sidd.operator import *
 
 class Workflow(object):
     """
-    class for managing workflows
-    workflows can be loaded from XML file. this allow the system to
+    class for storing workflows
+    
+    a workflow consist of a list of operators and set of data 
+    during processing. each operator is performed in succession. 
+    
+    workflows can be created from XML. this allow the system to
     intelligently build workflow based on input data available
     """
 
@@ -44,11 +48,14 @@ class Workflow(object):
     # public method
     ##################################
     @logAPICall
-    def add_error(self, err_code):         
+    def add_error(self, err_code):
+        """ add error to workflow, workflow is no longer ready """
         self.errors.append(err_code)
+        self.ready=False
     
     @logAPICall
     def has_error(self):
+        """ test if workflow has error """
         return len(self.errors) > 0
     
     @logAPICall
@@ -62,29 +69,34 @@ class Workflow(object):
         workflow = ElementTree()        
         self._build(workflow.parse(xml_file))
 
-    @logAPICall        
+    @logAPICall
     def nextstep(self):
-        """ generator through each step in the workflow process """
-        #for op_id, op in self.operators.iteritems():
-        #    yield op
+        """ 
+        generator for each step in the process
+        can be used as
+        for step in workflow.nextstep():
+            # do something with step        
+        """
         for op in self.operators:
             yield op
             
     @logAPICall        
     def steps(self):
+        """ return number of operators """
         return len(self.operators)
 
     @logAPICall
     def process(self):
-        """ process entire workflow according to step defined """
+        """ 
+        process entire workflow according to step defined         
+        """
         if not self.ready:
             return
         for op in self.nextstep():
             op.do_operation()        
 
     # help functions
-    ##################################
-    
+    ##################################    
     def reset(self):
         """ reset operators and data """
         self.operator_data = {}
@@ -94,7 +106,10 @@ class Workflow(object):
         self.description = ""
         
     def _build(self, workflow_node):
-        """ build workflow from given xml node """        
+        """ 
+        build workflow from given xml node
+        internal function called by from_xml_string and from_xml_file
+        """        
         self.reset()
         
         # check to make sure it is correct.
@@ -153,6 +168,7 @@ class WorkflowBuilder(object):
     ##################################
     @logAPICall
     def build_load_fp_workflow(self, project):
+        """ create footprint loading workflow """
         workflow = Workflow()
         workflow.ready=True
         if project.fp_type == FootprintTypes.FootprintHt:
@@ -165,6 +181,7 @@ class WorkflowBuilder(object):
 
     @logAPICall
     def build_load_survey_workflow(self, project):
+        """ create survey loading workflow """
         workflow = Workflow()
         workflow.ready=True
         if project.survey_type == SurveyTypes.CompleteSurvey:
@@ -177,6 +194,7 @@ class WorkflowBuilder(object):
     
     @logAPICall
     def build_load_popgrid_workflow(self, project):
+        """ create population grid loading workflow """
         workflow = Workflow()
         workflow.ready=True
         if project.popgrid_type == PopGridTypes.Grid:
@@ -187,6 +205,7 @@ class WorkflowBuilder(object):
     
     @logAPICall
     def build_load_zones_workflow(self, project):
+        """ create zone loading workflow """
         workflow = Workflow()
         workflow.ready=True
         if project.zone_type == ZonesTypes.LanduseCount:
@@ -199,6 +218,7 @@ class WorkflowBuilder(object):
         
     @logAPICall
     def build_ms_workflow(self, project, isEmpty=False):
+        """ create mapping scheme creating workflow """
         workflow = Workflow()
         
         logAPICall.log('creating survey loader ...', logAPICall.DEBUG_L2)
@@ -239,10 +259,12 @@ class WorkflowBuilder(object):
         return workflow
     
     def build_sampling_ms_workflow(self, project):
+        """ create workflow for mapping scheme using stratified sampling methodology """
         workflow = Workflow()
         
         logAPICall.log('creating survey loader ...', logAPICall.DEBUG_L2)
 
+        # test to make sure all necessary data is available
         if project.fp_type != FootprintTypes.FootprintHt:
             workflow.add_error(WorkflowErrors.NeedsHeight)
         if project.zone_type == ZonesTypes.None:
@@ -252,11 +274,13 @@ class WorkflowBuilder(object):
 
         if workflow.has_error():
             return workflow
-                
+        
+        # data loading         
         self.load_footprint(project, workflow, True)
         self.load_survey(project, workflow, False)
         self.load_zone(project, workflow, False)
         
+        # create operator for mapping scheme
         workflow.operator_data['zone_field'] = OperatorData(OperatorDataTypes.StringAttribute, project.zone_field)
         ms_creator = StratifiedMSCreator(self._operator_options)
         ms_creator.inputs = [workflow.operator_data['fp'],
@@ -276,6 +300,7 @@ class WorkflowBuilder(object):
         
     @logAPICall
     def build_workflow(self, project):
+        """ create workflow for creating exposure """
         workflow = Workflow()
         still_needs_count = True
         still_needs_zone = True
@@ -351,6 +376,7 @@ class WorkflowBuilder(object):
 
     @logAPICall
     def build_export_workflow(self, project):
+        """ create workflow for exporting the resulting exposure """
         workflow = Workflow()
         
         workflow.operator_data['exposure_file'] = OperatorData(OperatorDataTypes.Shapefile, project.exposure_file)
@@ -375,6 +401,7 @@ class WorkflowBuilder(object):
 
     @logAPICall
     def build_export_distribution_workflow(self, project, export_path):
+        """ create workflow for exporting project's mapping scheme as building distributions """
         workflow = Workflow()
         workflow.operator_data['ms'] = OperatorData(OperatorDataTypes.MappingScheme, project.ms)
         workflow.operator_data['export_folder'] = OperatorData(OperatorDataTypes.StringAttribute, export_path)
@@ -391,6 +418,7 @@ class WorkflowBuilder(object):
 
     @logAPICall
     def build_verify_result_workflow(self, project):
+        """ create workflow that running data check operators on the resulting exposure """
         workflow = Workflow()
         
         if getattr(project, 'exposure', None) is None:
@@ -487,13 +515,15 @@ class WorkflowBuilder(object):
         workflow.operator_data['zone_file'] = OperatorData(OperatorDataTypes.Shapefile)
         if withCount:
             workflow.operator_data['zone_count_field'] = OperatorData(OperatorDataTypes.StringAttribute, project.zone_count_field)
+            workflow.operator_data['zone_area_field'] = OperatorData(OperatorDataTypes.StringAttribute, project.zone_area_field)
         
         # operator 
         if withCount:
             zone_loader = ZoneCountLoader(self._operator_options)
             zone_loader.inputs = [workflow.operator_data['zone_input_file'],
                                   workflow.operator_data['zone_field'],
-                                  workflow.operator_data['zone_count_field'],]
+                                  workflow.operator_data['zone_count_field'],
+                                  workflow.operator_data['zone_area_field'],]
         else:
             zone_loader = ZoneLoader(self._operator_options)
             zone_loader.inputs = [workflow.operator_data['zone_input_file'],
@@ -598,10 +628,16 @@ class WorkflowBuilder(object):
             zone_count_field = workflow.operator_data['zone_count_field']
         else:
             zone_count_field = OperatorData(OperatorDataTypes.StringAttribute, project.zone_count_field)
+        if workflow.operator_data.has_key('zone_area_field'):            
+            zone_area_field = workflow.operator_data['zone_area_field']
+        else:
+            zone_area_field = OperatorData(OperatorDataTypes.StringAttribute, project.zone_area_field)
+            
         grid_writer.inputs = [workflow.operator_data['fp'],
                               workflow.operator_data['zone'],
                               workflow.operator_data['zone_field'],
-                              zone_count_field]                         
+                              zone_count_field,
+                              zone_area_field]                         
                     
         grid_writer.outputs = [workflow.operator_data['grid'],
                                workflow.operator_data['grid_file'],]        
@@ -681,11 +717,15 @@ class WorkflowBuilder(object):
         # 1 create grid from zones
         workflow.operator_data['grid'] = OperatorData(OperatorDataTypes.Grid)
         workflow.operator_data['grid_file'] = OperatorData(OperatorDataTypes.Shapefile)
-
+        if workflow.operator_data.has_key('zone_area_field'):            
+            zone_area_field = workflow.operator_data['zone_area_field']
+        else:
+            zone_area_field = OperatorData(OperatorDataTypes.StringAttribute, project.zone_area_field)
         grid_writer = ZoneToGrid(self._operator_options)
         grid_writer.inputs = [workflow.operator_data['zone'],
                               workflow.operator_data['zone_field'],
-                              workflow.operator_data['zone_count_field']]
+                              workflow.operator_data['zone_count_field'],
+                              zone_area_field]
         grid_writer.outputs =[workflow.operator_data['grid'],
                               workflow.operator_data['grid_file'],]
         

@@ -33,7 +33,11 @@ class WidgetSecondaryModifier(Ui_widgetSecondaryModifier, QWidget):
     # constructor / destructor
     ###############################        
     def __init__(self, app):
-        """ constructor """
+        """
+        constructor
+        - initialize UI elements
+        - connect UI elements to callback            
+        """
         super(WidgetSecondaryModifier, self).__init__()
         self.ui = Ui_widgetSecondaryModifier()
         self.ui.setupUi(self)

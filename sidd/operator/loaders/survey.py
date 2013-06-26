@@ -141,7 +141,7 @@ class GEMDBSurveyLoader(Operator):
 
     # internal helper methods
     ####################################
-    def _loadSurvey(self, sqlitepath, shapefilepath, filter=None):
+    def _loadSurvey(self, sqlitepath, shapefilepath, proj_uid=None):
         # load data
         sql = """select OBJ_UID, X, Y, SAMPLE_GRP, PLAN_AREA, REPLC_COST,
                 MAT_TYPE_L, MAT_TECH_L, MAS_REIN_L, MAS_MORT_L, STEELCON_L, 
@@ -153,11 +153,12 @@ class GEMDBSurveyLoader(Operator):
                 STR_IRREG, STR_HZIR_P, STR_HZIR_S, STR_VEIR_P, STR_VEIR_S, 
                 OCCUPCY, OCCUPCY_DT
                 from GEM_OBJECT o LEFT JOIN GED g on o.OBJ_UID=g.GEMOBJ_UID"""
-        if filter is not None:
-            sql = "%s WHERE PROJ_UID='%s'" % (sql, filter)
+        # SQL injection check not too important here given that data format is SQLite         
+        if proj_uid is not None:
+            sql = "%s WHERE PROJ_UID='%s'" % (sql, proj_uid)
         conn = sqlite3.connect(sqlitepath)
         c = conn.cursor()
-        c.execute(sql)        
+        c.execute(sql)
         self._buildSurveyLayer(c, shapefilepath)
         c.close()
         conn.close()
@@ -199,7 +200,6 @@ class GEMDBSurveyLoader(Operator):
         
         # attribute names
         # 'Material', 'Lateral Load-Resisting System', 'Roof', 'Floor', 'Height', 'Date of Construction', 'Irregularity', 'Occupancy'
-    
         separator = "+"
         
         # material
@@ -280,6 +280,7 @@ class GEMDBSurveyLoader(Operator):
         # occupancy
         occ_string = self._coalesce(occupcy) + self._append_not_null(occupcy_dt,separator)
         
+        # constructs output string
         separator = "/"
         return (mat_string + self._append_not_null(ll_string,separator)
                            + self._append_not_null(roof_string,separator)
@@ -290,6 +291,7 @@ class GEMDBSurveyLoader(Operator):
                            + self._append_not_null(occ_string,separator))
     
     def _get_height(self, data):
+        """ retrieve height as numeric value from SQLite Query Result """ 
         story_ag_q, story_ag_1, story_ag_2 = data[11:14]
         ht = 0
         if story_ag_1 is None:
@@ -301,30 +303,35 @@ class GEMDBSurveyLoader(Operator):
         return int(ht)
     
     def _coalesce(self, val):        
+        """ returns val or blank string if val is null (None) """
         if (val is not None):
             return str(val).upper()
         else:
             return ""
     
     def _toint(self, val):
+        """ convert val to integer, return 0 if conversion fails """
         try:
             return int(val)
         except:
             return 0
         
     def _tofloat(self, val):
+        """ convert val to floating point, return 0.0 if conversion fails """
         try:
             return float(val) 
         except:
             return 0.0        
      
     def _append_not_null(self, val, separator):        
+        """ append val with separator if val is not empty """
         if (val is None or val == ""):
             return ""
         else:
             return separator + str(val)
 
     def _append_no_repeat(self, vals, separator, exclude=''):
+        """ concatenate list of values using separator if value is not empty and not excluded """
         no_repeat = {}
         for val in vals:
             if val is None or val == "" or val == exclude:
@@ -333,6 +340,7 @@ class GEMDBSurveyLoader(Operator):
         return str(separator).join(no_repeat.keys())
 
     def _find_range(self, value, min_values, max_values):
+        """ find min/max values surrounding given value """
         # less than minimum
         if value < min_values[0]:
             return None, min_values[0]

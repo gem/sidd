@@ -29,7 +29,7 @@ from utils.shapefile import load_shapefile, layer_features, layer_field_index, r
                             layer_multifields_stats, layer_fields_stats, load_shapefile_verify 
 from utils.system import get_unique_filename
 from utils.grid import latlon_to_grid, grid_to_latlon
-from sidd.constants import logAPICall, GID_FIELD_NAME, AREA_FIELD_NAME, CNT_FIELD_NAME, \
+from sidd.constants import logAPICall, GID_FIELD_NAME, AREA_FIELD_NAME, CNT_FIELD_NAME, HT_FIELD_NAME, \
                            MAX_FEATURES_IN_MEMORY, DEFAULT_GRID_SIZE
 from sidd.operator import EmptyOperator, OperatorError
 from sidd.operator.data import OperatorDataTypes
@@ -390,7 +390,27 @@ class ZoneFootprintCounter(EmptyOperator):
             raise OperatorError(str(err), self.__class__)
         
         # count footprint in each zone
-        stats = layer_fields_stats(tmp_join_layer, GID_FIELD_NAME + "_")
+        gid_idx = layer_field_index(tmp_join_layer, GID_FIELD_NAME + "_")
+        area_idx = layer_field_index(tmp_join_layer, AREA_FIELD_NAME)
+        ht_idx = layer_field_index(tmp_join_layer, HT_FIELD_NAME)
+        stats = {}
+        for _feature in layer_features(tmp_join_layer):
+            gid = _feature.attributeMap()[gid_idx].toString()
+            if ht_idx > 0:      
+                ht = _feature.attributeMap()[ht_idx].toDouble()[0]
+            else:
+                ht = 0                        
+            # if height is not defined, it is set to 0
+            # this will cause the system to ignore area generate without having to
+            # remove the field
+            area = _feature.attributeMap()[area_idx].toDouble()[0] * ht # 
+            if not stats.has_key(gid):
+                stats[gid] = (1, area)
+            else:
+                stat = stats[gid] 
+                stats[gid] = (stat[0]+1, stat[1]+area)
+            
+        #stats = layer_fields_stats(tmp_join_layer, GID_FIELD_NAME + "_")
         
         output_layername = 'zone_%s' % get_unique_filename()
         output_file = '%s%s.shp' % (self._tmp_dir, output_layername)
@@ -399,7 +419,8 @@ class ZoneFootprintCounter(EmptyOperator):
             fields ={
                 0 : QgsField(GID_FIELD_NAME, QVariant.Int),
                 1 : QgsField(zone_field, QVariant.String),
-                2 : QgsField(zone_count_field, QVariant.Int),
+                2 : QgsField(CNT_FIELD_NAME, QVariant.Int),
+                3 : QgsField(AREA_FIELD_NAME, QVariant.Int),
             }
             writer = QgsVectorFileWriter(output_file, "utf-8", fields, QGis.WKBPolygon, self._crs, "ESRI Shapefile")                     
             f = QgsFeature()            
@@ -408,15 +429,18 @@ class ZoneFootprintCounter(EmptyOperator):
                 # write to file
                 f.setGeometry(_f.geometry())
                 f.addAttribute(0, _f.attributeMap()[0])
-                f.addAttribute(1, _f.attributeMap()[1])                
+                f.addAttribute(1, _f.attributeMap()[1])
                 
                 # retrieve count from statistic
                 try:
                     gid = _f.attributeMap()[0].toString()
-                    bldg_count = stats[str(gid)]
+                    stat = stats[gid]
+                    bldg_count = stat[0]
+                    area = stat[1]
                 except:
-                    bldg_count = 0
+                    bldg_count, area = 0, 0
                 f.addAttribute(2, QVariant(bldg_count))
+                f.addAttribute(3, QVariant(area))
                 writer.addFeature(f)
             
             del writer, f

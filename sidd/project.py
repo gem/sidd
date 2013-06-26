@@ -72,7 +72,7 @@ class Project (object):
             if os.path.exists(self.temp_dir):                
                 del self.workflow
                 if self.exposure is not None:
-                    del self.exposure   # must delete layer, otherwise exposure_file becomes locked
+                    del self.exposure   # must delete QGIS layer, otherwise exposure_file becomes locked
                                         # and will generate error on shutil.rmtree
                 shutil.rmtree(self.temp_dir)
         except Exception as err:            
@@ -98,7 +98,7 @@ class Project (object):
             self.project_file = project_file
             self.require_save = True
         except:
-            raise SIDDProjectException(ProjectErrors.FileFormatError)                
+            raise SIDDProjectException(ProjectErrors.FileFormatError)
     
     @logAPICall
     def set_footprint(self, fp_type, fp_file='', ht_field=''):
@@ -108,12 +108,13 @@ class Project (object):
         self.require_save = True
 
     @logAPICall
-    def set_zones(self, zone_type, zone_file='', zone_field='', zone_count_field=''):
+    def set_zones(self, zone_type, zone_file='', zone_field='', zone_count_field='', zone_area_field=''):
         """ load zone data """
         self.zone_file = zone_file
         self.zone_type = zone_type
         self.zone_field = zone_field
         self.zone_count_field = zone_count_field
+        self.zone_area_field = zone_area_field
         self.require_save = True        
 
     @logAPICall
@@ -159,6 +160,7 @@ class Project (object):
         self.zone_file = ''
         self.zone_field = '' 
         self.zone_count_field = ''
+        self.zone_area_field = ''
 
         self.popgrid_type= PopGridTypes.None
         self.popgrid_file = ''
@@ -408,7 +410,8 @@ class Project (object):
                     self.set_zones(ZonesTypes.LanduseCount,
                                    self._get_project_data('data.zones.file'),
                                    self._get_project_data('data.zones.class_field'),
-                                   self._get_project_data('data.zones.count_field'))
+                                   self._get_project_data('data.zones.count_field'),
+                                   self._get_project_data('data.zones.area_field'))
                     
             # load popgrid
             _pop_type = self._get_project_data('data.popgrid')
@@ -503,8 +506,10 @@ class Project (object):
                 self._save_project_data('data.zones.class_field', self.zone_field)
                 if self.zone_type == ZonesTypes.LanduseCount:
                     self._save_project_data('data.zones.count_field', self.zone_count_field)
+                    self._save_project_data('data.zones.area_field', self.zone_area_field)
                 else:
                     self._save_project_data('data.zones.count_field', None)
+                    self._save_project_data('data.zones.area_field', None)
             
             # store popgrid
             if self.popgrid_type == PopGridTypes.None:
