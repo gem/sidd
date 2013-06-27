@@ -148,7 +148,7 @@ class Operator(object):
         # check out size
         if (len(outputs) != len(self.output_types)):
             raise OperatorDataError("incorrect number of output")
-        
+
         # verify output types
         _i = 1
         for _output, _expected in map(None, outputs, self.output_types):

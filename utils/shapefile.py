@@ -39,6 +39,8 @@ def load_shapefile(input_file, layer_name):
         _layer = QgsVectorLayer(input_file, layer_name, 'ogr')
         # create spatial index if missing
         # QGIS spatial index file has ,qix extension  
+        if _layer.dataProvider() is None:
+            raise Exception('Error Loading Shapefile %s\n'%input_file)
         if not os.path.exists('%s.qix'%input_file[:-4]):
             _layer.dataProvider().createSpatialIndex()       
     return _layer
@@ -152,6 +154,8 @@ def layer_fields_stats(layer, field):
 def layer_features(layer):
     """ generator for traversing all features within given vector layer """
     provider = layer.dataProvider()
+    if provider is None:
+        raise Exception('Error accessing layer features in %s\n' % layer.name())
     provider.select(provider.attributeIndexes())
     f = QgsFeature()
     provider.rewind()

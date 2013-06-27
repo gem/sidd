@@ -46,7 +46,7 @@ class OperatorTestCase(SIDDTestCase):
         self.zone2_path = self.test_data_dir +  "zones2.shp"
         self.zone2_field = 'LandUse'
         self.zone2_feature_count = 546
-        self.zone2_total_bldg_cnt = 292377   
+        self.zone2_total_bldg_cnt = 292377
         self.zone2_total_bldg_area = 71582303
         self.zone2_bldgcount_field = 'NumBldg'
         self.zone2_bldgarea_field = 'SqMtBldg'
@@ -55,11 +55,12 @@ class OperatorTestCase(SIDDTestCase):
         self.fp3_path = self.test_data_dir +  "footprints3.shp"
         self.fp3_height_field = "HEIGHT"
         self.fp3_feature_count = 785
+        self.fp3_total_area = 774814.441
         self.gemdb3_path = self.test_data_dir +  "survey3.db3"
         self.zone3_path = self.test_data_dir +  "zones3.shp"
         self.zone3_field = "ZONE"
         self.zone3_bldgcount_field = 'NumBldgs'
-        self.zone3_bldgarea_field = 'SqMtBldg'
+        self.zone3_bldgarea_field = 'SqMtBldg'        
         self.zone3_total_bldg_cnt = 850
         self.zone3_total_bldg_area = 500000
         
@@ -523,9 +524,10 @@ class OperatorTestCase(SIDDTestCase):
     def test_ZoneFootprintToGridJoin(self, skipTest=False):
         logging.debug('test_ZoneFootprintJoin %s' % skipTest)
         
-        # load data
+        # test 1
+        # area from footprint
         zone_data = self.test_LoadZone2(True, 3)
-        fp_opdata = self.test_LoadFootprint(True, 3)
+        fp_opdata = self.test_LoadFootprintHT(skipTest=True)
         
         # test 1
         merger = FootprintZoneToGrid(self.operator_options)
@@ -547,6 +549,39 @@ class OperatorTestCase(SIDDTestCase):
             self._clean_layer(fp_opdata)
             self._clean_layer(zone_data)
             return merger.outputs
+
+        self.assertTrue(os.path.exists(merger.outputs[1].value))
+        cnt_idx = layer_field_index(merger.outputs[0].value, CNT_FIELD_NAME)
+        area_idx = layer_field_index(merger.outputs[0].value, AREA_FIELD_NAME)
+        total_cnt, total_sqmt = 0, 0
+        for _f in layer_features(merger.outputs[0].value):
+            cnt = _f.attributeMap()[cnt_idx].toDouble()[0]
+            area = _f.attributeMap()[area_idx].toDouble()[0]
+            total_cnt+= cnt
+            total_sqmt +=area 
+        self.assertAlmostEqual(total_cnt, self.zone3_total_bldg_cnt, places=2)
+        self.assertAlmostEqual(total_sqmt, self.fp3_total_area, places=-2)
+        self._clean_layer(merger.outputs)
+                
+        # load data
+        self._clean_layer(fp_opdata)
+        fp_opdata = self.test_LoadFootprint(True, 3)
+        
+        # test 2
+        # area from zone
+        merger = FootprintZoneToGrid(self.operator_options)
+        merger.inputs = [
+            fp_opdata[0],
+            zone_data[0],
+            OperatorData(OperatorDataTypes.StringAttribute, self.zone3_field),
+            OperatorData(OperatorDataTypes.StringAttribute, self.zone3_bldgcount_field),
+            OperatorData(OperatorDataTypes.StringAttribute, self.zone3_bldgarea_field),            
+        ]
+        merger.outputs = [
+            OperatorData(OperatorDataTypes.Grid),
+            OperatorData(OperatorDataTypes.Shapefile)
+        ]
+        merger.do_operation()
         
         self.assertTrue(os.path.exists(merger.outputs[1].value))
         cnt_idx = layer_field_index(merger.outputs[0].value, CNT_FIELD_NAME)
@@ -561,7 +596,8 @@ class OperatorTestCase(SIDDTestCase):
         self.assertAlmostEqual(total_sqmt, self.zone3_total_bldg_area, places=-2)
         self._clean_layer(merger.outputs)
 
-        # test 2        
+        # test 3
+        # no area    
         merger = FootprintZoneToGrid(self.operator_options)
         merger.inputs = [
             fp_opdata[0],

@@ -107,7 +107,7 @@ class WidgetSecondaryModifier(Ui_widgetSecondaryModifier, QWidget):
             return
         # confirm delete 
         answer = QMessageBox.warning(self,
-                                     get_ui_string("app.popup.delete.confirm"),
+                                     get_ui_string("app.confirm.title"),
                                      get_ui_string("widget.mod.warning.delete"),
                                      QMessageBox.Yes | QMessageBox.No)
         if answer == QMessageBox.Yes:

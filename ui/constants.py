@@ -57,7 +57,7 @@ SIDD_UI_STRINGS = {
     # common messages
     ######################
     "app.extension.shapefile":QApplication.translate('app.extension', 'Shapefile (*.shp)', None, QApplication.UnicodeUTF8),
-    "app.extension.csv":QApplication.translate('app.extension', 'CSV data(*.csv)', None, QApplication.UnicodeUTF8),
+    "app.extension.csv":QApplication.translate('app.extension', 'CSV file(*.csv)', None, QApplication.UnicodeUTF8),
     "app.extension.db":QApplication.translate('app.extension', 'SIDD file(*.sidd)', None, QApplication.UnicodeUTF8),
     "app.extension.kml":QApplication.translate('app.extension', 'KML (*.kml)', None, QApplication.UnicodeUTF8),
     "app.extension.xml":QApplication.translate('app.extension', 'XML(*.xml)', None, QApplication.UnicodeUTF8),
@@ -73,11 +73,11 @@ SIDD_UI_STRINGS = {
     "app.dialog.button.go":QApplication.translate('app.common', 'Go', None, QApplication.UnicodeUTF8),
     "app.dialog.button.close":QApplication.translate('app.common', 'Close', None, QApplication.UnicodeUTF8),
     "app.dialog.button.apply":QApplication.translate('app.common', 'Apply', None, QApplication.UnicodeUTF8),
-    "app.popup.delete.confirm":QApplication.translate('app.common', '', None, QApplication.UnicodeUTF8),
     # status messages
     ######################
     "app.status.ready":QApplication.translate('app.status',' ready', None, QApplication.UnicodeUTF8),
-    "app.status.project.created":QApplication.translate('app.status', 'Project Created', None, QApplication.UnicodeUTF8),  
+    "app.status.project.created":QApplication.translate('app.status', 'Project Created', None, QApplication.UnicodeUTF8),
+    "app.status.project.loading":QApplication.translate('app.status', 'Loading Project ...', None, QApplication.UnicodeUTF8),  
     "app.status.project.loaded":QApplication.translate('app.status', 'Project Loaded', None, QApplication.UnicodeUTF8),
     "app.status.project.saved":QApplication.translate('app.status', 'Project Saved', None, QApplication.UnicodeUTF8),
     "app.status.project.closed":QApplication.translate('app.status', 'Project Closed', None, QApplication.UnicodeUTF8),
@@ -89,6 +89,8 @@ SIDD_UI_STRINGS = {
     "app.status.exposure.exported":QApplication.translate('app.status', 'Exposure Exported', None, QApplication.UnicodeUTF8),
     "app.status.cancelled":QApplication.translate('app.status', 'Process Cancelled', None, QApplication.UnicodeUTF8),
     "app.status.processing":QApplication.translate('app.status', 'Processing ...', None, QApplication.UnicodeUTF8),
+    "app.confirm.title":QApplication.translate('app.status', 'SIDD', None, QApplication.UnicodeUTF8),
+    "app.confirm.build.exposure":QApplication.translate('app.status', 'Continue to build exposure?', None, QApplication.UnicodeUTF8),
     # common UI messages
     ######################
     "app.mslibrary.default":QApplication.translate('app.mslibrary', 'PAGER', None, QApplication.UnicodeUTF8),
@@ -147,10 +149,10 @@ SIDD_UI_STRINGS = {
     "widget.ms.library.title":QApplication.translate('app.ms', 'Mapping Scheme Library', None, QApplication.UnicodeUTF8),
     "widget.ms.library.enable":QApplication.translate('app.ms', 'Enable Mapping Scheme Library', None, QApplication.UnicodeUTF8),
     "widget.ms.library.delete.denied":QApplication.translate('app.ms', 'Only allowed to delete user-defined mapping scheme', None, QApplication.UnicodeUTF8),
-    "widget.ms.modifier":QApplication.translate('app.ms', 'Modifiers', None, QApplication.UnicodeUTF8),
-    "widget.ms.build":QApplication.translate('app.ms', 'Build Exposure', None, QApplication.UnicodeUTF8),
+    "widget.ms.file.open":QApplication.translate('app.ms', 'Open Mapping Scheme File', None, QApplication.UnicodeUTF8),
+    "widget.ms.warning.replace":QApplication.translate('app.ms', 'This will replace current Mapping Scheme.\nAre you sure that you want to continue?', None, QApplication.UnicodeUTF8),
     "widget.ms.warning.deletebranch":QApplication.translate('app.ms', 'Deleting a node cannot be undone.\nAre you sure that you want to continue?', None, QApplication.UnicodeUTF8),
-    "widget.ms.warning.node.required":QApplication.translate('app.ms', 'Node from Mapping Scheme Tree must be selected first', None, QApplication.UnicodeUTF8),
+    "widget.ms.warning.node.required":QApplication.translate('app.ms', 'Please select source node from Mapping Scheme library and destination node on Mapping Scheme Tree', None, QApplication.UnicodeUTF8),
     "widget.ms.warning.node.invalid":QApplication.translate('app.ms', 'Selected Node from Mapping Scheme Tree is Invalid', None, QApplication.UnicodeUTF8),
     # main window / mod tab
     ######################

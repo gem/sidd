@@ -260,11 +260,19 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
     @logUICall
     @pyqtSlot()    
     def setProcessingOptions(self):
+        if self.project is None:                
+            return
         if self.proc_options.exec_() == QDialog.Accepted:
-            #self.project.set_options()
-            for attribute in dir(self.proc_options):
+            for attribute in dir(self.proc_options):                
                 self.project.operator_options['proc.%s'%attribute] = getattr(self.proc_options, attribute)
-            
+            # alert user
+            answer = QMessageBox.question(self,
+                                         get_ui_string("app.confirm.title"),
+                                         get_ui_string("app.confirm.build.exposure"),
+                                         buttons = QMessageBox.No | QMessageBox.Yes,
+                                         defaultButton=QMessageBox.No)
+            if answer == QMessageBox.No:
+                return
             self.buildExposure()
             
     @logUICall
@@ -320,6 +328,7 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         
         # sync ui
         self.tab_datainput.setProject(project)
+        self.tab_result.set_project(project)        
         if self.project.ms is not None:
             self.visualizeMappingScheme(self.project.ms)
             self.ui.mainTabs.setTabEnabled(1, True)
@@ -327,11 +336,8 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         self.ui.mainTabs.setTabEnabled(0, True)
         self.ui.mainTabs.setTabEnabled(3, True)
         self.ui.actionSave.setEnabled(True)
-        self.ui.actionSave_as.setEnabled(True)        
-        self.tab_result.set_project(project)        
+        self.ui.actionSave_as.setEnabled(True)                
         
-        # NOTE: project temp directory is clear everytime the project is closed.
-        #       therefore, exposure from previous run cannot be preserved  
         # set processing options
         for attribute in dir(self.proc_options):
             if self.project.operator_options.has_key('proc.%s'%attribute):
@@ -442,12 +448,20 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         self.ui.statusbar.showMessage(get_ui_string("app.status.ms.modified"))
 
     @apiCallChecker
-    def exportMSLeaves(self, path):
+    def exportMS(self, path, format):
         """ export mapping scheme leaves as CSV """
         self.ui.statusbar.showMessage(get_ui_string("app.status.ms.processing"))
-        # invoke asynchronously        
-        invoke_async(get_ui_string("app.status.processing"), self.project.export_ms_leaves, path)
+        # invoke asynchronously       
+        invoke_async(get_ui_string("app.status.processing"), self.project.export_ms, path, format)
         self.ui.statusbar.showMessage(get_ui_string("app.status.ms.exported"))
+        
+    @apiCallChecker
+    def loadMS(self, path):
+        self.ui.statusbar.showMessage(get_ui_string("app.status.ms.processing"))
+        # invoke asynchronously       
+        invoke_async(get_ui_string("app.status.processing"), self.project.load_ms, path)
+        self.visualizeMappingScheme(self.project.ms)
+        self.ui.statusbar.showMessage(get_ui_string("app.status.ms.created"))
 
     @apiCallChecker
     def exportResults(self, export_format, export_path):

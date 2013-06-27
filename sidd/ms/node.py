@@ -176,10 +176,11 @@ class StatisticNode (object):
     @property
     def max_level(self):
         """ get max level under current node """
-        if self.is_leaf:
-            return self.level
-        else:
-            return self.children[0].max_depth()
+        level = self.level
+        for _child in self.children: 
+            if _child.max_level > level:
+                level = _child.level
+        return level
     
     @property
     def clone(self):
@@ -475,6 +476,20 @@ class StatisticNode (object):
         # will be skipped by leaf nodes
         for child in self.children:
             child.calculate_weights()
+
+    @logAPICall
+    def balance_weights(self):
+        """
+        adjust its weights to make sure it adds up to 100%
+        """
+        sum_weights = sum([child.weight for child in self.children])            
+        total_children = len(self.children)        
+        adj_factor = sum_weights / 100
+        for child in self.children:
+            if adj_factor == 0:
+                child.weight = 100.0 / total_children
+            else:
+                child.weight = child.weight / adj_factor        
 
     # tree modifying methods
     ###########################

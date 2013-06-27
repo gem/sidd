@@ -354,8 +354,10 @@ class FootprintZoneToGrid(ZoneToGrid):
 
         # tally total building area if there is defined
         bldg_area_idx = layer_field_index(zone_layer, area_field)
-        zone_area = {}        
+        zone_area = {}
+        zone_has_area = False        
         if bldg_area_idx > 0:
+            zone_has_area = True
             zone_gid_idx = layer_field_index(zone_layer, GID_FIELD_NAME)
             for _f in layer_features(zone_layer):            
                 gid = _f.attributeMap()[zone_gid_idx].toString()            
@@ -399,9 +401,7 @@ class FootprintZoneToGrid(ZoneToGrid):
                 bldg_cnt = _f.attributeMap()[bldg_cnt_idx].toDouble()[0] * area_ratio
             else:
                 bldg_cnt = 0
-            if bldg_area_idx > 0:   # bldg_area_idx was checked against input zone_ayer
-                                    # can not be used here to extract data, but can be used
-                                    # as indication of whether bldg_area is defined
+            if zone_has_area: 
                 area = zone_area[zone_gid] * area_ratio
             else:
                 area = stat[area_idx] * area_ratio                 
@@ -434,7 +434,7 @@ class FootprintZoneToGrid(ZoneToGrid):
             ht = _f.attributeMap()[fp_ht_idx].toDouble()[0]
             if ht > 0:
                 fp_has_height = True
-                area *= ht      # this is actual area to be aggregated at the end 
+                area *= ht      # this is actual area to be aggregated at the end
             self._update_stat(zone_fp_stat, '%s|%s'%(grid_gid, zone_gid), 1, area)
             self._update_stat(zone_totals, zone_gid, 1, area)
         
@@ -463,9 +463,7 @@ class FootprintZoneToGrid(ZoneToGrid):
                 s_fp = [0, 0]   # set to zero if missing
 
             zone_leftover_count = s_zone[cnt_idx] - s_total[cnt_idx]   
-            if bldg_area_idx > 0:   # bldg_area_idx was checked against input zone_ayer
-                                    # can not be used here to extract data, but can be used
-                                    # as indication of whether bldg_area is defined
+            if zone_has_area:
                 zone_leftover_area = zone_area[QString(zone_gid)] - s_total[area_idx]
             else:
                 zone_leftover_area = s_zone[area_idx] - s_total[area_idx]
@@ -481,8 +479,11 @@ class FootprintZoneToGrid(ZoneToGrid):
             if fp_has_height:
                 # area can be actual area based on footprint area * height
                 area = s_fp[area_idx]
+            elif zone_has_area:
+                area = s_zone_grid[area_idx]
             else:
-                area = max(s_zone_grid[area_idx], s_fp[area_idx])
+                # no area defined
+                area = 0 # max(s_zone_grid[area_idx], s_fp[area_idx])
                 
             f.setGeometry(self._outputGeometryFromGridId(grid_gid))
             f.addAttribute(0, grid_gid)

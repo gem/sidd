@@ -19,11 +19,12 @@ Widget (Panel) for creating mapping scheme
 import functools
 
 from PyQt4.QtGui import QWidget, QMessageBox, QDialog, QAbstractItemView, QFileDialog
-from PyQt4.QtCore import QObject, QSize, QPoint, pyqtSlot, QString, Qt
+from PyQt4.QtCore import QObject, QSize, QPoint, pyqtSlot, QString, Qt, QModelIndex
 
 from utils.system import get_app_dir
 from sidd.ms import MappingScheme, MappingSchemeZone, Statistics, StatisticNode
 from sidd.exception import SIDDException
+from sidd.constants import MSExportTypes
 
 from ui.exception import SIDDUIException
 from ui.constants import logUICall, get_ui_string, UI_PADDING
@@ -71,6 +72,11 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         
     uiCallChecker = UICallChecker()
 
+    EXPORT_FORMATS = {
+        get_ui_string("app.extension.xml"):MSExportTypes.XML,
+        get_ui_string("app.extension.csv"):MSExportTypes.CSV,
+    };
+    
     # constructor / destructor
     ###############################    
     def __init__(self, app):
@@ -136,8 +142,10 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         self.dlgSizeInput.setModal(True)
 
         # connect slots (ui event)
-        self.ui.btn_create_ms.clicked.connect(self.createMS)        
+        self.ui.btn_create_ms.clicked.connect(self.createMS)
+        self.ui.btn_load_ms.clicked.connect(self.loadMS)
         self.ui.btn_save_ms.clicked.connect(self.saveMS)
+        self.ui.btn_save_to_lib.clicked.connect(self.saveMSToLib)
         self.ui.btn_expand_tree.clicked.connect(self.expandTree)
         self.ui.btn_collapse_tree.clicked.connect(self.collapseTree)
         
@@ -147,8 +155,8 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         self.ui.btn_edit_level.clicked.connect(self.editBranch)
 
         self.ui.cb_ms_zones.currentIndexChanged[str].connect(self.refreshLeaves)
-        self.ui.ck_use_modifier.toggled.connect(self.refreshLeaves)
-        self.ui.btn_save_bldg_distribution.clicked.connect(self.saveMSLeaves)
+        self.ui.tree_ms.clicked[QModelIndex].connect(self.treeNodeSelected)
+        self.ui.ck_use_modifier.toggled.connect(self.refreshLeaves)        
 
         self.ui.list_ms_library_regions.clicked.connect(self.regionSelected)
         self.ui.list_ms_library_types.clicked.connect(self.typeSelected)
@@ -162,8 +170,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         self.ui.table_ms_leaves.doubleClicked.connect(self.editAdditionalAttributes)
         
         self.ms_library_visible = True
-        self.setMSLibraryVisible(False)
-        self.ui.btn_save_bldg_distribution.setVisible(False)
+        self.setMSLibraryVisible(False)        
 
     # UI event handling calls
     ###############################
@@ -238,10 +245,38 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
                 self.app.createEmptyMS()
             else:
                 self.app.buildMappingScheme()                
+    
+    @uiCallChecker
+    @pyqtSlot()
+    def loadMS(self):
+        """ save existing mapping scheme """
+        if self.ms is not None and not self.ms.is_empty:
+            # alert user
+            answer = QMessageBox.warning(self,
+                                         get_ui_string("app.confirm.title"),
+                                         get_ui_string("widget.ms.warning.replace"),
+                                         QMessageBox.Yes | QMessageBox.No)
+            if answer == QMessageBox.No:
+                return
+        self.app.getOpenFileName(self, 
+                                 get_ui_string("widget.ms.file.open"),
+                                 get_ui_string("app.extension.xml"), 
+                                 self.app.loadMS)
         
     @uiCallChecker
     @pyqtSlot()
     def saveMS(self):
+        extensions = ";;".join(self.EXPORT_FORMATS.keys())
+        filename, extension = QFileDialog.getSaveFileNameAndFilter(self,
+                                               get_ui_string("widget.result.export.folder.open"),
+                                               get_app_dir(),
+                                               extensions)
+        if not filename.isNull():            
+            self.app.exportMS(filename, self.EXPORT_FORMATS[str(extension)])
+
+    @uiCallChecker
+    @pyqtSlot()
+    def saveMSToLib(self):
         """ save existing mapping scheme """
         if self.ms is not None:
             # show save dialogbox for mapping scheme
@@ -311,7 +346,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         """ remove branch from mapping scheme tree """
         node = self.getSelectedNode(self.ui.tree_ms)
         answer = QMessageBox.warning(self,
-                                     get_ui_string("app.popup.delete.confirm"),
+                                     get_ui_string("app.confirm.title"),
                                      get_ui_string("widget.ms.warning.deletebranch"),
                                      QMessageBox.Yes | QMessageBox.No)
         if answer == QMessageBox.Yes:
@@ -363,7 +398,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
                 # some children were deleted confirm again
                 if len(self.dlgEditMS.values) < len(node.children): 
                     answer = QMessageBox.warning(self,
-                                                 get_ui_string("app.popup.delete.confirm"),
+                                                 get_ui_string("app.confirm.title"),
                                                  get_ui_string("widget.ms.warning.deletebranch"),
                                                  QMessageBox.Yes | QMessageBox.No)
                     if answer == QMessageBox.No:
@@ -489,6 +524,21 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         self.resetMSLibrary()        
 
     @uiCallChecker
+    @pyqtSlot(QModelIndex)    
+    def treeNodeSelected(self, index=None):
+        node = index.internalPointer()
+        new_zone = None     
+        if type(node) == MappingSchemeZone:
+            new_zone = node.name
+        else:
+            stat = self.ms.get_assignment_by_node(node)
+            if stat is not None:
+                new_zone = stat.root.value
+        if new_zone is not None:
+            if self.ui.cb_ms_zones.currentText() != new_zone:
+                    self.ui.cb_ms_zones.setCurrentIndex(self.ui.cb_ms_zones.findText(new_zone))
+
+    @uiCallChecker
     @pyqtSlot(str)
     def refreshLeaves(self, value): 
         if self.ms is None or self.ui.cb_ms_zones.count() == 0:
@@ -518,21 +568,6 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         self.ui.table_ms_leaves.horizontalHeader().resizeSection(2, self.ui.table_ms_leaves.width() * 0.13)
         self.ui.table_ms_leaves.horizontalHeader().resizeSection(3, self.ui.table_ms_leaves.width() * 0.13)
         self.ui.txt_leaves_total.setText('%.1f' % total_weights)
-    
-    @uiCallChecker
-    @pyqtSlot()
-    def saveMSLeaves(self):
-        #folder = QFileDialog.getExistingDirectory(self,
-        #                                          get_ui_string("widget.result.export.folder.open"),
-        #                                          get_app_dir())        
-        #if not folder.isNull():
-        #    self.app.exportMSLeaves(folder)
-        filename = QFileDialog.getSaveFileName(self, 
-                                               get_ui_string("widget.result.export.folder.open"),
-                                               get_app_dir(),
-                                               "*.csv")
-        if not filename.isNull(): 
-            self.app.exportMSLeaves(filename)
 
     @uiCallChecker
     @pyqtSlot()

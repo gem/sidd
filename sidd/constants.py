@@ -62,6 +62,7 @@ SurveyTypes = Enum("None", "CompleteSurvey", "SampledSurvey")
 OutputTypes = Enum("Zone", "Grid")
 PopGridTypes = Enum("None", "Grid")
 ExportTypes = Enum("Shapefile", "KML", "NRML", "CSV")
+MSExportTypes = Enum("XML", "CSV")
 SyncModes = Enum("Read", "Write")
 
 # project related

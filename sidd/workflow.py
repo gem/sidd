@@ -403,19 +403,43 @@ class WorkflowBuilder(object):
     def build_export_distribution_workflow(self, project, export_path):
         """ create workflow for exporting project's mapping scheme as building distributions """
         workflow = Workflow()
-        workflow.operator_data['ms'] = OperatorData(OperatorDataTypes.MappingScheme, project.ms)
-        workflow.operator_data['export_folder'] = OperatorData(OperatorDataTypes.StringAttribute, export_path)
+        if project.ms is None:
+            workflow.add_error(WorkflowErrors.NeedsMS)
+            return            
         
         export_operator = MSLeavesCSVWriter(self._operator_options)
-        export_operator.inputs = [workflow.operator_data['ms'],
-                                  workflow.operator_data['export_folder']]
+        export_operator.inputs = [OperatorData(OperatorDataTypes.MappingScheme, project.ms),
+                                  OperatorData(OperatorDataTypes.StringAttribute, export_path)]
         
         workflow.operators.append(export_operator)
         workflow.ready=True
         
         return workflow
+    
+    def build_export_ms_workflow(self, project, export_path):
+        """ create workflow for saving project's mapping scheme as XML file """
+        workflow = Workflow()
+        if project.ms is None:
+            workflow.add_error(WorkflowErrors.NeedsMS)
+            return
+        export_operator = MSXMLWriter(self._operator_options)
+        export_operator.inputs = [OperatorData(OperatorDataTypes.MappingScheme, project.ms),
+                                  OperatorData(OperatorDataTypes.StringAttribute, export_path)]        
+        workflow.operators.append(export_operator)
+        workflow.ready=True        
+        return workflow
         
-
+    def build_load_ms_workflow(self, project, path):
+        """ create workflow for loading mapping scheme from XML file """
+        workflow = Workflow()
+        ms_operator = MappingSchemeLoader(self._operator_options)
+        workflow.operator_data['ms'] = OperatorData(OperatorDataTypes.MappingScheme)
+        ms_operator.inputs = [OperatorData(OperatorDataTypes.File, path)]
+        ms_operator.outputs = [workflow.operator_data['ms']]
+        workflow.operators.append(ms_operator)
+        workflow.ready=True
+        return workflow
+    
     @logAPICall
     def build_verify_result_workflow(self, project):
         """ create workflow that running data check operators on the resulting exposure """

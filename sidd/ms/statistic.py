@@ -64,6 +64,11 @@ class Statistics (object):
         """ return string representation of the underlying tree  """        
         return str(self.root)
     
+    @property
+    def max_level(self):
+        """ get depth for underlying tree """
+        return self.root.max_level
+        
     @logAPICall
     def set_attribute_skip(self, level, skip):
         """ change skip condition for given level """        
@@ -205,7 +210,39 @@ class Statistics (object):
         parent.delete_node(node)
     
     @logAPICall
-    def add_branch(self, node, branch, not_allow_repeat=True, update_stats=True):
+    def test_repeated_value(self, dest_node, branch):
+        """
+        test if value in root node of branch conflict with values in dest_node's child
+        """
+        for child in dest_node.children:
+            if child.value == branch.value:
+                raise StatisticError("Source node value [%s] already exists as destination node's children" % branch.value)
+    
+    @logAPICall
+    def test_repeated_attribute(self, dest_node, branch):
+        """
+        test if node from is already child node
+        """
+        # make sure attributes above node does not have the attribute
+        # already defined
+        existing_attributes = dest_node.ancestor_names
+        existing_attributes.append(dest_node.name)
+        attributes_to_insert = branch.descendant_names
+        attributes_to_insert.insert(0, branch.name)
+                    
+        for attr in attributes_to_insert:
+            try:
+                existing_attributes.index(attr)
+                # if attr already in attribute list, it means repeat
+                # which in this case is an error
+                raise StatisticError('Repeating attribute [%s] already exists in source and destination' % attr)                
+            except ValueError:
+                # error means attr not in attributes
+                # which is the acceptable condition
+                pass
+    
+    @logAPICall
+    def add_branch(self, node, branch, test_repeating=True, update_stats=True):
         """
         add branch to node as child
         only limitation is that the same attribute does not appear
@@ -215,26 +252,10 @@ class Statistics (object):
         if not self.finalized:
             raise StatisticError('stat must be finalized before modification')
         
-        if not_allow_repeat:
-            #attributes = self.get_attributes(branch)
-            # make sure attributes above node does not have the attribute
-            # already defined
-            existing_attributes = node.ancestor_names
-            existing_attributes.append(node.name)
-            attributes_to_insert = branch.descendant_names
-            attributes_to_insert.insert(0, branch.name)
-                        
-            for attr in attributes_to_insert:
-                try:
-                    existing_attributes.index(attr)
-                    # if attr already in attribute list, it means repeat
-                    # which in this case is an error
-                    raise StatisticError('Cannot perform append to node. Repeating attributes\nexisting attributes %s\nnew attributes %s' % (existing_attributes, attributes_to_insert))
-                except ValueError:
-                    # error means attr not in attributes
-                    # which is the acceptable condition
-                    pass
-        
+        if test_repeating:
+            self.test_repeated_attribute(node, branch)
+            self.test_repeated_value(node, branch)
+            
         # no exception means no repeating attributes or repeating not checked
         # add branch to node as child
         
@@ -245,14 +266,7 @@ class Statistics (object):
         node.children.append(branch_to_add)
         # adjust weights proportionally
         if update_stats:
-            sum_weights = sum([child.weight for child in node.children])
-            total_children = len(node.children)                
-            adj_factor = sum_weights / 100
-            for child in node.children:
-                if adj_factor == 0:
-                    child.weight = 100.0 / total_children
-                else:
-                    child.weight = child.weight / adj_factor
+            node.balance_weights()
     
     @logAPICall
     def delete_branch(self, node):
@@ -266,11 +280,13 @@ class Statistics (object):
         
         parent = node.parent
         parent.children.remove(node)
-        children_count = len(parent.children)
-        if  children_count > 1:
-            weight_to_distribute = node.weight / float(children_count)
-            for child in parent.children:
-                child.weight += weight_to_distribute
+        parent.balance_weights()
+        
+#        children_count = len(parent.children)
+#        if  children_count > 1:
+#            weight_to_distribute = node.weight / float(children_count)
+#            for child in parent.children:
+#                child.weight += weight_to_distribute
     
     @logAPICall
     def get_attributes(self, rootnode):
@@ -340,11 +356,6 @@ class Statistics (object):
         """ generator for modifiers up to max_level """
         for node, idx, mod in self.root.get_modifiers(max_level):            
             yield node, idx, mod
-
-    @logAPICall
-    def get_depth(self):
-        """ get depth for underlying tree """
-        return self.root.max_level()
 
     @logAPICall
     def to_xml(self, pretty=False):

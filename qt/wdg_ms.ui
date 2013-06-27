@@ -71,16 +71,16 @@
    <widget class="QWidget" name="widget_ms_buttons_r" native="true">
     <property name="geometry">
      <rect>
-      <x>160</x>
+      <x>210</x>
       <y>0</y>
-      <width>171</width>
+      <width>121</width>
       <height>31</height>
      </rect>
     </property>
     <widget class="QPushButton" name="btn_edit_level">
      <property name="geometry">
       <rect>
-       <x>140</x>
+       <x>90</x>
        <y>0</y>
        <width>31</width>
        <height>23</height>
@@ -100,7 +100,7 @@
     <widget class="QPushButton" name="btn_del_child">
      <property name="geometry">
       <rect>
-       <x>110</x>
+       <x>60</x>
        <y>0</y>
        <width>31</width>
        <height>23</height>
@@ -120,7 +120,7 @@
     <widget class="QPushButton" name="btn_add_child">
      <property name="geometry">
       <rect>
-       <x>80</x>
+       <x>30</x>
        <y>0</y>
        <width>31</width>
        <height>23</height>
@@ -140,7 +140,7 @@
     <widget class="QPushButton" name="btn_add_zone">
      <property name="geometry">
       <rect>
-       <x>50</x>
+       <x>0</x>
        <y>0</y>
        <width>31</width>
        <height>23</height>
@@ -173,14 +173,14 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>141</width>
+      <width>191</width>
       <height>31</height>
      </rect>
     </property>
     <widget class="QPushButton" name="btn_save_ms">
      <property name="geometry">
       <rect>
-       <x>30</x>
+       <x>60</x>
        <y>0</y>
        <width>31</width>
        <height>23</height>
@@ -220,7 +220,7 @@
     <widget class="QPushButton" name="btn_expand_tree">
      <property name="geometry">
       <rect>
-       <x>80</x>
+       <x>130</x>
        <y>0</y>
        <width>31</width>
        <height>23</height>
@@ -240,7 +240,7 @@
     <widget class="QPushButton" name="btn_collapse_tree">
      <property name="geometry">
       <rect>
-       <x>110</x>
+       <x>160</x>
        <y>0</y>
        <width>31</width>
        <height>23</height>
@@ -255,6 +255,46 @@
      <property name="icon">
       <iconset resource="resources/SIDDResource.qrc">
        <normaloff>:/imgs/icons/magnify_minus.png</normaloff>:/imgs/icons/magnify_minus.png</iconset>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_save_to_lib">
+     <property name="geometry">
+      <rect>
+       <x>90</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Save Mapping Scheme into Library</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/book.png</normaloff>:/imgs/icons/book.png</iconset>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_load_ms">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>0</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Load Mapping Scheme XML</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="resources/SIDDResource.qrc">
+       <normaloff>:/imgs/icons/folder_open.png</normaloff>:/imgs/icons/folder_open.png</iconset>
      </property>
     </widget>
    </widget>
@@ -670,23 +710,6 @@
     </property>
     <property name="text">
      <string>Building Distribution</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btn_save_bldg_distribution">
-    <property name="geometry">
-     <rect>
-      <x>530</x>
-      <y>20</y>
-      <width>31</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="icon">
-     <iconset resource="resources/SIDDResource.qrc">
-      <normaloff>:/imgs/icons/save.png</normaloff>:/imgs/icons/save.png</iconset>
     </property>
    </widget>
    <widget class="QCheckBox" name="ck_use_modifier">

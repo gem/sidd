@@ -25,6 +25,29 @@ import datetime
 
 from PyQt4.QtCore import QDir
 
+def check_environ(env_keys):
+    """
+    check required environment parameters
+    """
+    for _key in env_keys:
+        if not os.environ.has_key(_key):
+            raise Exception(_key)
+
+def check_required_files(required_files, baseDir):
+    """
+    check to make sure all required files are present
+    """
+    for _file in required_files:
+        found = False
+        if os.path.exists(_file):
+            found = True
+            continue
+        if os.path.exists('%s/%s' % (baseDir, _file)):
+            found = True
+            continue
+        if not found:
+            raise Exception(_file)
+
 def get_random_name(length=0):
     """ return random file name """
     if length==0:

@@ -381,8 +381,10 @@ class WidgetResult(Ui_widgetResult, QWidget):
         ''' set project to preview. force refresh view on set'''        
         self._project = project
         if project is None:
-            return   
-        self.refreshView()       
+            return
+        self.canvas.setRenderFlag(False)
+        self.refreshView()
+        self.canvas.setRenderFlag(True)        
         logUICall.log("Project preview initialized sucessfully", logUICall.INFO)
         
     def get_project(self):
@@ -507,7 +509,7 @@ class WidgetResult(Ui_widgetResult, QWidget):
     
     # internal helper methods
     ###############################
-    def showDataLayer(self, layer, renderer=None, zoom_to=True):
+    def showDataLayer(self, layer, renderer=None, refreshCanvas=True):
         """ display given QGIS layer on map """
         if getattr(self, 'registry', None) is None:
             self.registry = QgsMapLayerRegistry.instance()
@@ -515,9 +517,9 @@ class WidgetResult(Ui_widgetResult, QWidget):
             # add to QGIS registry and refresh view
             self.registry.addMapLayer(layer)
             if renderer is not None:
-                layer.setRendererV2(renderer)            
-            self.refreshLayers()
-            if (zoom_to):
+                layer.setRendererV2(renderer)
+            if refreshCanvas:
+                self.refreshLayers()
                 self.zoomToLayer(layer)
         except:
             return None
@@ -581,7 +583,7 @@ class WidgetResult(Ui_widgetResult, QWidget):
         except:
             self.mapZoomFull()
     
-    def refreshLayers(self):
+    def refreshLayers(self, refreshCanvas=True):
         """ refresh all layers in canvas """
         # add each layer according to order
         layerSet = []
@@ -591,4 +593,5 @@ class WidgetResult(Ui_widgetResult, QWidget):
                 layerSet.append(QgsMapCanvasLayer(lyr))
                 self.ui.cb_layer_selector.addItem(self.LAYER_NAMES[idx])
         self.canvas.setLayerSet(layerSet)
-        self.canvas.refresh()
+        if refreshCanvas:
+            self.canvas.refresh()

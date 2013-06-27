@@ -26,7 +26,7 @@ from sidd.operator import OperatorError
 from writer import NullWriter
 
 class MSLeavesCSVWriter(NullWriter):
-    def __init__(self, options=None, name="Grid Writer"):
+    def __init__(self, options=None, name="Mapping Scheme CSV Writer"):
         """ constructor """
         super(MSLeavesCSVWriter, self).__init__(options, name)
 
@@ -64,3 +64,15 @@ class MSLeavesCSVWriter(NullWriter):
                 for leaf in stats.leaves:
                     csvwriter.writerow([str(leaf[0]), leaf[1]*100.0])
                                             
+class MSXMLWriter(MSLeavesCSVWriter):
+    def __init__(self, options=None, name="Mapping Scheme XML Writer"):
+        """ constructor """
+        super(MSXMLWriter, self).__init__(options, name)
+        
+
+    @logAPICall
+    def do_operation(self):
+        """ perform export operation """
+        ms = self.inputs[0].value
+        output_file = self.inputs[1].value        
+        ms.save(output_file, pretty=True)

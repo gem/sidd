@@ -30,9 +30,9 @@ from utils.shapefile import remove_shapefile
 from sidd.constants import logAPICall, \
                            FILE_PROJ_TEMPLATE, \
                            FootprintTypes, OutputTypes, SurveyTypes, ZonesTypes, PopGridTypes, \
-                           ProjectStatus, ExtrapolateOptions, SyncModes, ExportTypes, \
+                           ProjectStatus, ExtrapolateOptions, SyncModes, ExportTypes, MSExportTypes, \
                            ProjectErrors
-from sidd.ms import MappingScheme
+from sidd.ms import MappingSchemeZone, MappingScheme, Statistics
 from sidd.exception import SIDDException, SIDDProjectException, WorkflowException
 from sidd.workflow import Workflow, WorkflowBuilder
 
@@ -286,40 +286,53 @@ class Project (object):
             use_sampling = self.operator_options['stratified.sampling']
             return self._build_ms(isEmpty=False, useSampling=use_sampling)
         except Exception as err:
-            self._build_ms(isEmpty=True)
+            self.create_empty_ms()
             raise SIDDException('Unable to create Mapping Scheme:%s' % str(err))
 
     @logAPICall
     def create_empty_ms(self):
+        """ create an empty mapping scheme """
         # build mapping scheme
         return self._build_ms(isEmpty=True)
 
     @logAPICall
-    def export_data(self):
-        builder = WorkflowBuilder(self.operator_options)
-        try:
-            export_workflow = builder.build_export_workflow(self)
-        except WorkflowException as err:
-            raise SIDDException("error creating workflow for exporting data\n%s" % err)
-        try:
-            # process workflow 
-            for step in export_workflow.nextstep():
-                step.do_operation()
-            logAPICall.log('data export completed', logAPICall.INFO)            
-        except Exception as err:
-            raise SIDDException("error exporting data\n" % err)
+    def load_ms(self, path):
+        """ load mapping scheme from XML """
+        if self.zone_type != ZonesTypes.None:
+            self.create_empty_ms()
+        builder= WorkflowBuilder(self.operator_options)
+        ms_workflow = builder.build_load_ms_workflow(self, path)        
+        ms_workflow.process()
+        ms = ms_workflow.operator_data['ms'].value  
+        if self.ms is not None:              
+            # include existing zones from current ms
+            new_zones = [zone.name for zone in ms.zones]    
+            for existing_zone in self.ms.zones:
+                try:
+                    new_zones.index(existing_zone.name)
+                except:
+                    # not found
+                    statistics = Statistics(self.ms.taxonomy)
+                    zone = MappingSchemeZone(existing_zone.name)
+                    ms.assign(zone, statistics)
+        self.ms = ms
     
     @logAPICall
-    def export_ms_leaves(self, path):
+    def export_ms(self, path, export_format):
+        """ 
+        export mapping scheme according to given format
+        see constants.MSExportTypes for type supported
+        """
         if self.ms is None:
             raise SIDDException('Mapping Scheme is required for this action')
         
         builder= WorkflowBuilder(self.operator_options)
         try:
-            export_workflow = builder.build_export_distribution_workflow(self, path)
-            # process workflow
-            for step in export_workflow.nextstep():
-                step.do_operation()
+            if export_format == MSExportTypes.XML:
+                export_workflow = builder.build_export_ms_workflow(self, path)
+            else:
+                export_workflow = builder.build_export_distribution_workflow(self, path)
+            export_workflow.process()
             logAPICall.log('data export completed', logAPICall.INFO)
         except WorkflowException:
             return False
@@ -329,6 +342,9 @@ class Project (object):
     
     @logAPICall
     def verify_result(self):
+        """
+        run data quality tests 
+        """
         builder = WorkflowBuilder(self.operator_options)
         try:
             verify_workflow = builder.build_verify_result_workflow(self)
@@ -354,13 +370,28 @@ class Project (object):
                 pass
                 
         logAPICall.log('result verification completed', logAPICall.INFO)
-
+    
+    @logAPICall
+    def export_data(self):
+        """ export exposure data """
+        builder = WorkflowBuilder(self.operator_options)
+        try:
+            export_workflow = builder.build_export_workflow(self)
+        except WorkflowException as err:
+            raise SIDDException("error creating workflow for exporting data\n%s" % err)
+        try:
+            # process workflow 
+            export_workflow.process()
+            logAPICall.log('data export completed', logAPICall.INFO)            
+        except Exception as err:
+            raise SIDDException("error exporting data\n" % err)
+    
     # project database access methods
     ##################################
     
     @logAPICall
     def sync(self, direction=SyncModes.Read):
-        """ synchorize data with DB """
+        """ synchronize data with DB """
         if self.project_file is None or self.db is None:
             raise SIDDProjectException(ProjectErrors.FileNotSet)
         
@@ -618,8 +649,7 @@ class Project (object):
             raise SIDDException(ms_workflow.errors)
         
         # process workflow 
-        for step in ms_workflow.nextstep():
-            step.do_operation()
+        ms_workflow.process()
         self.ms = ms_workflow.operator_data['ms'].value
         if useSampling:
             self.zone_stats = ms_workflow.operator_data['zone_stats'].value
