@@ -19,7 +19,6 @@ Widget (Panel) for managing secondary modifier
 from PyQt4.QtGui import QWidget
 from PyQt4.QtCore import pyqtSignal, pyqtSlot
 
-from ui.constants import logUICall
 from ui.qt.wdg_sel_attributes_ui import Ui_widgetSelectAttribute
 
 class WidgetSelectAttribute(Ui_widgetSelectAttribute, QWidget):    

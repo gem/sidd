@@ -26,7 +26,7 @@ class MSAttributeItemDelegate(QItemDelegate):
         super(MSAttributeItemDelegate, self).__init__(parent)
         self.valid_codes = valid_codes
         self.valid_code_names = []    
-        for description, code in valid_codes.iteritems():
+        for description in valid_codes.keys():
             self.valid_code_names.append(description)
         self.valid_code_names.sort()
         self.min_editables = min_editables

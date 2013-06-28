@@ -17,6 +17,7 @@
 import os
 
 # import sidd packages for testing
+from sidd.constants import ExtrapolateOptions
 from sidd.ms import MappingScheme, MappingSchemeZone, \
                     Statistics, StatisticNode, StatisticError
 from sidd.taxonomy import get_taxonomy
@@ -114,3 +115,11 @@ class MSTestCase(SIDDTestCase):
             total += l[1]
         self.assertAlmostEqual(total, 1)
         
+    def test_Sampling(self):
+        stats = self.test_LoadMS(skipTest=True, statsOnly=True)
+        total_samples = 10
+        samples = stats.get_samples(total_samples, ExtrapolateOptions.RandomWalk)
+        self.assertEqual(total_samples, sum([s[1] for s in samples]))
+        samples = stats.get_samples(total_samples, ExtrapolateOptions.Fraction)
+        self.assertAlmostEqual(total_samples, sum([s[1] for s in samples]), places=2)
+                

@@ -278,7 +278,7 @@ class GemTaxonomyAttribute(TaxonomyAttribute):
         for code in self._valid_codes:
             # skip if condition does not match
             if parent is not None:
-                if parent.scope != code.scope:
+                if parent.scope != 'X' and parent.scope != code.scope:
                     continue
                 if parent.level >= code.level:
                     continue

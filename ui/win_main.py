@@ -21,7 +21,7 @@ import os
 from time import sleep
 
 from PyQt4.QtCore import pyqtSlot, QSettings
-from PyQt4.QtGui import QMainWindow, QFileDialog, QMessageBox, QCloseEvent, QDialog
+from PyQt4.QtGui import QMainWindow, QFileDialog, QMessageBox, QCloseEvent, QDialog, QLabel
 
 from sidd.exception import SIDDException, SIDDProjectException
 from utils.system import get_app_dir, get_temp_dir, delete_folders_in_dir
@@ -86,6 +86,8 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
     UI_WINDOW_GEOM = 'app_main/geometry'
     UI_WINDOW_STATE = 'app_main/windowState'
 
+    TAB_DATA, TAB_MS, TAB_MOD, TAB_RESULT = range(4)
+
     # constructor / destructor
     #############################    
     def __init__(self, qtapp, app_config):
@@ -107,6 +109,10 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         self.settings = QSettings(SIDD_COMPANY, '%s %s' %(SIDD_APP_NAME, SIDD_VERSION));
         self.restoreGeometry(self.settings.value(self.UI_WINDOW_GEOM).toByteArray());
         self.restoreState(self.settings.value(self.UI_WINDOW_STATE).toByteArray());
+        
+        self.lb_map_location = QLabel(self)
+        self.lb_map_location.resize(self.ui.statusbar.width()/3, self.ui.statusbar.height())
+        self.ui.statusbar.addPermanentWidget(self.lb_map_location)
         
         self.msdb_dao = MSDatabaseDAO(FILE_MS_DB)
         
@@ -132,7 +138,9 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         self.proc_options = DialogProcessingOptions(self)
         self.proc_options.setModal(True)
         
-        # connect menu action to slots (ui events)
+        # connect menu action to slots (ui events)        
+        self.ui.mainTabs.currentChanged.connect(self.tabChanged)
+        
         self.ui.actionProject_Blank.triggered.connect(self.createBlank)
         self.ui.actionUsing_Data_Wizard.triggered.connect(self.createWizard)
         self.ui.actionOpen_Existing.triggered.connect(self.loadProj)
@@ -160,6 +168,12 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
             pass
 
         # hide features 
+        if not app_config.get('options', 'parse_modifier', True, bool):
+            self.tab_mod.setVisible(False)
+            self.ui.mainTabs.removeTab(self.TAB_MOD) 
+            self.TAB_MOD = self.TAB_MS
+            self.TAB_RESULT -= 1             
+            
         # hide view menu
         self.ui.menuView.menuAction().setVisible(False)
         # hide data wizard
@@ -262,6 +276,18 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
     def setProcessingOptions(self):
         if self.project is None:                
             return
+
+        # set options to be those defined in project
+        self.proc_options.resetOptions()
+        for attribute in dir(self.proc_options):
+            try:
+                proc_attribute = self.project.operator_options['proc.%s'%attribute]
+                setattr(self.proc_options, attribute, proc_attribute)
+            except:
+                # for empty project, this is the first time proc.options is set
+                # just use default from proc_option dialogbox
+                pass
+            
         if self.proc_options.exec_() == QDialog.Accepted:
             for attribute in dir(self.proc_options):                
                 self.project.operator_options['proc.%s'%attribute] = getattr(self.proc_options, attribute)
@@ -293,13 +319,21 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         """
         sender = self.sender()
         if sender == self.ui.actionData_Input:
-            self.showTab(0)
+            self.showTab(self.TAB_DATA)
         elif sender == self.ui.actionMapping_Schemes:
-            self.showTab(1)            
+            self.showTab(self.TAB_MS)            
         elif sender == self.ui.actionResult:
-            self.showTab(3)
+            self.showTab(self.TAB_RESULT)
         else:
             logUICall.log('\tdo nothing. should not even be here', logUICall.WARNING)
+
+    @logUICall 
+    @pyqtSlot(int)   
+    def tabChanged(self, index):
+        if index == self.TAB_RESULT:
+            self.lb_map_location.setVisible(True)
+        else:
+            self.lb_map_location.setVisible(False)
 
     # public methods    
     #############################
@@ -328,15 +362,6 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         
         # sync ui
         self.tab_datainput.setProject(project)
-        self.tab_result.set_project(project)        
-        if self.project.ms is not None:
-            self.visualizeMappingScheme(self.project.ms)
-            self.ui.mainTabs.setTabEnabled(1, True)
-            self.ui.mainTabs.setTabEnabled(2, True)                           
-        self.ui.mainTabs.setTabEnabled(0, True)
-        self.ui.mainTabs.setTabEnabled(3, True)
-        self.ui.actionSave.setEnabled(True)
-        self.ui.actionSave_as.setEnabled(True)                
         
         # set processing options
         for attribute in dir(self.proc_options):
@@ -345,26 +370,35 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         
         if not skipVerify:
             # verify to make sure input file are still in same place
-            self.verifyInputs()
+            self.verifyInputs()        
+
+        if self.project.ms is not None:
+            self.visualizeMappingScheme(self.project.ms)
+            self.ui.mainTabs.setTabEnabled(self.TAB_MS, True)
+            self.ui.mainTabs.setTabEnabled(self.TAB_MOD, True)                           
+        self.ui.mainTabs.setTabEnabled(self.TAB_DATA, True)
+        self.ui.mainTabs.setTabEnabled(self.TAB_RESULT, True)
+        self.ui.actionSave.setEnabled(True)
+        self.ui.actionSave_as.setEnabled(True)                
+        self.tab_result.set_project(project)
 
     @apiCallChecker    
     def closeProject(self):
         """ close opened project and update UI elements accordingly """
         # adjust UI in application window
         self.tab_result.closeAll()  # this call must happen first. 
-                                    # otherwise, it locks temporary GIS files 
-        self.ui.mainTabs.setTabEnabled(0, False)            
-        self.ui.mainTabs.setTabEnabled(1, False)
-        self.ui.mainTabs.setTabEnabled(2, False)               
-        self.ui.mainTabs.setTabEnabled(3, False) 
-        self.showTab(0)
+                                    # otherwise, it locks temporary GIS files
+        self.ui.mainTabs.setTabEnabled(self.TAB_DATA, False)            
+        self.ui.mainTabs.setTabEnabled(self.TAB_MS, False)
+        self.ui.mainTabs.setTabEnabled(self.TAB_MOD, False)               
+        self.ui.mainTabs.setTabEnabled(self.TAB_RESULT, False) 
+        self.showTab(self.TAB_DATA)
         # disable menu/menu items
         self.ui.actionSave.setEnabled(False)
         self.ui.actionSave_as.setEnabled(False)
         self.ui.actionMapping_Schemes.setEnabled(False)
         self.ui.actionResult.setEnabled(False)
         self.ui.actionProcessing_Options.setEnabled(False)
-        self.proc_options.resetOptions()
 
         if getattr(self, 'project', None) is not None:
             # save existing project is needed
@@ -381,7 +415,7 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
             self.tab_datainput.closeProject()
             self.tab_ms.clearMappingScheme()
             self.tab_mod.closeMappingScheme()
-            self.project.clean_up()            
+            self.project.clean_up()           
             del self.project
             self.project = None
             
@@ -398,10 +432,8 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         self.tab_datainput.showVerificationResults()
         
         # always allow mapping scheme
-        self.ui.mainTabs.setTabEnabled(1, True)
-        self.ui.mainTabs.setTabEnabled(2, True)
-        self.tab_result.refreshView()        
-
+        self.ui.mainTabs.setTabEnabled(self.TAB_MS, True)
+        self.ui.mainTabs.setTabEnabled(self.TAB_MOD, True)
         self.ui.actionMapping_Schemes.setEnabled(True)
         self.ui.actionResult.setEnabled(True)      
         self.ui.actionProcessing_Options.setEnabled(True)   
@@ -491,7 +523,7 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         
         # close current results
         self.tab_result.closeResult()
-        self.ui.mainTabs.setTabEnabled(3, True)
+        self.ui.mainTabs.setTabEnabled(self.TAB_RESULT, True)
 
         # reset progress dialog
         self.progress.setVisible(True)
@@ -549,13 +581,13 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         
             # show result
             self.tab_result.refreshResult()
-            self.ui.mainTabs.setTabEnabled(3, True)
-            self.ui.mainTabs.setCurrentIndex(3)
+            self.ui.mainTabs.setTabEnabled(self.TAB_RESULT, True)
+            self.ui.mainTabs.setCurrentIndex(self.TAB_RESULT)
             self.ui.statusbar.showMessage(get_ui_string("app.status.exposure.created"))       
     
     def showTab(self, index):
         """ switch view to tab with given index. do nothing if index is not valid """
-        if index >=0 and index <=3:
+        if index >=self.TAB_DATA and index <=self.TAB_RESULT:
             self.ui.mainTabs.setCurrentIndex(index)
     
     def refreshPreview(self):
@@ -567,7 +599,10 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         """ display the given mapping scheme in Mapping scheme and Modifier tabs"""
         self.tab_ms.showMappingScheme(ms)
         self.tab_mod.showMappingScheme(ms)
-         
+    
+    def updateMapLocation(self, x, y):
+        self.lb_map_location.setText("Longitude %.4f latitude %4f" % (x, y))
+    
     # utility methods    
     # no error checking is performed in these functions
     # caller must catch possible exception

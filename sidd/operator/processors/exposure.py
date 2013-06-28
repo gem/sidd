@@ -19,7 +19,7 @@ module contains class for applying mapping scheme
 import bsddb 
 
 from PyQt4.QtCore import QVariant
-from qgis.core import QgsVectorFileWriter, QgsFeature, QgsField, QgsGeometry
+from qgis.core import QgsVectorFileWriter, QgsFeature, QgsField
 
 from utils.shapefile import load_shapefile, layer_features, layer_field_index, remove_shapefile
 from utils.system import get_unique_filename
@@ -27,7 +27,7 @@ from utils.grid import latlon_to_grid, grid_to_latlon
  from sidd.constants import logAPICall, ExtrapolateOptions, \
     GID_FIELD_NAME, LON_FIELD_NAME, LAT_FIELD_NAME, CNT_FIELD_NAME, TAX_FIELD_NAME, \
     ZONE_FIELD_NAME, AREA_FIELD_NAME, COST_FIELD_NAME, \
-    DEFAULT_GRID_SIZE, MAX_FEATURES_IN_MEMORY
+    MAX_FEATURES_IN_MEMORY
 from sidd.operator import Operator, OperatorError
 from sidd.operator.data import OperatorDataTypes
 
@@ -41,7 +41,7 @@ class GridMSApplier(Operator):
         if options.has_key('proc.extrapolation'):
             self._extrapolationOption = options['proc.extrapolation']
         else:
-            self._extrapolationOption = ExtrapolateOptions.RandomWalk
+            self._extrapolationOption = ExtrapolateOptions.Fraction
             
         self._fields = {0: QgsField(GID_FIELD_NAME, QVariant.Int),
                         1: QgsField(LON_FIELD_NAME, QVariant.Double),
@@ -50,7 +50,7 @@ class GridMSApplier(Operator):
                         4: QgsField(ZONE_FIELD_NAME, QVariant.String),
                         5: QgsField(CNT_FIELD_NAME, QVariant.Int),
                         6: QgsField(AREA_FIELD_NAME, QVariant.Double),
-                        7: QgsField(COST_FIELD_NAME, QVariant.Double),}        
+                        7: QgsField(COST_FIELD_NAME, QVariant.Double),}
         if self._extrapolationOption != ExtrapolateOptions.RandomWalk:
             self._fields[5]=QgsField(CNT_FIELD_NAME, QVariant.Double)
         

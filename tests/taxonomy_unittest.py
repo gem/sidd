@@ -60,4 +60,5 @@ class TaxonomyTestCase(SIDDTestCase):
         self.assertTrue(isinstance(attrs[0], TaxonomyAttributeMulticodeValue))
         self.assertTrue(isinstance(attrs[3], TaxonomyAttributePairValue))
     
-    
+        tax_string = 'CR+CIP/LFINF+DNO/HBET:1,3/'
+        attrs = self.taxonomy.parse(tax_string)

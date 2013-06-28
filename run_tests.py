@@ -37,6 +37,7 @@ def suite():
     #suite.addTest(MSTestCase('test_StatsAddBranch'))
     #suite.addTest(MSTestCase('test_StatsRandomWalk'))
     #suite.addTest(MSTestCase('test_StatsLeaves'))
+    suite.addTest(MSTestCase('test_Sampling'))
     
     # operator tests
     #suite.addTest(OperatorTestCase('test_LoadZone'))
@@ -50,7 +51,7 @@ def suite():
     #suite.addTest(OperatorTestCase('test_VerifyExposure'))
     #suite.addTest(OperatorTestCase('test_MakeGridGeometry'))
     #suite.addTest(OperatorTestCase('test_StratifiedSampleMS'))
-    suite.addTest(OperatorTestCase('test_ZoneFootprintToGridJoin'))
+    #suite.addTest(OperatorTestCase('test_ZoneFootprintToGridJoin'))
     #suite.addTest(OperatorTestCase('test_ZoneToGridJoin'))
     #suite.addTest(OperatorTestCase('test_ZonePopGridJoin'))
     

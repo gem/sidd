@@ -20,7 +20,6 @@ main SIDD application controller
 import os
 import bsddb
 import shutil
-import types
 import json
 
 from utils.enum import makeEnum
@@ -50,7 +49,8 @@ class Project (object):
         self.app_config = app_config
         self.operator_options = {
             'tmp_dir': self.temp_dir,
-            'taxonomy':taxonomy,            
+            'taxonomy':taxonomy,    
+            'parse_modifiers':app_config.get('options', 'parse_modifier', True, bool),        
         }
         self.reset()
 

@@ -25,7 +25,7 @@ from qgis.gui import QgsMapCanvas, QgsMapCanvasLayer, \
                      QgsMapToolPan, QgsMapToolZoom, QgsMapToolEmitPoint, \
                      QgsRendererV2PropertiesDialog
 from qgis.core import QGis, QgsMapLayerRegistry, QgsCoordinateReferenceSystem, \
-                      QgsCoordinateTransform, QgsFeature, QgsRectangle, \
+                      QgsCoordinateTransform, QgsFeature, QgsRectangle, QgsPoint, \
                       QgsStyleV2, QgsFeatureRendererV2
 
 from utils.shapefile import load_shapefile, layer_field_index, layer_features
@@ -95,6 +95,9 @@ class WidgetResult(Ui_widgetResult, QWidget):
         self.canvas.mapRenderer().setProjectionsEnabled(True)
         self.canvas.mapRenderer().setDestinationCrs(QgsCoordinateReferenceSystem(4326, QgsCoordinateReferenceSystem.PostgisCrsId))
         self.canvas.zoomNextStatusChanged.connect(self.checkRendering)
+        self.canvas.xyCoordinates.connect(self.currentLocation)
+        self.registry = QgsMapLayerRegistry.instance()
+        
         self.map_layers = [None] * len(self.LAYER_NAMES)
         self.map_layer_renderer = [None] * len(self.LAYER_NAMES)
         for idx, str_style in enumerate(self.LAYER_STYLES):
@@ -146,6 +149,12 @@ class WidgetResult(Ui_widgetResult, QWidget):
         self.ui.cb_export_format.currentIndexChanged[str].connect(self.exportFormatChanged)
         self.ui.btn_export.clicked.connect(self.exportData)
         self.ui.btn_export_select_path.clicked.connect(self.selectExportFile)
+
+    @pyqtSlot(QgsPoint)
+    def currentLocation(self, point):
+        self.app.updateMapLocation(point.x(),point.y())
+        #self.canvas.mouseMoveEvent(mouseEvent)
+        
 
     # UI event handling calls (Qt slots)
     ###############################
@@ -210,16 +219,20 @@ class WidgetResult(Ui_widgetResult, QWidget):
     @pyqtSlot()
     def mapZoomLayer(self):
         self.canvas.unsetMapTool(self.toolInfo)
-        cur_layer_name = self.ui.cb_layer_selector.currentText()                
+        cur_layer_name = self.ui.cb_layer_selector.currentText()
+        if cur_layer_name.isEmpty():
+            return
         self.zoomToLayer(self.map_layers[self.LAYER_NAMES.index(cur_layer_name)])
         
     @logUICall
     @pyqtSlot()
     def mapEditTheme(self):
         """ event handler for btn_edit - identify item on map """
-        cur_layer = self.ui.cb_layer_selector.currentText()
+        cur_layer_name = self.ui.cb_layer_selector.currentText()
+        if cur_layer_name.isEmpty():
+            return
         try:
-            cur_layer_idx = self.LAYER_NAMES.index(cur_layer)
+            cur_layer_idx = self.LAYER_NAMES.index(cur_layer_name)
             
             # build layer render property Dialog for selected layer  
             dlg_render = QDialog()
@@ -252,9 +265,11 @@ class WidgetResult(Ui_widgetResult, QWidget):
     @logUICall
     @pyqtSlot()
     def searchFeature(self):        
-        cur_layer = self.ui.cb_layer_selector.currentText()
+        cur_layer_name = self.ui.cb_layer_selector.currentText()
+        if cur_layer_name.isEmpty():
+            return
         try:
-            cur_layer_idx = self.LAYER_NAMES.index(cur_layer)            
+            cur_layer_idx = self.LAYER_NAMES.index(cur_layer_name)            
             layer = self.map_layers[cur_layer_idx]
             fields = []
             for fidx in layer.dataProvider().fields():
@@ -328,6 +343,8 @@ class WidgetResult(Ui_widgetResult, QWidget):
         point-polygon search on currently selected layer  
         """
         cur_layer_name = self.ui.cb_layer_selector.currentText()
+        if cur_layer_name.isEmpty():
+            return
         try:
             cur_layer_idx = self.LAYER_NAMES.index(cur_layer_name)
             cur_layer = self.map_layers[cur_layer_idx]
@@ -382,9 +399,8 @@ class WidgetResult(Ui_widgetResult, QWidget):
         self._project = project
         if project is None:
             return
-        self.canvas.setRenderFlag(False)
         self.refreshView()
-        self.canvas.setRenderFlag(True)        
+        self.canvas.zoomToFullExtent()
         logUICall.log("Project preview initialized sucessfully", logUICall.INFO)
         
     def get_project(self):
@@ -397,33 +413,30 @@ class WidgetResult(Ui_widgetResult, QWidget):
         ''' reload all QGIS layers in currently defined project '''
         if self._project is None:
             return
+        
         # display layers if exists                
         if self._project.fp_file is not None and exists(self._project.fp_file):
             if self.map_layers[self.FOOTPRINT] is None or self.map_layers[self.FOOTPRINT].source() != self._project.fp_file:                            
-                self.map_layers[self.FOOTPRINT] = load_shapefile(self._project.fp_file, 'footprint')
-                self.showDataLayer(self.map_layers[self.FOOTPRINT], self.map_layer_renderer[self.FOOTPRINT])
+                self.showDataLayer(self.FOOTPRINT, load_shapefile(self._project.fp_file, 'footprint'))
         else:            
             self.removeDataLayer(self.FOOTPRINT)
         
         if self._project.zone_file is not None and exists(self._project.zone_file):
             if self.map_layers[self.ZONES] is None or self.map_layers[self.ZONES].source() != self._project.zone_file:
-                self.map_layers[self.ZONES] = load_shapefile(self._project.zone_file, 'zones')
-                self.showDataLayer(self.map_layers[self.ZONES], self.map_layer_renderer[self.ZONES])
+                self.showDataLayer(self.ZONES, load_shapefile(self._project.zone_file, 'zones'))
         else:            
             self.removeDataLayer(self.ZONES)
             
         if self._project.survey_file is not None and exists(self._project.survey_file):
             if getattr(self._project, 'survey', None) is None:
                 self._project.load_survey()
-                self.map_layers[self.SURVEY] = self._project.survey 
-                self.showDataLayer(self.map_layers[self.SURVEY], self.map_layer_renderer[self.SURVEY])
+                self.showDataLayer(self.SURVEY, self._project.survey)
         else:            
             self.removeDataLayer(self.SURVEY)
         
         if self._project.popgrid_file is not None and exists(self._project.popgrid_file):
             if getattr(self._project, 'popgrid', None) is None:
-                self.map_layers[self.POP_GRID] = load_shapefile(self._project.popgrid_file, 'popgrid') 
-                self.showDataLayer(self.map_layers[self.POP_GRID], self.map_layer_renderer[self.POP_GRID])
+                self.showDataLayer(self.POP_GRID, load_shapefile(self._project.popgrid_file, 'popgrid'))
         else:            
             self.removeDataLayer(self.POP_GRID)
         
@@ -432,21 +445,18 @@ class WidgetResult(Ui_widgetResult, QWidget):
             if export_format == self._project.export_type:
                 self.ui.cb_export_format.setCurrentIndex(idx)
         self.ui.txt_export_select_path.setText(self._project.export_path)
+        
+        # refreshResult contains refresh call to update all layers currently loaded
         self.refreshResult()
 
     def refreshResult(self):
         ''' reload result QGIS layer and data quality reports in currently defined project '''
-        exposure = getattr(self._project, 'exposure', None)
-        exposure_layer = self.EXPOSURE
-        exposure_renderer = self.EXPOSURE
-
+        exposure = getattr(self._project, 'exposure', None)        
         if exposure is not None:
-            self.map_layers[exposure_layer] = exposure 
-            self.showDataLayer(self.map_layers[exposure_layer], self.map_layer_renderer[exposure_renderer])
+            self.showDataLayer(self.EXPOSURE, exposure)
             has_result = True            
         else:
-            self.map_layers[exposure_layer] = None 
-            self.removeDataLayer(exposure_layer)
+            self.removeDataLayer(self.EXPOSURE)
             has_result = False
         
         if has_result:
@@ -483,61 +493,55 @@ class WidgetResult(Ui_widgetResult, QWidget):
         self.ui.txt_export_select_path.setEnabled(has_result)
         self.ui.btn_export_select_path.setEnabled(has_result)
         self.ui.cb_export_format.setEnabled(has_result)        
-            
+
+        # this call refresh all layers currently loaded        
+        self.refreshLayers()      
+
     @logUICall
     def closeResult(self):
         ''' remove from map result QGIS layer and reset quality report display '''
+        self.canvas.setLayerSet([]) # call necessary to remove all layers to avoid disconnect errors  
         self.removeDataLayer(self.EXPOSURE)
+        self.refreshLayers()
         self.ui.txt_dq_test_details.setText("")
-
+        
     @logUICall
     def closeAll(self):
         ''' remove from map all QGIS layer in currently defined project '''
         self.ui.cb_layer_selector.clear()
-        if getattr(self, 'registry', None) is None:
-            self.registry = QgsMapLayerRegistry.instance()
         try:
+            self.canvas.setLayerSet([]) # call necessary to remove all layers to avoid disconnect errors 
             for i in range(5):
-                self.removeDataLayer(i)
-            self.registry.removeAllMapLayers ()
+                self.removeDataLayer(i)            
             self.ui.txt_dq_test_details.setText("")
+            self.refreshLayers()
         except:            
             pass    # exception will is thrown when registry is empty
-        finally:
-            self.canvas.setLayerSet([])
-            self.canvas.refresh()
     
     # internal helper methods
     ###############################
-    def showDataLayer(self, layer, renderer=None, refreshCanvas=True):
+    def showDataLayer(self, index, layer):
         """ display given QGIS layer on map """
-        if getattr(self, 'registry', None) is None:
-            self.registry = QgsMapLayerRegistry.instance()
         try:
             # add to QGIS registry and refresh view
+            if self.map_layers[index] is not None:
+                self.removeDataLayer(index)
+            self.map_layers[index] = layer
             self.registry.addMapLayer(layer)
-            if renderer is not None:
-                layer.setRendererV2(renderer)
-            if refreshCanvas:
-                self.refreshLayers()
-                self.zoomToLayer(layer)
+            layer.setRendererV2(self.map_layer_renderer[index])            
         except:
-            return None
+            pass
 
     def removeDataLayer(self, index):
         """ remove from map the layer identified with index """
-        if getattr(self, 'registry', None) is None:
-            self.registry = QgsMapLayerRegistry.instance()
         layer = self.map_layers[index]
-        self.map_layers[index] = None        
+        self.map_layers[index] = None    
         if layer is not None:                
-            try:    
-                self.canvas.clear()
-                self.canvas.setLayerSet([])
-                self.registry.removeMapLayer(layer.getLayerID(), False)            
+            try:
+                self.registry.removeMapLayer(layer.getLayerID(), False)
+                del layer      
             except:
                 pass # do nothing if it fails. probably already deleted
-            self.refreshLayers()        
 
     def findFeatureExtentByAttribute(self, layer, field, value):
         """ 
@@ -579,11 +583,10 @@ class WidgetResult(Ui_widgetResult, QWidget):
         try:
             self.canvas.setExtent(extent)
             self.canvas.zoomByFactor(1.1)
-            self.canvas.refresh()
         except:
             self.mapZoomFull()
     
-    def refreshLayers(self, refreshCanvas=True):
+    def refreshLayers(self):
         """ refresh all layers in canvas """
         # add each layer according to order
         layerSet = []
@@ -592,6 +595,6 @@ class WidgetResult(Ui_widgetResult, QWidget):
             if lyr is not None:
                 layerSet.append(QgsMapCanvasLayer(lyr))
                 self.ui.cb_layer_selector.addItem(self.LAYER_NAMES[idx])
-        self.canvas.setLayerSet(layerSet)
-        if refreshCanvas:
-            self.canvas.refresh()
+        if len(layerSet) > 0:            
+            self.canvas.setLayerSet(layerSet)
+        

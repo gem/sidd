@@ -17,7 +17,7 @@
 dialog for editing secondary modifiers
 """
 from PyQt4.QtGui import QCloseEvent, QDialog, QAbstractItemView, QItemSelectionModel, QDoubleValidator 
-from PyQt4.QtCore import pyqtSlot, QSettings, Qt, QObject, QSize, QVariant
+from PyQt4.QtCore import pyqtSlot, QSettings, Qt, QObject, QSize
 
 from sidd.ms import StatisticNode, MappingSchemeZone
 from sidd.constants import SIDD_COMPANY, SIDD_APP_NAME, SIDD_VERSION

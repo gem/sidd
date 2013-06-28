@@ -343,7 +343,7 @@ class Statistics (object):
                     t_val, t_count, t_size, t_cost = samples[_val]
                     samples[_val] = (_val, t_count+1, t_size+_size, t_cost+t_size+_cost)
                 else:
-                    samples[_val]=(_val, _size, _size, _size+_cost)
+                    samples[_val]=(_val, 1, _size, _size+_cost)
         return samples.values()
     
     @logAPICall

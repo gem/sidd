@@ -172,6 +172,9 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         self.ms_library_visible = True
         self.setMSLibraryVisible(False)        
 
+        if not app.app_config.get('options', 'parse_modifier', True, bool):
+            self.ui.btn_secondary_mod.setVisible(False)
+            
     # UI event handling calls
     ###############################
     @pyqtSlot(QObject)

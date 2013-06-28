@@ -19,15 +19,15 @@ module constains class for loading footprint shapefiles
 from os.path import exists
 
 from PyQt4.QtCore import QVariant
-from qgis.core import QGis, QgsCoordinateReferenceSystem, QgsCoordinateTransform, \
-                      QgsVectorFileWriter, QgsFeature, QgsField, QgsGeometry
+from qgis.core import QGis, QgsCoordinateTransform, \
+                      QgsVectorFileWriter, QgsFeature, QgsField
 
 from utils.shapefile import load_shapefile, load_shapefile_verify, remove_shapefile, \
-                      layer_features, layer_field_exists, layer_field_index
+                      layer_features, layer_field_index
 from utils.system import get_unique_filename
 
 from sidd.constants import logAPICall, \
-                           GID_FIELD_NAME, LON_FIELD_NAME, LAT_FIELD_NAME, CNT_FIELD_NAME                         
+                           GID_FIELD_NAME, CNT_FIELD_NAME                         
 from sidd.operator import Operator,OperatorError, OperatorDataError
 from sidd.operator.data import OperatorDataTypes
 
@@ -91,17 +91,12 @@ class PopGridLoader(Operator):
         else:
             transform_required = False
         
-        mercator_crs = QgsCoordinateReferenceSystem()
-        mercator_crs.createFromEpsg(4326)        
-        mercator_transform = QgsCoordinateTransform(tmp_popgrid_layer.crs(), mercator_crs)
-        
-        pop_idx = layer_field_index(tmp_popgrid_layer, pop_field)
-        
         # output grid
         fields = {
             0 : QgsField(GID_FIELD_NAME, QVariant.Int),
             1 : QgsField(CNT_FIELD_NAME, QVariant.Double),
         }
+        pop_idx = layer_field_index(tmp_popgrid_layer, pop_field)
         output_file = '%spop_grid_%s.shp' % (self._tmp_dir, get_unique_filename())
         logAPICall.log('create outputfile %s ... ' % output_file, logAPICall.DEBUG)        
         try:

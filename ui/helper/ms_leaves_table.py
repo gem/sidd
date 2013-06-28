@@ -17,7 +17,6 @@
 dialog for editing mapping scheme branches
 """
 from PyQt4.QtCore import Qt, QVariant, QString, QAbstractTableModel, QModelIndex
-from ui.constants import logUICall, get_ui_string
 from ui.helper.common import build_attribute_tooltip
 
 class MSLeavesTableModel(QAbstractTableModel):
