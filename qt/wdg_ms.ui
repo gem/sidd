@@ -725,6 +725,26 @@
      <string>Include Modifiers</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="btn_save_ms_leaves">
+    <property name="geometry">
+     <rect>
+      <x>530</x>
+      <y>20</y>
+      <width>31</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>Save Mapping Scheme</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset resource="resources/SIDDResource.qrc">
+      <normaloff>:/imgs/icons/save.png</normaloff>:/imgs/icons/save.png</iconset>
+    </property>
+   </widget>
   </widget>
   <widget class="QLabel" name="lb_gem_logo">
    <property name="geometry">

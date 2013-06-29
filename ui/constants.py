@@ -152,7 +152,8 @@ SIDD_UI_STRINGS = {
     "widget.ms.file.open":QApplication.translate('app.ms', 'Open Mapping Scheme File', None, QApplication.UnicodeUTF8),
     "widget.ms.warning.replace":QApplication.translate('app.ms', 'This will replace current Mapping Scheme.\nAre you sure that you want to continue?', None, QApplication.UnicodeUTF8),
     "widget.ms.warning.deletebranch":QApplication.translate('app.ms', 'Deleting a node cannot be undone.\nAre you sure that you want to continue?', None, QApplication.UnicodeUTF8),
-    "widget.ms.warning.node.required":QApplication.translate('app.ms', 'Please select source node from Mapping Scheme library and destination node on Mapping Scheme Tree', None, QApplication.UnicodeUTF8),
+    "widget.ms.warning.node.required":QApplication.translate('app.ms', 'Please select node from Mapping Scheme Tree', None, QApplication.UnicodeUTF8),
+    "widget.ms.warning.node.branch.required":QApplication.translate('app.ms', 'Please select source node from Mapping Scheme library and destination node on Mapping Scheme Tree', None, QApplication.UnicodeUTF8),    
     "widget.ms.warning.node.invalid":QApplication.translate('app.ms', 'Selected Node from Mapping Scheme Tree is Invalid', None, QApplication.UnicodeUTF8),
     # main window / mod tab
     ######################

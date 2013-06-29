@@ -46,6 +46,7 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
         self.app =  app
         self.taxonomy = app.taxonomy
         self.parse_modifiers = app.app_config.get('options', 'parse_modifier', True, bool)
+        self.allow_repeats = app.app_config.get('options', 'allow_repeats', False, bool)
 
         # save mapping scheme dialog box        
         self.dlgSave = DialogSaveMS(self.app)
@@ -190,7 +191,7 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
         
         # set list of values to table editor 
         if len(self.valid_codes) > 1 and self.parse_modifiers:
-            attr_editor = MSAttributeItemDelegate(self.ui.table_ms_level, self.valid_codes, 0)
+            attr_editor = MSAttributeItemDelegate(self.ui.table_ms_level, self.valid_codes, 0, self.allow_repeats)
             self.ui.table_ms_level.setItemDelegateForColumn(0, attr_editor)
         else:
             self.ui.table_ms_level.setItemDelegateForColumn(0, self.ui.table_ms_level.itemDelegateForColumn(1))

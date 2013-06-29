@@ -706,7 +706,37 @@ class StatisticNode (object):
     
     @logAPICall
     def update_children(self, attribute, values, weights):
-        """ update children based on given values/weights """
+        """ 
+        simply update children based on given values/weights without checking
+        for position of values  
+        """        
+        if sum(weights) <> 100:        
+            raise StatisticNodeError('weight does not equal to 100')
+                    
+        to_add = len(values) > len(self.children)        
+        if to_add > 0:
+            # need to add more nodes
+            for i in range(to_add):
+                child = StatisticNode(self, attribute, '', self.level+1)                
+                self.children.append(child)
+        elif to_add < 0:
+            # need to delete nodes
+            _start=len(values)
+            for i in range(to_add):
+                self.children.remove(self.children[_start+i])
+        # set value/weights
+        _idx = 0
+        for _val, _weight in map(None, values, weights):         
+            _child = self.children[_idx]
+            _child.value = _val
+            _child.weight = _weight            
+            _idx += 1
+        
+    @logAPICall
+    def update_children_complex(self, attribute, values, weights):
+        """ 
+        update children based on given values/weights         
+        """
         # check to make sure given values/weights can be used to
         # update node's children
         # check for following conditions

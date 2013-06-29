@@ -22,7 +22,7 @@ from PyQt4.QtGui import QItemDelegate, QComboBox, QMessageBox
 from ui.constants import get_ui_string
 
 class MSAttributeItemDelegate(QItemDelegate):
-    def __init__(self, parent, valid_codes, min_editables):
+    def __init__(self, parent, valid_codes, min_editables, allow_repeats=False):
         super(MSAttributeItemDelegate, self).__init__(parent)
         self.valid_codes = valid_codes
         self.valid_code_names = []    
@@ -30,6 +30,7 @@ class MSAttributeItemDelegate(QItemDelegate):
             self.valid_code_names.append(description)
         self.valid_code_names.sort()
         self.min_editables = min_editables
+        self.allow_repeats = allow_repeats
     
     # returns the widget used to change data from the model and can be re-implemented to customize editing behavior.
     def createEditor(self, parent, option, index):
@@ -58,15 +59,20 @@ class MSAttributeItemDelegate(QItemDelegate):
     def setModelData(self, editor, model, index):
         existing_values = index.model().values
         code = self.valid_codes[str(editor.currentText())]
-        try:
-            existing_values.index(code)
-            if index.data().toString() != code:
-                QMessageBox.warning(None,
-                                    get_ui_string("app.warning.title"), 
-                                    get_ui_string("dlg.msbranch.error.attribute.exists", (code)))
-        except:
-            # code not in existing values list
+        if self.allow_repeats:
             model.setData(index, QVariant(code), Qt.EditRole)
+        else:
+            try:
+                existing_values.index(code)
+                # check to see if it is the same one
+                if index.data().toString() != code:
+                    # not the same one, show warning
+                    QMessageBox.warning(None,
+                                        get_ui_string("app.warning.title"), 
+                                        get_ui_string("dlg.msbranch.error.attribute.exists", (code)))
+            except:
+                # code not in existing values list
+                model.setData(index, QVariant(code), Qt.EditRole)
         
     def getCurrentModelValue(self, model, index):
         return model.data(index, Qt.DisplayRole)

@@ -71,10 +71,10 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
                     self.main_window.ui.statusbar.showMessage(get_ui_string('app.error.ui'))
                 except SIDDException as se:
                     logUICall.log(se, logUICall.WARNING)
-                    self.main_window.ui.statusbar.showMessage(get_ui_string('app.error.ui'))
+                    self.main_window.ui.statusbar.showMessage(get_ui_string('app.error.model'))
                 except Exception as e:
                     logUICall.log(e, logUICall.ERROR)
-                    self.main_window.ui.statusbar.showMessage(get_ui_string('app.error.ui'))
+                    self.main_window.ui.statusbar.showMessage(get_ui_string('app.error.unexpected'))
                 finally:
                     self.main_window.setEnabled(True)
             return wrapper

@@ -59,11 +59,11 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
                     retval =  f(*args, **kw)
                     return retval                
                 except SIDDUIException as err:
-                    logUICall.log(self.errString(get_ui_string("app.error.unexpected"), err), logUICall.WARNING)
+                    logUICall.log(self.errString(get_ui_string("app.error.ui"), err), logUICall.WARNING)
                 except SIDDException as err:
                     logUICall.log(self.errString(get_ui_string("app.error.model"), err), logUICall.WARNING)
                 except Exception as err:
-                    logUICall.log(self.errString(get_ui_string("app.error.ui"),err), logUICall.ERROR)
+                    logUICall.log(self.errString(get_ui_string("app.error.unexpected"),err), logUICall.ERROR)
             return wrapper
         
         def errString(self, title, err):
@@ -72,11 +72,6 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         
     uiCallChecker = UICallChecker()
 
-    EXPORT_FORMATS = {
-        get_ui_string("app.extension.xml"):MSExportTypes.XML,
-        get_ui_string("app.extension.csv"):MSExportTypes.CSV,
-    };
-    
     # constructor / destructor
     ###############################    
     def __init__(self, app):
@@ -88,6 +83,8 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         super(WidgetMappingSchemes, self).__init__()
         self.ui = Ui_widgetMappingSchemes()
         self.ui.setupUi(self)
+        
+        self.allow_repeats = app.app_config.get('options', 'allow_repeats', False, bool)
 
         # vertical label for toggle mapping scheme library 
         # table header
@@ -142,6 +139,8 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         self.dlgSizeInput.setModal(True)
 
         # connect slots (ui event)
+        self.ui.tree_ms.clicked[QModelIndex].connect(self.treeNodeSelected)
+
         self.ui.btn_create_ms.clicked.connect(self.createMS)
         self.ui.btn_load_ms.clicked.connect(self.loadMS)
         self.ui.btn_save_ms.clicked.connect(self.saveMS)
@@ -155,7 +154,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         self.ui.btn_edit_level.clicked.connect(self.editBranch)
 
         self.ui.cb_ms_zones.currentIndexChanged[str].connect(self.refreshLeaves)
-        self.ui.tree_ms.clicked[QModelIndex].connect(self.treeNodeSelected)
+        self.ui.btn_save_ms_leaves.clicked.connect(self.saveMSLeaves)
         self.ui.ck_use_modifier.toggled.connect(self.refreshLeaves)        
 
         self.ui.list_ms_library_regions.clicked.connect(self.regionSelected)
@@ -269,13 +268,22 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
     @uiCallChecker
     @pyqtSlot()
     def saveMS(self):
-        extensions = ";;".join(self.EXPORT_FORMATS.keys())
-        filename, extension = QFileDialog.getSaveFileNameAndFilter(self,
+        filename = QFileDialog.getSaveFileName(self,
                                                get_ui_string("widget.result.export.folder.open"),
                                                get_app_dir(),
-                                               extensions)
+                                               get_ui_string("app.extension.xml"))
         if not filename.isNull():            
-            self.app.exportMS(filename, self.EXPORT_FORMATS[str(extension)])
+            self.app.exportMS(filename, MSExportTypes.XML)
+
+    @uiCallChecker
+    @pyqtSlot()
+    def saveMSLeaves(self):
+        filename = QFileDialog.getSaveFileName(self,
+                                               get_ui_string("widget.result.export.folder.open"),
+                                               get_app_dir(),
+                                               get_ui_string("app.extension.csv"))
+        if not filename.isNull():            
+            self.app.exportMS(filename, MSExportTypes.CSV)
 
     @uiCallChecker
     @pyqtSlot()
@@ -337,9 +345,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
             #       values/weights pair, we can safely assume that data is clean 
             #       to be used    
                         
-            # TODO: refactor call into main controller
             node.update_children(self.dlgEditMS.current_attribute, self.dlgEditMS.values, self.dlgEditMS.weights)
-            #self.app.visualizeMappingScheme(self.ms)
             self.refreshTree()
             self.refreshLeaves(self.ui.cb_ms_zones.currentText())            
 
@@ -406,7 +412,6 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
                                                  QMessageBox.Yes | QMessageBox.No)
                     if answer == QMessageBox.No:
                         return
-                # TODO: refactor call into main controller            
                 node.parent.update_children(self.dlgEditMS.current_attribute, self.dlgEditMS.values, self.dlgEditMS.weights)            
                 self.refreshTree()
                 self.refreshLeaves(self.ui.cb_ms_zones.currentText())
@@ -419,8 +424,11 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         - append branch to mapping scheme tree 
         """
         # get selected node from working mapping scheme tree
-        node = self.getSelectedNode(self.ui.tree_ms)
-        branch = self.getSelectedNode(self.ui.tree_ms_library)
+        try:
+            node = self.getSelectedNode(self.ui.tree_ms)
+            branch = self.getSelectedNode(self.ui.tree_ms_library)
+        except:
+            raise SIDDUIException(get_ui_string("widget.ms.warning.node.branch.required"))
         self.app.appendMSBranch(node, branch)
         
     @uiCallChecker

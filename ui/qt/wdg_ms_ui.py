@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qt\wdg_ms.ui'
 #
-# Created: Wed Jun 26 10:46:32 2013
+# Created: Fri Jun 28 17:55:23 2013
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -253,6 +253,11 @@ class Ui_widgetMappingSchemes(object):
         self.ck_use_modifier = QtGui.QCheckBox(self.widget_ms_leaves)
         self.ck_use_modifier.setGeometry(QtCore.QRect(300, 0, 131, 17))
         self.ck_use_modifier.setObjectName(_fromUtf8("ck_use_modifier"))
+        self.btn_save_ms_leaves = QtGui.QPushButton(self.widget_ms_leaves)
+        self.btn_save_ms_leaves.setGeometry(QtCore.QRect(530, 20, 31, 23))
+        self.btn_save_ms_leaves.setText(_fromUtf8(""))
+        self.btn_save_ms_leaves.setIcon(icon4)
+        self.btn_save_ms_leaves.setObjectName(_fromUtf8("btn_save_ms_leaves"))
         self.lb_gem_logo = QtGui.QLabel(widgetMappingSchemes)
         self.lb_gem_logo.setGeometry(QtCore.QRect(830, 0, 121, 61))
         self.lb_gem_logo.setText(_fromUtf8(""))
@@ -293,5 +298,6 @@ class Ui_widgetMappingSchemes(object):
         self.lb_leaves_total.setText(QtGui.QApplication.translate("widgetMappingSchemes", "Total", None, QtGui.QApplication.UnicodeUTF8))
         self.lb_ms_leaves.setText(QtGui.QApplication.translate("widgetMappingSchemes", "Building Distribution", None, QtGui.QApplication.UnicodeUTF8))
         self.ck_use_modifier.setText(QtGui.QApplication.translate("widgetMappingSchemes", "Include Modifiers", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_save_ms_leaves.setToolTip(QtGui.QApplication.translate("widgetMappingSchemes", "Save Mapping Scheme", None, QtGui.QApplication.UnicodeUTF8))
 
 import SIDDResource_rc

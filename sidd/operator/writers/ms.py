@@ -49,11 +49,7 @@ class MSLeavesCSVWriter(NullWriter):
         """ perform export operation """
         ms = self.inputs[0].value
         output_file = self.inputs[1].value
-        
-        #test for output folder
-        #if not path.exists(folder):
-        #    raise OperatorError("destination folder %s does not exist" % folder,
-        #                        self.__class__)
+
         base_name = output_file[:-3]
         for zone, stats in ms.assignments():
             # create writer 
@@ -61,6 +57,8 @@ class MSLeavesCSVWriter(NullWriter):
                 csvwriter = csv.writer(csvfile, delimiter=',',
                                       quotechar='"', quoting=csv.QUOTE_NONNUMERIC)
                 csvwriter.writerow(['Building Type', 'Building Fraction'])
+                if len(stats.leaves) == 0:
+                    stats.refresh_leaves(with_modifier=True, order_attributes=False, fill_missing=False)
                 for leaf in stats.leaves:
                     csvwriter.writerow([str(leaf[0]), leaf[1]*100.0])
                                             
