@@ -33,7 +33,7 @@ class MSTestCase(SIDDTestCase):
         self.taxonomy = get_taxonomy("gem")
         self.survey_file = self.test_data_dir + "survey.csv"
         self.ms_file = self.test_data_dir + "ms.xml"
-        self.ms_parse_order = ['Material', 'Lateral Load Resisting System', 'Occupancy', 'Height', 'Date of Construction', 'Structural Irregularity']
+        self.ms_parse_order = None#['Material', 'Lateral Load Resisting System', 'Occupancy', 'Height', 'Date of Construction', 'Structural Irregularity']
     # tests
     ##################################
     

@@ -16,11 +16,15 @@
 """
 module contains abstract taxonomy interface to be extended
 """
+from utils.enum import Enum
+from exception import TaxonomyError
+
 class Taxonomy(object):
     """
     main Taxonomy class
-    with serializing and deserializing functinos
+    with serializing and serializing functions
     """
+    Separators = Enum("AttributeGroup", "Attribute", "AttributeValue")
     
     def __init__(self):
         """ constructor """
@@ -39,15 +43,18 @@ class Taxonomy(object):
         raise NotImplementedError("abstract method not implemented")
     
     @property
+    def attributeGroups(self):
+        raise NotImplementedError("abstract method not implemented")
+
+    @property
     def attributes(self):
         raise NotImplementedError("abstract method not implemented")
     
     @property
-    def defaults(self):
-        raise NotImplementedError("abstract method not implemented")
-    
-    @property
     def codes(self):
+        raise NotImplementedError("abstract method not implemented")
+
+    def get_attribute_group_by_name(self, name):
         raise NotImplementedError("abstract method not implemented")
 
     def get_attribute_by_name(self, name):
@@ -56,36 +63,44 @@ class Taxonomy(object):
     def get_code_by_name(self, name):
         raise NotImplementedError("abstract method not implemented")
     
+    def get_code_by_attribute(self, attribute_name):
+        raise NotImplementedError("abstract method not implemented")
+    
     def parse(self, string):
         raise NotImplementedError("abstract method not implemented")
     
-    def separator(self, separator_type=None):
-        raise NotImplementedError("abstract method not implemented")
+    def get_separator(self, separator_type):
+        if separator_type == Taxonomy.Separators.AttributeGroup:
+            return TaxonomyAttributeGroup.separator
+        elif separator_type == Taxonomy.Separators.Attribute:
+            return TaxonomyAttribute.separator
+        elif separator_type == Taxonomy.Separators.AttributeValue:
+            return TaxonomyAttributeValue.separator
+        else:
+            raise TaxonomyError("Separator Type (%s) not supported" % separator_type)
     
     def to_string(self, attributes):
         raise NotImplementedError("abstract method not implemented")
     
     def is_valid_string(self, tax_string):
         raise NotImplementedError("abstract method not implemented")
-    
-class TaxonomyAttribute(object):
+
+class TaxonomyAttributeGroup(object):
     """
     TaxonomyAttribute is a building characteristic that can be
     represented by the taxonomy
     """
     
-    def __init__(self, name="", order=1, levels=1, default="", attribute_type=1):
-        """ constructor """
+    def __init__(self, name="", order=1, levels=1, default="", attribute_type=1, attributes=None):
         self.__name = name
         self.__order = order
         self.__levels = levels
         self.__default = default
         self.__type = attribute_type
-
-    def __str__(self):
-        """ string representation """
-        return "name:%s\ttype:%s\torder:%s\t\tdefault=%s" % (
-            self.__name, self.__type, self.__order, self.__default)
+        if attributes is None:
+            self.__attributes = []
+        else:
+            self.__attributes = attributes
 
     @property
     def name(self):
@@ -95,10 +110,6 @@ class TaxonomyAttribute(object):
     def order(self):
         return self.__order
 
-    @order.setter
-    def order(self, order):
-        self.__order = order
-    
     @property
     def levels(self):
         return self.__levels
@@ -111,12 +122,84 @@ class TaxonomyAttribute(object):
     def type(self):
         return self.__type
 
-    def get_valid_codes(self, parent=None, levels=None):
-        raise NotImplementedError("abstract method not implemented")
+    @property
+    def separator(self):
+        return ""
+
+    @property
+    def attributes(self):
+        return self.__attributes        
+    
+    def add_attribute(self, attribute):
+        if not isinstance(attribute, TaxonomyAttribute):
+            raise TaxonomyError("code must be of type TaxonomyAttribute")
+        self.__attributes.append(attribute)        
+    
+    def get_attribute_by_name(self, name):
+        for _attr in self.__attributes:
+            if _attr.name == name:
+                return _attr
+        return None
+    
+class TaxonomyAttribute(object):
+    """
+    TaxonomyAttribute is a building characteristic that can be
+    represented by the taxonomy
+    """
+    
+    def __init__(self, name="", attribute_group=None, order=1, default="", attribute_type=1, codes=None):
+        """ constructor """
+        self.__name = name
+        self.__group = attribute_group
+        self.__order = order
+        self.__default = default
+        self.__type = attribute_type
+        if codes is None:
+            self.__codes = []
+        else:
+            self.__codes = codes
+
+    def __str__(self):
+        """ string representation """
+        return "name:%s\ttype:%s\torder:%s\t\tdefault=%s" % (
+            self.__name, self.__type, self.__order, self.__default)
+
+    @property
+    def separator(self):
+        return ""
+
+    @property
+    def name(self):
+        return self.__name
+
+    @property
+    def order(self):
+        return self.__order
+    
+    @property
+    def default(self):
+        return self.__default
+
+    @property
+    def type(self):
+        return self.__type
+
+    @property
+    def group(self):
+        return self.__group
+
+    @property
+    def codes(self):
+        return self.__codes
+    
+    def add_code(self, code):
+        if not isinstance(code, TaxonomyAttributeCode):
+            raise TaxonomyError("code must be of type TaxonomyAttributeCode")
+        self.__codes.append(code)
     
     def make_string(self, values, qualifier=None):
         raise NotImplementedError("abstract method not implemented")
-    
+
 class TaxonomyAttributeValue(object):
     """
     This is an abstract class that can be derived to stores valid value
@@ -127,6 +210,10 @@ class TaxonomyAttributeValue(object):
         """ constructor """
         self.__attribute = attribute
         self.__is_empty = True
+    
+    @property 
+    def separator(self):
+        return ""
     
     @property
     def attribute(self):
@@ -231,25 +318,21 @@ class TaxonomyAttributeCode(object):
     TaxonomyAttributeCode stores an acceptable code for the Taxonomy    
     """
     
-    def __init__(self, attribute, level, code, description, scope=''):
+    def __init__(self, attribute, code, description, scope=''):
         """ constructor """
         self.__attribute = attribute
-        self.__level = level
         self.__code = code
         self.__desc = description
         self.__scope = scope
+        self.__is_default = False
 
     def __str__(self):
         """ string representation """
-        return "%s[%d]: %s (%s)" % (self.__attribute.name, self.__level, self.__code, self.__desc)
+        return "%s: %s (%s)" % (self.__attribute.name, self.__code, self.__desc)
         
     @property
     def attribute(self):
         return self.__attribute
-    
-    @property
-    def level(self):
-        return self.__level
     
     @property
     def format(self):
@@ -266,6 +349,13 @@ class TaxonomyAttributeCode(object):
     @property
     def description(self):
         return self.__desc
+    
+    @property
+    def is_default(self):
+        return self.__is_default
+    
+    def set_default(self):
+        self.__is_default
     
     @property
     def scope(self):

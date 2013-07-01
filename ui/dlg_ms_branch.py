@@ -45,8 +45,6 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
         
         self.app =  app
         self.taxonomy = app.taxonomy
-        self.parse_modifiers = app.app_config.get('options', 'parse_modifier', True, bool)
-        self.allow_repeats = app.app_config.get('options', 'allow_repeats', False, bool)
 
         # save mapping scheme dialog box        
         self.dlgSave = DialogSaveMS(self.app)
@@ -58,8 +56,8 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
         self.ui.btn_apply.clicked.connect(self.updateWeights)
         self.ui.btn_add.clicked.connect(self.addValue)
         self.ui.btn_range.clicked.connect(self.editRanges)
-        self.ui.btn_delete.clicked.connect(self.deleteValue)        
-        self.ui.cb_attributes.currentIndexChanged[str].connect(self.attributeUpdated)        
+        self.ui.btn_delete.clicked.connect(self.deleteValue)
+        self.ui.cb_attributes.currentIndexChanged[str].connect(self.attributeUpdated)
         self.ui.btn_save.clicked.connect(self.saveMSBranch)
         self.ui.btn_close.clicked.connect(self.reject)
 
@@ -183,19 +181,33 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
         else:               # code only types that cannot have ranges
             # find appropriate level 1 code
             # and add to list of codes for drop-down
-            for code_name, code in self.taxonomy.codes.iteritems():                
-                if code.attribute.name == attribute_name and code.level == 1:
-                    self.valid_codes[code.description]=code_name
+            try:
+                parent_code = self.taxonomy.codes[str(self.node.value)]
+                attribute_scope = parent_code.scope
+                # for code only attributes, check scope to limit 
+                child_code = None
+                for _child in self.node.children: 
+                    if _child.value is not None:
+                        child_code = self.taxonomy.codes[str(_child.value)]
+                        break                        
+            
+                if child_code is None or parent_code.attribute.group.name != child_code.attribute.group.name:
+                    attribute_scope = None
+            except:
+                attribute_scope = None                                                
+            for code in self.taxonomy.get_code_by_attribute(attribute_name):
+                if attribute_scope is not None and attribute_scope != code.scope:
+                    continue              
+                self.valid_codes[code.description]=code.code
             # enable button for editing ranges            
-            self.ui.btn_range.setEnabled(False)            
+            self.ui.btn_range.setEnabled(False)
         
         # set list of values to table editor 
-        if len(self.valid_codes) > 1 and self.parse_modifiers:
-            attr_editor = MSAttributeItemDelegate(self.ui.table_ms_level, self.valid_codes, 0, self.allow_repeats)
+        if len(self.valid_codes) > 1:
+            attr_editor = MSAttributeItemDelegate(self.ui.table_ms_level, self.valid_codes, 0)
             self.ui.table_ms_level.setItemDelegateForColumn(0, attr_editor)
         else:
             self.ui.table_ms_level.setItemDelegateForColumn(0, self.ui.table_ms_level.itemDelegateForColumn(1))
-
 
     # public methods    
     #############################            
@@ -236,11 +248,11 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
                     existing_attributes.index(attr.name)
                 except:
                     self.ui.cb_attributes.addItem(attr.name)
-            
+        
         for _child in self.node.children:
-            values.append(_child.value)
+            values.append(str(_child.value))
             weights.append(_child.weight)
-            
+        
         self.levelModel = MSLevelTableModel(values, weights, self.taxonomy, self.taxonomy.codes,
                                             is_editable=[True, True])
         # initialize table view 

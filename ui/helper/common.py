@@ -18,28 +18,27 @@ common functions for ui helper classes
 """
 from sidd.taxonomy import TaxonomyAttributeSinglecodeValue, TaxonomyAttributeMulticodeValue, TaxonomyAttributePairValue
 
-def _build_tooltip(codes, value):
+def _build_tooltip(code):
     lines = []
-    if codes.has_key(value):
-        code = codes[value]
+    if code is not None:        
         lines.append("Code: %s" % code.code)
         lines.append("Attribute: %s" % code.attribute.name)
         #lines.append("Level: %s" % code.level)
         lines.append("Description: %s" % code.description)
     return "\n".join(lines) 
 
-def build_attribute_tooltip(codes, values):
+def build_attribute_tooltip(valid_codes, attributes):
     tooltips = []
-    for attr in values:
+    for attr in attributes.values():
         if attr.is_empty:
             continue
         if isinstance(attr, TaxonomyAttributeMulticodeValue):
             for code in attr.codes:
-                tooltips.append(_build_tooltip(codes, code))
+                tooltips.append(_build_tooltip(code))
         elif isinstance(attr, TaxonomyAttributeSinglecodeValue):
-            tooltips.append(_build_tooltip(codes, attr.code))
+            tooltips.append(_build_tooltip(attr.code))
         elif isinstance(attr, TaxonomyAttributePairValue):
-            tooltips.append(_build_tooltip(codes, attr.code))
+            tooltips.append(_build_tooltip(attr.code))
         tooltips.append("")
     return "\n".join(tooltips)
             

@@ -23,7 +23,7 @@ from random import random
 from utils.enum import Enum
 
 from sidd.constants import logAPICall, ExtrapolateOptions
-from sidd.taxonomy import TaxonomyParseError
+from sidd.taxonomy import Taxonomy
 from sidd.ms.exceptions import StatisticError
 from sidd.ms.node import StatisticNode
 
@@ -56,8 +56,6 @@ class Statistics (object):
         for attr in self.taxonomy.attributes:
             self.defaults.append(attr.default)
             self.skips.append(False)
-        StatisticNode.set_separator(taxonomy.level_separator)
-        StatisticNode.set_defaults(self.defaults)
 
     @logAPICall
     def __str__(self):
@@ -99,7 +97,7 @@ class Statistics (object):
         bldg_attrs = self.taxonomy.parse(taxstr)
         # update tree starting from root
         for i in range(add_times):
-            self.root.add(bldg_attrs, 0, parse_order, self.taxonomy.defaults, parse_modifiers, additional_data)
+            self.root.add(bldg_attrs, parse_order, 0, additional_data)
 
     @logAPICall
     def finalize(self):
@@ -113,20 +111,12 @@ class Statistics (object):
         if self.finalized:
             return
         
-        # DEPRECATED: collapse tree by eliminating all skipped levels
-        new_root = StatisticNode(None, 'root')
-        self.root.collapse_tree(new_root)
+        # collapse tree to eliminate empty levels        
+        self.root.eliminate_empty()
         # convert counts into weight         
-        new_root.calculate_weights()
-        self.root = new_root
+        self.root.calculate_weights()
         self.attributes = self.get_attributes(self.root)
-        
-        defaults = []
-        for skip, default in map(None, self.skips, self.defaults):            
-            if not skip:
-                defaults.append(default)
-        self.defaults_collapsed = defaults
-        self.finalized = True        
+        self.finalized = True
 
     @logAPICall
     def refresh_leaves(self, with_modifier=True, order_attributes=False, fill_missing=True):     
@@ -136,7 +126,7 @@ class Statistics (object):
         # do nothing if finalized            
         self.leaves = []
         for _child in self.root.children:
-            for _val, _wt, _node in _child.leaves(self.taxonomy.attribute_separator, with_modifier):                    
+            for _val, _wt, _node in _child.leaves(self.taxonomy, with_modifier):                    
                 self.leaves.append([_val, _wt, _node])
         
         # order attribute into default order        

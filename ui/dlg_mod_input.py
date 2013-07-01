@@ -151,12 +151,22 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
             self.node = node
             if self.addNew:
                 self.ui.cb_attributes.clear()
-                attribute = self.ms.taxonomy.get_attribute_by_name(node.name)
-                if attribute.levels > 1:
-                    self.ui.cb_attributes.addItem(node.name)
+                taxonomy = self.ms.taxonomy
+                names = node.descendant_names + [node.name] + node.ancestor_names
+                group_names = [g.name for g in taxonomy.attributeGroups]
+                for attribute in taxonomy.attributes:
+                    try:
+                        idx = names.index(attribute.name)
+                        group_names.remove(attribute.group.name)
+                    except:
+                        # not found or already removed. not an error
+                        pass                   
+                
+                if len(group_names) > 0:
+                    self.ui.cb_attributes.addItems(group_names)
                     _allow_modifier=True 
                 else:
-                    _allow_modifier=False                
+                    _allow_modifier=False
                 self.ui.btn_add.setEnabled(_allow_modifier)
                 self.ui.btn_delete.setEnabled(_allow_modifier)
                 self.ui.cb_attributes.setEnabled(_allow_modifier)

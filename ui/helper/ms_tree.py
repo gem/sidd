@@ -111,7 +111,10 @@ class MSTreeModel(QAbstractItemModel):
                 # statistic node 
                 # show weight for node
                 logUICall.log("\tindex is node %s %s" % (item.value, item.weight), logUICall.DEBUG_L2)
-                return '%s - %2.1f%%' % (item.value, item.weight)
+                if item.value is None:
+                    return ' - %2.1f%%' % (item.weight)
+                else:
+                    return '%s - %2.1f%%' % (item.value, item.weight)
         elif role == Qt.ToolTipRole: 
             # lookup data to show in tool tip
             item = index.internalPointer()
@@ -199,7 +202,7 @@ class MSTreeModel(QAbstractItemModel):
             else:
                 # not top level, get node's parent
                 logUICall.log("\tchild is node below level 1. parent is node", logUICall.DEBUG_L2)
-                _row_idx = parentItem.parent.children.index(parentItem) 
+                _row_idx = parentItem.parent.children.index(parentItem)
                 return self.createIndex(_row_idx, 0, parentItem)
         else:
             return QModelIndex()

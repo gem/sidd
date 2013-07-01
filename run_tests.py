@@ -31,13 +31,13 @@ def suite():
     suite = unittest.TestSuite()
 
     # ms test cases
-    #suite.addTest(MSTestCase('test_BuildMS'))    
+    suite.addTest(MSTestCase('test_BuildMS'))    
     #suite.addTest(MSTestCase('test_SaveMS'))
     #suite.addTest(MSTestCase('test_LoadMS'))    
     #suite.addTest(MSTestCase('test_StatsAddBranch'))
     #suite.addTest(MSTestCase('test_StatsRandomWalk'))
     #suite.addTest(MSTestCase('test_StatsLeaves'))
-    suite.addTest(MSTestCase('test_Sampling'))
+    #suite.addTest(MSTestCase('test_Sampling'))
     
     # operator tests
     #suite.addTest(OperatorTestCase('test_LoadZone'))

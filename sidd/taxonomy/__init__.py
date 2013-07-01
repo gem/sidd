@@ -16,7 +16,7 @@
 """
 package provides building taxonomy support
 """
-from taxonomy import (Taxonomy, TaxonomyAttribute, TaxonomyAttributeCode,
+from taxonomy import (Taxonomy, TaxonomyAttributeGroup, TaxonomyAttribute, TaxonomyAttributeCode,
                       TaxonomyAttributeMulticodeValue,
                       TaxonomyAttributeSinglecodeValue,
                       TaxonomyAttributePairValue)
