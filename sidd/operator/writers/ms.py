@@ -50,7 +50,7 @@ class MSLeavesCSVWriter(NullWriter):
         ms = self.inputs[0].value
         output_file = self.inputs[1].value
 
-        base_name = output_file[:-3]
+        base_name = output_file[:-4]
         for zone, stats in ms.assignments():
             # create writer 
             with open('%s_%s.csv' % (base_name, zone.name), 'wb') as csvfile:
