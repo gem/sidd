@@ -518,7 +518,7 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
 
             # show result 
             self.tab_datainput.showVerificationResults()
-            self.ui.mainTabs.setCurrentIndex(0)
+            self.ui.mainTabs.setCurrentIndex(self.TAB_DATA)
             return
         
         # close current results
@@ -536,35 +536,36 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         error_occured = False
         error_message = ""
         curStep = 0
-        for step in self.project.build_exposure_steps():
-            if cancelled or error_occured:
-                break
-            
-            # use introspection to get operator class                           
-            class_name = str(step.__class__)
-            # result of above call has format 
-            # <class '...'> where ... is the class name of interest
-            class_name = class_name[class_name.find("'")+1:class_name.rfind("'")]
-            
-            # update UI
-            logAPICall.log('\t %s' % step.name, logAPICall.DEBUG)
-            self.progress.ui.txt_progress.appendPlainText(get_ui_string('message.%s'% class_name))
-            self.progress.ui.pb_progress.setValue(curStep)                        
-            self.qtapp.processEvents()
-            sleep(0.5)
-            
-            # perform operation
-            try:
+        try:
+            for step in self.project.build_exposure_steps():
+                if cancelled or error_occured:
+                    break
+                
+                # use introspection to get operator class                           
+                class_name = str(step.__class__)
+                # result of above call has format 
+                # <class '...'> where ... is the class name of interest
+                class_name = class_name[class_name.find("'")+1:class_name.rfind("'")]
+                
+                # update UI
+                logAPICall.log('\t %s' % step.name, logAPICall.DEBUG)
+                self.progress.ui.txt_progress.appendPlainText(get_ui_string('message.%s'% class_name))
+                self.progress.ui.pb_progress.setValue(curStep)                        
+                self.qtapp.processEvents()
+                sleep(0.5)
+                
+                # perform operation
                 step.do_operation()
                 if not self.progress.isVisible():
                     cancelled = True
-            except Exception as err:
-                error_message = err.message
-                error_occured = True
-                self.progress.setVisible(False)
-            
-            # operation successful
-            curStep+=1
+                
+                # operation successful
+                curStep+=1
+        except Exception as err:
+            # exception are thrown if data is not ready for exposure 
+            error_message = err.message
+            error_occured = True
+            self.progress.setVisible(False)
             
         if error_occured:
             # processing cancelled

@@ -174,6 +174,10 @@ class StatisticNode (object):
         return len(self.children) == 0
 
     @property
+    def is_valid(self):
+        return sum([c.weight for c in self.children]) == 100                    
+
+    @property
     def max_level(self):
         """ get max level under current node """
         level = self.level
@@ -535,7 +539,8 @@ class StatisticNode (object):
         attr_name = parse_order[level]        
         attr_val = _get_attr(attr_name, attr_vals, default_attributes)
         modifiers = None
-        is_default = str(attr_val) == attr_val.attribute.default
+        
+        is_default = (attr_val is not None) and (str(attr_val) == attr_val.attribute.default)
 
         # normal case
         if isinstance(attr_val, TaxonomyAttributeMulticodeValue):
@@ -621,7 +626,7 @@ class StatisticNode (object):
         else:
             self.children.sort(key=attrgetter('value'))
             for child in self.children:                
-                child.collapse_tree(node, level)
+                child.collapse_tree(node, level)            
 
     @logAPICall
     def get_modifiers(self, max_level):
@@ -694,13 +699,16 @@ class StatisticNode (object):
                 child.set_level_recursive(level + 1)
 
     @logAPICall
-    def has_child_node(self, node):
+    def matches(self, node):
+        """
+        test to see if node matches self or any descendant
+        """
         if self == node:
             return True
         if self.is_leaf:
             return False
         for child in self.children:
-            if (child.has_child_node(node)):
+            if (child.matches(node)):
                 return True
         return False       
     
@@ -713,7 +721,7 @@ class StatisticNode (object):
         if sum(weights) <> 100:        
             raise StatisticNodeError('weight does not equal to 100')
                     
-        to_add = len(values) > len(self.children)        
+        to_add = len(values) > len(self.children)   
         if to_add > 0:
             # need to add more nodes
             for i in range(to_add):

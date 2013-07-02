@@ -602,8 +602,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         self.tree_model = MSTreeModel(ms)        
         treeUI.setModel(self.tree_model)
         self.ui.tree_ms.setEnabled(True)
-        self.ui.tree_ms.expandAll()
-
+        
         self.ui.cb_ms_zones.clear()
         for zone in self.ms.get_zones():
             self.ui.cb_ms_zones.addItem(zone.name)

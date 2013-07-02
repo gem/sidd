@@ -19,7 +19,7 @@ import os
 # import sidd packages for testing
 from sidd.constants import ExtrapolateOptions
 from sidd.ms import MappingScheme, MappingSchemeZone, \
-                    Statistics, StatisticNode, StatisticError
+                    Statistics, StatisticNode, StatisticError, StatisticNodeError
 from sidd.taxonomy import get_taxonomy
 
 from common import SIDDTestCase
@@ -87,6 +87,19 @@ class MSTestCase(SIDDTestCase):
         stats = ms.get_assignment_by_name("ALL")
         attributes = stats.get_attributes(stats.get_tree())        
         self.assertEqual(attributes, self.ms_parse_order)
+
+    def test_IsValid(self):
+        ms = self.test_LoadMS(skipTest=True, statsOnly=False)
+        self.assertTrue(ms.is_valid)
+        
+        stat = ms.zones[0].stats
+        self.assertTrue(stat.is_valid)
+        
+        with self.assertRaises(StatisticNodeError):
+            stat.root.update_children('Material', ['AA', 'BB'], [40, 40])
+
+        stat.root.update_children('Material', ['AA', 'BB'], [40, 60])
+        self.assertTrue(stat.is_valid)
         
     def test_StatsAddBranch(self):
         stats = self.test_LoadMS(skipTest=True, statsOnly=True)
@@ -122,4 +135,4 @@ class MSTestCase(SIDDTestCase):
         self.assertEqual(total_samples, sum([s[1] for s in samples]))
         samples = stats.get_samples(total_samples, ExtrapolateOptions.Fraction)
         self.assertAlmostEqual(total_samples, sum([s[1] for s in samples]), places=2)
-                
+    

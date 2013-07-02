@@ -59,10 +59,17 @@ class Statistics (object):
         StatisticNode.set_separator(taxonomy.level_separator)
         StatisticNode.set_defaults(self.defaults)
 
-    @logAPICall
     def __str__(self):
         """ return string representation of the underlying tree  """        
         return str(self.root)
+    
+    @property
+    def is_valid(self):
+        if not self.root.max_level > 0:
+            return False
+        if not self.root.is_valid:
+            return False
+        return True
     
     @property
     def max_level(self):
@@ -78,7 +85,7 @@ class Statistics (object):
 
     @logAPICall
     def has_node(self, node):
-        return self.root.has_child_node(node)
+        return self.root.matches(node)
 
     @logAPICall
     def add_case(self, taxstr, parse_order=None, parse_modifiers=True, additional_data={}, add_times=1):

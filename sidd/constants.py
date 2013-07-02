@@ -28,9 +28,9 @@ logAPICall = SIDDLogging('core')
 SIDD_COMPANY = "GEM"
 SIDD_APP_NAME = "SIDD"
 SIDD_VERSION = "1.0"
-SIDD_LASTUPDATED = "2013-06-22"
+SIDD_LASTUPDATED = "2013-07-02"
 
-# maximum number of items before swithcing from in-memory algorithms
+# maximum number of items before switching from in-memory algorithms
 # to file-based algorithms
 MAX_FEATURES_IN_MEMORY = 10000
 
