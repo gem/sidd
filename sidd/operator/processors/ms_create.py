@@ -19,7 +19,7 @@ module contains class for creating mapping scheme from survey data
 from qgis.analysis import QgsOverlayAnalyzer
 
 from utils.shapefile import load_shapefile, layer_features, layer_field_index, remove_shapefile, \
-                            layer_fields_stats
+                            layer_field_stats
 from utils.system import get_unique_filename, get_temp_dir, get_dictionary_value
 
 from sidd.constants import logAPICall, AREA_FIELD_NAME, GRP_FIELD_NAME, TAX_FIELD_NAME, HT_FIELD_NAME, COST_FIELD_NAME
@@ -115,7 +115,7 @@ class EmptyZonesMSCreator(EmptyMSCreator):
         
         # load zone
         try:
-            zone_classes = layer_fields_stats(zone_layer, zone_field)
+            zone_classes = layer_field_stats(zone_layer, zone_field)
         except AssertionError as err:
             raise OperatorError(str(err), self.__class__)
         
@@ -169,7 +169,7 @@ class SurveyZonesMSCreator(EmptyMSCreator):
 
         # load zone classes
         try:
-            zone_classes = layer_fields_stats(zone_layer, zone_field)
+            zone_classes = layer_field_stats(zone_layer, zone_field)
         except AssertionError as err:
             raise OperatorError(str(err), self.__class__)
         
@@ -348,7 +348,7 @@ class StratifiedMSCreator(EmptyMSCreator):
         # load zone classes
         # the operations below must be performed for each zone 
         try:
-            zone_classes = layer_fields_stats(zone_layer, zone_field)
+            zone_classes = layer_field_stats(zone_layer, zone_field)
         except AssertionError as err:
             raise OperatorError(str(err), self.__class__)
 
@@ -443,7 +443,7 @@ class StratifiedMSCreator(EmptyMSCreator):
         # adjust ratio using footprint ht/area
         tmp_join_layername2 = 'join_%s' % get_unique_filename()
         tmp_join_file2 = self._tmp_dir + tmp_join_layername2 + '.shp'        
-        analyzer = QgsOverlayAnalyzer()        
+        analyzer = QgsOverlayAnalyzer()
         analyzer.intersection(fp_layer, zone_layer, tmp_join_file2)        
         tmp_join_layer2 = load_shapefile(tmp_join_file2, tmp_join_layername)
         

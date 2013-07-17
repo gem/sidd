@@ -147,7 +147,7 @@ def layer_multifields_stats(layer, fields):
             stats[_key]=1
     return stats
 
-def layer_fields_stats(layer, field):
+def layer_field_stats(layer, field):
     """ aggregate stats for field in layer """
     return layer_multifields_stats(layer, [field])
 

@@ -26,7 +26,7 @@ from qgis.core import QGis, QgsVectorFileWriter, QgsFeature, QgsField, QgsGeomet
 from qgis.analysis import QgsOverlayAnalyzer
 
 from utils.shapefile import load_shapefile, layer_features, layer_field_index, remove_shapefile, \
-                            layer_multifields_stats, layer_fields_stats, load_shapefile_verify 
+                            layer_multifields_stats, load_shapefile_verify 
 from utils.system import get_unique_filename
 from utils.grid import latlon_to_grid, grid_to_latlon
 from sidd.constants import logAPICall, GID_FIELD_NAME, AREA_FIELD_NAME, CNT_FIELD_NAME, HT_FIELD_NAME, \
@@ -410,8 +410,6 @@ class ZoneFootprintCounter(EmptyOperator):
                 stat = stats[gid] 
                 stats[gid] = (stat[0]+1, stat[1]+area)
             
-        #stats = layer_fields_stats(tmp_join_layer, GID_FIELD_NAME + "_")
-        
         output_layername = 'zone_%s' % get_unique_filename()
         output_file = '%s%s.shp' % (self._tmp_dir, output_layername)
         logAPICall.log('create outputfile %s ... ' % output_file, logAPICall.DEBUG)

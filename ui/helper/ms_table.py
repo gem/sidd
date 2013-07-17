@@ -62,7 +62,7 @@ class MSTableModel(QAbstractTableModel):
                 _parent_str = []
                 for i in range(_node.level):
                     _parent_idx = _node.level-1-i
-                    _parent_str.append(_parent.value)
+                    _parent_str.append(str(_parent.value))
                     # move up to next parent
                     _parent = _parent.parent
                 # reverse to put root at the beginning

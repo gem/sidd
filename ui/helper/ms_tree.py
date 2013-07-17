@@ -44,8 +44,8 @@ class MSTreeModel(QAbstractItemModel):
         self.rootNode = object()
         self.zones = ms.get_zones()
         for zone in self.zones:
-            #print zone, type(zone.stats.root), zone.stats.root.value
             zone.stats.get_tree().value = zone.name
+            
 
     def nodeFromIndex(self, index):
         """ (override function) retrieve internal stored node from given index """
@@ -222,6 +222,8 @@ class MSTreeModel(QAbstractItemModel):
     def match(self, index, role, value, hits=1, flags=Qt.MatchStartsWith | Qt.MatchWrap):
         found = []
         data = self.data(index, role)
+        if isinstance(data, MappingSchemeZone):
+            data = data.stats.root            
         if data == value:
             found.append(index)
             hits -= 1            

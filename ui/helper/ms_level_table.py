@@ -109,7 +109,16 @@ class MSLevelTableModel(QAbstractTableModel):
         if role == Qt.EditRole:
             if (index.column() == 0):
                 # first column, change value
-                taxStr = str(value.toString())
+                taxStr = str(value.toString())                
+                # make sure there is no repeat
+                try:                    
+                    self.values.index(taxStr)
+                    # no error means taxStr already in self.value
+                    found = True                    
+                except:
+                    found = False
+                if found:
+                    raise SIDDException(get_ui_string("dlg.msbranch.error.attribute.exists") % taxStr)
                 # do nothing for empty string
                 if taxStr == "":
                     return False           

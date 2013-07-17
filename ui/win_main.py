@@ -41,6 +41,7 @@ from ui.dlg_about import DialogAbout
 from ui.dlg_apply import DialogApply
 from ui.dlg_proc_options import DialogProcessingOptions
 from ui.wdg_data_wizard import WidgetDataWizard
+from ui.dlg_attr_range import DialogAttrRanges        
 
 from ui.helper.msdb_dao import MSDatabaseDAO
 from ui.helper.async import invoke_async
@@ -131,6 +132,9 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         
         self.about = DialogAbout(self)
         self.about.setModal(True)        
+        
+        self.dlgAttrRange = DialogAttrRanges()
+        self.dlgAttrRange.setModal(True)
         
         self.progress = DialogApply(self)
         self.progress.setModal(True)
@@ -518,7 +522,7 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
 
             # show result 
             self.tab_datainput.showVerificationResults()
-            self.ui.mainTabs.setCurrentIndex(0)
+            self.ui.mainTabs.setCurrentIndex(self.TAB_DATA)
             return
         
         # close current results
@@ -536,35 +540,36 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         error_occured = False
         error_message = ""
         curStep = 0
-        for step in self.project.build_exposure_steps():
-            if cancelled or error_occured:
-                break
-            
-            # use introspection to get operator class                           
-            class_name = str(step.__class__)
-            # result of above call has format 
-            # <class '...'> where ... is the class name of interest
-            class_name = class_name[class_name.find("'")+1:class_name.rfind("'")]
-            
-            # update UI
-            logAPICall.log('\t %s' % step.name, logAPICall.DEBUG)
-            self.progress.ui.txt_progress.appendPlainText(get_ui_string('message.%s'% class_name))
-            self.progress.ui.pb_progress.setValue(curStep)                        
-            self.qtapp.processEvents()
-            sleep(0.5)
-            
-            # perform operation
-            try:
+        try:
+            for step in self.project.build_exposure_steps():
+                if cancelled or error_occured:
+                    break
+                
+                # use introspection to get operator class                           
+                class_name = str(step.__class__)
+                # result of above call has format 
+                # <class '...'> where ... is the class name of interest
+                class_name = class_name[class_name.find("'")+1:class_name.rfind("'")]
+                
+                # update UI
+                logAPICall.log('\t %s' % step.name, logAPICall.DEBUG)
+                self.progress.ui.txt_progress.appendPlainText(get_ui_string('message.%s'% class_name))
+                self.progress.ui.pb_progress.setValue(curStep)                        
+                self.qtapp.processEvents()
+                sleep(0.5)
+                
+                # perform operation
                 step.do_operation()
                 if not self.progress.isVisible():
                     cancelled = True
-            except Exception as err:
-                error_message = err.message
-                error_occured = True
-                self.progress.setVisible(False)
-            
-            # operation successful
-            curStep+=1
+                
+                # operation successful
+                curStep+=1
+        except Exception as err:
+            # exception are thrown if data is not ready for exposure 
+            error_message = err.message
+            error_occured = True
+            self.progress.setVisible(False)
             
         if error_occured:
             # processing cancelled
@@ -607,6 +612,19 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
     # no error checking is performed in these functions
     # caller must catch possible exception
     ###############################
+    def setRange(self, ranges, attribute):         
+        if ranges.has_key(attribute):
+            range = ranges[attribute]
+            self.dlgAttrRange.set_values(attribute, range['min_values'], range['max_values'])
+        else:
+            self.dlgAttrRange.set_values(attribute, [], [])
+        
+        range_updated = self.dlgAttrRange.exec_() == QDialog.Accepted         
+        if range_updated:
+            ranges[attribute] = {'min_values':self.dlgAttrRange.min_values,
+                                 'max_values':self.dlgAttrRange.max_values}
+        return range_updated
+                
     def getOpenFileName(self, parent, title, extension, callback):
         """ show open file dialog box to get a filename """
         filename = QFileDialog.getOpenFileName(parent, title, self.getLastOpenDir(), extension)

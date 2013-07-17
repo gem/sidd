@@ -18,6 +18,7 @@ Module contains all mapping scheme handling class
 """
 
 from xml.etree.ElementTree import ElementTree, fromstring
+from operator import attrgetter
 
 from utils.xml import get_node_attrib
 from sidd.constants import logAPICall
@@ -64,7 +65,10 @@ class MappingScheme (object):
     @property
     def is_valid(self):
         """ verify that the mapping scheme is valid """
-        return True;
+        for zone in self.zones:
+            if not zone.stats.is_valid:
+                return False
+        return True
     
     @property
     def is_empty(self):
@@ -106,6 +110,7 @@ class MappingScheme (object):
             ms_zone.stats = stats
             self.zones.append(ms_zone)
                       
+        self._sort_zones()
     
     @logAPICall
     def save(self, xml_file, pretty=False):
@@ -198,7 +203,8 @@ class MappingScheme (object):
         """
         statistics.get_tree().value = zone.name
         zone.stats = statistics
-        self.zones.append(zone)        
+        self.zones.append(zone)   
+        self._sort_zones()     
     
     @logAPICall
     def get_assignment(self, ms_zone):
@@ -245,3 +251,5 @@ class MappingScheme (object):
         for zone in self.zones:            
             yield zone, zone.stats
 
+    def _sort_zones(self):
+        self.zones.sort(key=attrgetter('name'))

@@ -258,7 +258,13 @@ class Project (object):
     def build_exposure_steps(self):
         """ building exposure database from workflow """
         if not self.workflow.ready:
-            raise SIDDException('cannot create exposure with current datasets')
+            raise SIDDException('Cannot create exposure with current datasets. Please revise input')
+        
+        if not self.ms.is_valid:
+            raise SIDDException('Current mapping scheme is not valid')
+        
+        for zone in self.ms.zones:
+            zone.stats.refresh_leaves(with_modifier=True, order_attributes=True)
         
         if getattr(self, 'exposure', None) is not None:
             del self.exposure

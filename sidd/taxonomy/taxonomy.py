@@ -63,7 +63,10 @@ class Taxonomy(object):
     def get_code_by_name(self, name):
         raise NotImplementedError("abstract method not implemented")
     
-    def get_code_by_attribute(self, attribute_name):
+    def get_code_by_attribute(self, attribute_name, parent_code=None):
+        raise NotImplementedError("abstract method not implemented")
+    
+    def has_rule(self, attribute_name):
         raise NotImplementedError("abstract method not implemented")
     
     def parse(self, string):
@@ -71,11 +74,11 @@ class Taxonomy(object):
     
     def get_separator(self, separator_type):
         if separator_type == Taxonomy.Separators.AttributeGroup:
-            return TaxonomyAttributeGroup.separator
+            return TaxonomyAttributeGroup.Separator
         elif separator_type == Taxonomy.Separators.Attribute:
-            return TaxonomyAttribute.separator
+            return TaxonomyAttribute.Separator
         elif separator_type == Taxonomy.Separators.AttributeValue:
-            return TaxonomyAttributeValue.separator
+            return TaxonomyAttributeValue.Separator
         else:
             raise TaxonomyError("Separator Type (%s) not supported" % separator_type)
     
@@ -90,6 +93,7 @@ class TaxonomyAttributeGroup(object):
     TaxonomyAttribute is a building characteristic that can be
     represented by the taxonomy
     """
+    Separator = ""
     
     def __init__(self, name="", order=1, levels=1, default="", attribute_type=1, attributes=None):
         self.__name = name
@@ -123,10 +127,6 @@ class TaxonomyAttributeGroup(object):
         return self.__type
 
     @property
-    def separator(self):
-        return ""
-
-    @property
     def attributes(self):
         return self.__attributes        
     
@@ -146,6 +146,7 @@ class TaxonomyAttribute(object):
     TaxonomyAttribute is a building characteristic that can be
     represented by the taxonomy
     """
+    Separator = ""
     
     def __init__(self, name="", attribute_group=None, order=1, default="", attribute_type=1, codes=None):
         """ constructor """
@@ -163,10 +164,6 @@ class TaxonomyAttribute(object):
         """ string representation """
         return "name:%s\ttype:%s\torder:%s\t\tdefault=%s" % (
             self.__name, self.__type, self.__order, self.__default)
-
-    @property
-    def separator(self):
-        return ""
 
     @property
     def name(self):
@@ -205,15 +202,12 @@ class TaxonomyAttributeValue(object):
     This is an abstract class that can be derived to stores valid value
     for a taxonomy attribute 
     """
-
+    Separator = ""
+    
     def __init__(self, attribute):
         """ constructor """
         self.__attribute = attribute
         self.__is_empty = True
-    
-    @property 
-    def separator(self):
-        return ""
     
     @property
     def attribute(self):

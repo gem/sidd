@@ -123,8 +123,7 @@ class DialogSizeInput(Ui_sizeInputDialog, QDialog):
                 _parent = _parent.parent
             # reverse to put root at the beginning
             _parent_str.reverse()                
-            sep = self.ms.taxonomy.separator()
-            self.ui.txt_bldg_type.setText(str(sep).join(_parent_str))
+            self.ui.txt_bldg_type.setText(self.ms.taxonomy.to_string(_parent_str))
         elif isinstance(node, MappingSchemeZone):
             self.node = node.stats.root
             self.ui.txt_bldg_type.setText(node.name)

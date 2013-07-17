@@ -50,8 +50,6 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
         self.dlgSave = DialogSaveMS(self.app)
         self.dlgSave.setModal(True)
         
-        self.dlgAttrRange = DialogAttrRanges()
-        
         # connect slots (ui events)
         self.ui.btn_apply.clicked.connect(self.updateWeights)
         self.ui.btn_add.clicked.connect(self.addValue)
@@ -112,15 +110,8 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
     @pyqtSlot()     
     def editRanges(self):
         attribute_name = str(self.ui.cb_attributes.currentText())
-        if self._ranges.has_key(attribute_name):
-            ranges = self._ranges[attribute_name]
-            self.dlgAttrRange.set_values(attribute_name, ranges['min_values'], ranges['max_values'])
-        else:
-            self.dlgAttrRange.set_values(attribute_name, [], [])
-                    
-        if self.dlgAttrRange.exec_() == QDialog.Accepted:
-            self._ranges[attribute_name] = {'min_values':self.dlgAttrRange.min_values,
-                                            'max_values':self.dlgAttrRange.max_values}
+        
+        if self.app.setRange(self._ranges, attribute_name):
             self.attributeUpdated(self.ui.cb_attributes.currentText())
 
     @logUICall
@@ -178,36 +169,38 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
                             
             # enable button for editing ranges 
             self.ui.btn_range.setEnabled(True)
-        else:               # code only types that cannot have ranges
-            # find appropriate level 1 code
-            # and add to list of codes for drop-down
+        else:               # code only types that cannot have ranges 
             try:
-                parent_code = self.taxonomy.codes[str(self.node.value)]
-                attribute_scope = parent_code.scope
-                # for code only attributes, check scope to limit 
-                child_code = None
-                for _child in self.node.children: 
-                    if _child.value is not None:
-                        child_code = self.taxonomy.codes[str(_child.value)]
-                        break                        
-            
-                if child_code is None or parent_code.attribute.group.name != child_code.attribute.group.name:
-                    attribute_scope = None
+                node = self.node
+                taxonomy = self.taxonomy
+                filter_code = taxonomy.get_code_by_name(str(node.value))
+                while filter_code.attribute.order > 1 and not taxonomy.has_rule(filter_code.attribute.name):
+                    node = node.parent
+                    filter_code = taxonomy.get_code_by_name(str(node.value))                                        
+                attribute = taxonomy.get_attribute_by_name(attribute_name)                
+                if filter_code.attribute.group.name != attribute.group.name:
+                    filter_code = None
             except:
-                attribute_scope = None                                                
-            for code in self.taxonomy.get_code_by_attribute(attribute_name):
-                if attribute_scope is not None and attribute_scope != code.scope:
-                    continue              
+                filter_code = None
+            for code in self.taxonomy.get_code_by_attribute(attribute_name, filter_code):
                 self.valid_codes[code.description]=code.code
-            # enable button for editing ranges            
+            # disable button for editing ranges            
             self.ui.btn_range.setEnabled(False)
         
-        # set list of values to table editor 
+        # set list of values to table editor
+        # do not allow add if there is no codes available
+        allow_add = False 
         if len(self.valid_codes) > 1:
             attr_editor = MSAttributeItemDelegate(self.ui.table_ms_level, self.valid_codes, 0)
             self.ui.table_ms_level.setItemDelegateForColumn(0, attr_editor)
-        else:
-            self.ui.table_ms_level.setItemDelegateForColumn(0, self.ui.table_ms_level.itemDelegateForColumn(1))
+            allow_add = True            
+        
+        # adjust ui
+        self.ui.btn_add.setEnabled(allow_add)
+        self.ui.btn_apply.setEnabled(allow_add)
+        self.ui.btn_delete.setEnabled(allow_add)
+        self.ui.btn_range.setEnabled(allow_add)
+        self.ui.btn_save.setEnabled(allow_add)            
 
     # public methods    
     #############################            
@@ -242,12 +235,31 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
             self.ui.cb_attributes.addItem(attribute_name)
         else:
             existing_attributes = node.ancestor_names
-            existing_attributes.append(node.name)
+            existing_attributes.append(node.name)            
+            
+            node_attr = self.taxonomy.get_attribute_by_name(node.name)
+            if node_attr is None:
+                node_group, node_order = '', 1
+            else:
+                node_group, node_order = node_attr.group.name, node_attr.order 
+                        
             for attr in self.taxonomy.attributes:
                 try:
+                    # make sure it does not already exist
                     existing_attributes.index(attr.name)
                 except:
-                    self.ui.cb_attributes.addItem(attr.name)
+                    # this step reached if attribute not found in existing_attributes list 
+                    add_attribute = False
+                    # add 1st attribute of group or in current group  
+                    if (node_group != attr.group.name and attr.order == 1 ):    
+                        add_attribute = True
+                    
+                    # add next attribute of current group
+                    if (node_group == attr.group.name and attr.order == node_order+1):
+                        add_attribute = True
+                        
+                    if (add_attribute):
+                        self.ui.cb_attributes.addItem(attr.name)
         
         for _child in self.node.children:
             values.append(str(_child.value))

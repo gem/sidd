@@ -50,7 +50,7 @@ class MSLeavesCSVWriter(NullWriter):
         ms = self.inputs[0].value
         output_file = self.inputs[1].value
 
-        base_name = output_file[:-3]
+        base_name = output_file[:-4]
         for zone, stats in ms.assignments():
             # create writer 
             with open('%s_%s.csv' % (base_name, zone.name), 'wb') as csvfile:
@@ -58,7 +58,7 @@ class MSLeavesCSVWriter(NullWriter):
                                       quotechar='"', quoting=csv.QUOTE_NONNUMERIC)
                 csvwriter.writerow(['Building Type', 'Building Fraction'])
                 if len(stats.leaves) == 0:
-                    stats.refresh_leaves(with_modifier=True, order_attributes=False, fill_missing=False)
+                    stats.refresh_leaves(with_modifier=True, order_attributes=False)
                 for leaf in stats.leaves:
                     csvwriter.writerow([str(leaf[0]), leaf[1]*100.0])
                                             

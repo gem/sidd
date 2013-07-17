@@ -57,10 +57,17 @@ class Statistics (object):
             self.defaults.append(attr.default)
             self.skips.append(False)
 
-    @logAPICall
     def __str__(self):
         """ return string representation of the underlying tree  """        
         return str(self.root)
+    
+    @property
+    def is_valid(self):
+        if not self.root.max_level > 0:
+            return False
+        if not self.root.is_valid:
+            return False
+        return True
     
     @property
     def max_level(self):
@@ -76,7 +83,7 @@ class Statistics (object):
 
     @logAPICall
     def has_node(self, node):
-        return self.root.has_child_node(node)
+        return self.root.matches(node)
 
     @logAPICall
     def add_case(self, taxstr, parse_order=None, parse_modifiers=True, additional_data={}, add_times=1):
@@ -119,50 +126,16 @@ class Statistics (object):
         self.finalized = True
 
     @logAPICall
-    def refresh_leaves(self, with_modifier=True, order_attributes=False, fill_missing=True):     
+    def refresh_leaves(self, with_modifier=True, order_attributes=False):     
         """
         collapse weights at all levels of tree into distribution (leaves)
         """
         # do nothing if finalized            
         self.leaves = []
-        for _child in self.root.children:
-            for _val, _wt, _node in _child.leaves(self.taxonomy, with_modifier):                    
-                self.leaves.append([_val, _wt, _node])
-        
-        # order attribute into default order        
-        if not self.leaves_ordered and order_attributes:
-            def _sort_key(val):
-                return val.attribute.order            
-            try:
-                _separator = str(self.taxonomy.separator(self.taxonomy.Separators.Attribute))
-                _ordered_leaves = []                        
-                for _val, _wt, _node in self.leaves:
-                    _attr_vals = self.taxonomy.parse(_val)                        
-                    if fill_missing:
-                        # must deep copy defaults, slow 
-                        _ordered_vals = copy.deepcopy(self.taxonomy.defaults)
-                        _order_index = -1
-                        for _attr_val in _attr_vals:
-                            for idx, _default in enumerate(_ordered_vals):
-                                if _attr_val.attribute.name == _default.attribute.name:
-                                    _order_index = idx
-                                    break
-                            #assignment done here, because for loop uses iterator (inmutable in theory)                    
-                            _ordered_vals[_order_index] = _attr_val
-                        _val = _separator.join([str(v) for v in _ordered_vals])                        
-                    else:
-                        # this method is much quicker
-                        _attr_vals = self.taxonomy.parse(_val)
-                        _attr_vals.sort(key=_sort_key)
-                        _val = _separator.join([str(v) for v in _attr_vals])
-                    
-                    _ordered_leaves.append([_val, _wt, _node])
-                        
-                self.leaves = _ordered_leaves
-                self.leaves_ordered = True                
-            except Exception, err:
-                # failing to order does not kill process
-                logAPICall.log("failed to order attributes\n%s"% err, logAPICall.WARNING)
+        for _val, _wt, _node in self.root.leaves(self.taxonomy, 
+                                                 with_modifier,
+                                                 order_attributes):
+            self.leaves.append([_val, _wt, _node])
         return self.leaves
     
     @logAPICall

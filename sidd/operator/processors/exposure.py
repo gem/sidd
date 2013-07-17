@@ -128,13 +128,6 @@ class GridMSApplier(Operator):
         provider.select(provider.attributeIndexes(), provider.extent())
         provider.rewind()
 
-        default_stats = ms.get_assignment(ms.get_zones()[0])
-        try:
-            for zone, stats in ms.assignments():
-                stats.refresh_leaves(with_modifier=True, order_attributes=True)
-        except Exception as err:
-            raise OperatorError("error accessing mapping scheme: %s" % err, self.__class__)
-            
         try:
             writer = QgsVectorFileWriter(exposure_file, "utf-8", self._fields, provider.geometryType(), self._crs, "ESRI Shapefile")
             out_feature = QgsFeature()
@@ -159,7 +152,7 @@ class GridMSApplier(Operator):
                 
                 # use default stats if missing
                 if stats is None:
-                    stats = default_stats
+                    raise Exception("no mapping scheme found for zone %s" % zone_str)
                 
                 for _sample in stats.get_samples(count, self._extrapolationOption):
                     # write out if there are structures assigned

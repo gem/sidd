@@ -198,9 +198,11 @@ class GEMDBSurveyLoader(Operator):
          str_irreg, str_hzir_p, str_hzir_s, str_veir_p, str_veir_s, 
          occupcy, occupcy_dt) = [(x) for x in data]
         
-        # attribute names
+        # attribute group names
         # 'Material', 'Lateral Load-Resisting System', 'Roof', 'Floor', 'Height', 'Date of Construction', 'Irregularity', 'Occupancy'
-        separator = "+"
+
+        # separator for individual attributes in group
+        separator = self.taxonomy.get_separator(self.taxonomy.Separators.Attribute)
         
         # material
         mat_string = self._coalesce(mat_type_l) \
@@ -281,7 +283,7 @@ class GEMDBSurveyLoader(Operator):
         occ_string = self._coalesce(occupcy) + self._append_not_null(occupcy_dt,separator)
         
         # constructs output string
-        separator = "/"
+        separator = self.taxonomy.get_separator(self.taxonomy.Separators.AttributeGroup)
         return (mat_string + self._append_not_null(ll_string,separator)
                            + self._append_not_null(roof_string,separator)
                            + self._append_not_null(floor_string,separator)

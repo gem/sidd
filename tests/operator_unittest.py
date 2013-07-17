@@ -18,11 +18,12 @@ import os
 import logging
 
 # import sidd packages for testing
-from sidd.ms import MappingScheme
+from sidd.ms import MappingScheme, MappingSchemeZone
 from sidd.operator import *
-from utils.shapefile import remove_shapefile, layer_fields_stats, load_shapefile, layer_features, layer_field_index
+from utils.shapefile import remove_shapefile, layer_field_stats, load_shapefile, layer_features, layer_field_index
 from sidd.constants import AREA_FIELD_NAME, HT_FIELD_NAME, CNT_FIELD_NAME
 from sidd.taxonomy import get_taxonomy
+
 
 from common import SIDDTestCase
 
@@ -76,7 +77,7 @@ class OperatorTestCase(SIDDTestCase):
         self.operator_options = {
             'tmp_dir': self.test_tmp_dir,
             'taxonomy':self.taxonomy,
-            'skips':[1,2,3,4,5,6],
+            'attribute.order':['Material Type', 'Material Technology', 'Lateral Load Resisting System', 'Height', 'Occupancy'],            
         }
 
     def tearDown(self):
@@ -290,8 +291,9 @@ class OperatorTestCase(SIDDTestCase):
         ms = ms_creator.outputs[0].value
         stats = ms.get_assignment_by_name("ALL")
         stats.refresh_leaves(with_modifier=False)
-        self.assertEqual(len(stats.leaves), 13) 
-                        
+        self.assertEquals(len(stats.leaves), 12)
+        self.assertAlmostEquals(sum([l[1] for l in stats.leaves]), 1)
+
         # clean up
         self._clean_layer(fp_data)
         self._clean_layer(survey_data)        
@@ -748,9 +750,14 @@ class OperatorTestCase(SIDDTestCase):
         
         # load zone with count
         zone_data = self.test_LoadZone2(True, 2)
-        
+        zone_stats = layer_field_stats(zone_data[0].value, self.zone2_field)
         # load ms
         ms_opdata = self.test_LoadMS(True)
+        ms = ms_opdata[0].value
+        stats = ms.get_assignment_by_name('ALL')
+        for zone in zone_stats.keys():
+            newZone = MappingSchemeZone(zone)
+            ms.assign(newZone, stats)
         
         # apply mapping scheme        
         ms_applier = ZoneMSApplier(self.operator_options)

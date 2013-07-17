@@ -31,7 +31,7 @@ def suite():
     suite = unittest.TestSuite()
 
     # ms test cases
-    suite.addTest(MSTestCase('test_BuildMS'))    
+    #suite.addTest(MSTestCase('test_BuildMS'))    
     #suite.addTest(MSTestCase('test_SaveMS'))
     #suite.addTest(MSTestCase('test_LoadMS'))    
     #suite.addTest(MSTestCase('test_StatsAddBranch'))
@@ -56,8 +56,8 @@ def suite():
     #suite.addTest(OperatorTestCase('test_ZonePopGridJoin'))
     
     # taxonomy tests    
-    #suite.addTest(TaxonomyTestCase('test_Load'))
-    #suite.addTest(TaxonomyTestCase('test_Parse'))
+    suite.addTest(TaxonomyTestCase('test_Load'))
+    suite.addTest(TaxonomyTestCase('test_Parse'))
     
     # project tests
     #suite.addTest(ProjectTestCase('test_WorkflowBuilder'))

@@ -130,7 +130,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         self.dlgEditMS.setModal(True)
         self.dlgSaveMS = DialogSaveMS(self.app)        
         self.dlgSaveMS.setModal(True)        
-        self.dlgMSOptions = DialogMSOptions(self.app.taxonomy.attributes, {})
+        self.dlgMSOptions = DialogMSOptions(self.app, self.app.taxonomy.attributes, {})
         self.dlgMSOptions.setModal(True)
         self.dlgEditZone = DialogEditZoneName()
         self.dlgEditZone.setModal(True)
@@ -246,7 +246,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
             if self.dlgMSOptions.build_option == self.dlgMSOptions.BUILD_EMPTY:
                 self.app.createEmptyMS()
             else:
-                self.app.buildMappingScheme()                
+                self.app.buildMappingScheme()
     
     @uiCallChecker
     @pyqtSlot()
@@ -602,8 +602,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         self.tree_model = MSTreeModel(ms)        
         treeUI.setModel(self.tree_model)
         self.ui.tree_ms.setEnabled(True)
-        self.ui.tree_ms.expandAll()
-
+        
         self.ui.cb_ms_zones.clear()
         for zone in self.ms.get_zones():
             self.ui.cb_ms_zones.addItem(zone.name)

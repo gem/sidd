@@ -29,7 +29,7 @@ def _build_tooltip(code):
 
 def build_attribute_tooltip(valid_codes, attributes):
     tooltips = []
-    for attr in attributes.values():
+    for attr in attributes:
         if attr.is_empty:
             continue
         if isinstance(attr, TaxonomyAttributeMulticodeValue):
