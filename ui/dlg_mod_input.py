@@ -158,7 +158,7 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
             self.ui.cb_attributes.clear()
             taxonomy = self.ms.taxonomy
             names = self.node.descendant_names + [self.node.name] + self.node.ancestor_names
-            group_names = [g.name for g in taxonomy.attributeGroups]
+            group_names = [g.name for g in taxonomy.attribute_groups]
             for attribute in taxonomy.attributes:
                 try:
                     names.index(attribute.name)
@@ -169,12 +169,12 @@ class DialogModInput(Ui_modifierInputDialog, QDialog):
             
             if len(group_names) > 0:
                 self.ui.cb_attributes.addItems(group_names)
-                _allow_modifier=True 
+                allow_modifier=True 
             else:
-                _allow_modifier=False
-            self.ui.btn_add.setEnabled(_allow_modifier)
-            self.ui.btn_delete.setEnabled(_allow_modifier)
-            self.ui.cb_attributes.setEnabled(_allow_modifier)
+                allow_modifier=False
+            self.ui.btn_add.setEnabled(allow_modifier)
+            self.ui.btn_delete.setEnabled(allow_modifier)
+            self.ui.cb_attributes.setEnabled(allow_modifier)
     
     @logUICall
     @pyqtSlot(str)

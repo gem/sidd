@@ -50,9 +50,9 @@ class WidgetSelectAttribute(Ui_widgetSelectAttribute, QWidget):
     
     @selected_code.setter
     def selected_code(self, code):
-        for _desc, _code in self._valid_codes.iteritems():
-            if _code == code:
-                self.ui.cb_codes.setCurrentIndex(self.ui.cb_codes.findText(_desc))
+        for desc, valid_code in self._valid_codes.iteritems():
+            if valid_code == code:
+                self.ui.cb_codes.setCurrentIndex(self.ui.cb_codes.findText(desc))
     
     def set_scope(self, scope, current):
         self.set_attribute(self.attribute_name, self._valid_codes, scope, current)

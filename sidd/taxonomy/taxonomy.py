@@ -43,7 +43,7 @@ class Taxonomy(object):
         raise NotImplementedError("abstract method not implemented")
     
     @property
-    def attributeGroups(self):
+    def attribute_groups(self):
         raise NotImplementedError("abstract method not implemented")
 
     @property
@@ -136,9 +136,9 @@ class TaxonomyAttributeGroup(object):
         self.__attributes.append(attribute)        
     
     def get_attribute_by_name(self, name):
-        for _attr in self.__attributes:
-            if _attr.name == name:
-                return _attr
+        for attr in self.__attributes:
+            if attr.name == name:
+                return attr
         return None
     
 class TaxonomyAttribute(object):

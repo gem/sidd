@@ -17,10 +17,11 @@
 Widget (Panel) for managing attributes to use when building Mapping scheme 
 """
 from PyQt4.QtGui import QWidget, QAbstractItemView
-from PyQt4.QtCore import pyqtSlot, pyqtSignal, QObject
+from PyQt4.QtCore import pyqtSlot, pyqtSignal, Qt, QObject
 
-from ui.constants import UI_PADDING, logUICall
+from ui.constants import UI_PADDING
 from ui.qt.wdg_attr_list_ui import Ui_widgetAttributes
+from ui.helper.attr_tree import AttributesTreeModel
 
 class WidgetAttributeList(Ui_widgetAttributes, QWidget):    
     """
@@ -32,7 +33,7 @@ class WidgetAttributeList(Ui_widgetAttributes, QWidget):
 
     # constructor / destructor
     ###############################        
-    def __init__(self, parent, app, attributes, order, ranges):
+    def __init__(self, parent, app, taxonomy, order, ranges):
         """ constructor """
         super(WidgetAttributeList, self).__init__(parent)
         self.ui = Ui_widgetAttributes()
@@ -40,8 +41,7 @@ class WidgetAttributeList(Ui_widgetAttributes, QWidget):
         self.setFixedSize(self.size())
         
         self.app = app
-        self.attributes = attributes
-        self.attribute_order = order
+        self.attribute_selected = order
         self.attribute_ranges = ranges
 
         self.ui.btn_move_up.clicked.connect(self.attributeMoveUp)
@@ -50,180 +50,73 @@ class WidgetAttributeList(Ui_widgetAttributes, QWidget):
         self.ui.btn_move_bottom.clicked.connect(self.attributeMoveBottom)
         self.ui.btn_range.clicked.connect(self.setAttributeRanges)
         
-        self.ui.btn_move_left.clicked.connect(self.attributeAdd)
-        self.ui.btn_move_right.clicked.connect(self.attributeDelete)
+        self.taxonomy = taxonomy
+        self.selected = order
+        self.attr_model = AttributesTreeModel(taxonomy, self.selected)
+        self.ui.tree_attributes.setModel(self.attr_model)
         
-        self.ui.lst_attributes.itemSelectionChanged.connect(self.selectedAttributeChanged)
-        self.ui.lst_attributes_not_included.itemSelectionChanged.connect(self.selectedNotIncludedAttributeChanged)
-
-        self.ui.btn_move_left.setEnabled(False)
-        self.ui.btn_move_right.setEnabled(False)
-             
         # additional settings
         self.setFixedSize(self.size())  # no resize
-        self.ui.lst_attributes.setSelectionMode(QAbstractItemView.SingleSelection) # allow select only one attribute        
+        self.ui.tree_attributes.setSelectionMode(QAbstractItemView.SingleSelection) # allow select only one attribute        
+        self.ui.tree_attributes.clicked.connect(self.attributeChanged) 
+    
+    @pyqtSlot(QObject)
+    def resizeEvent(self, event):
+        self.ui.widget_attribute_buttons.move(self.width()-self.ui.widget_attribute_buttons.width()- UI_PADDING,
+                                              self.ui.widget_attribute_buttons.y())
+        self.ui.tree_attributes.resize(self.ui.widget_attribute_buttons.x() - UI_PADDING, 
+                                       self.height() - self.ui.tree_attributes.y() - UI_PADDING)
+        print "resized", self.width(), self.height()
         
     @property
     def attributes(self):
-        return self._attributes
+        return self.taxonomy.attribute_groups 
     
-    @attributes.setter
-    def attributes(self, attributes):
-        self._attributes = attributes
-        self._attribute_has_range = {}
-        for att in attributes:
-            # numeric attributes can have range
-            if att.type == 2:
-                self._attribute_has_range[att.name]=1        
-        self.refreshNotIncludedList()
-        
     @property
     def attribute_order(self):
-        return self._attr_names
+        return self.attr_model.selected
 
     @attribute_order.setter
     def attribute_order(self, order):
-        self._attr_names = order
-        self.refreshAttributeList(self._attr_names)
-        self.refreshNotIncludedList()
+        self.attr_model.selected = order        
 
-    @property
-    def attribute_ranges(self):
-        return self._ranges
-
-    @attribute_ranges.setter
-    def attribute_ranges(self, ranges):
-        self._ranges = ranges    
-
-    @logUICall
     @pyqtSlot()
     def attributeMoveUp(self):
-        index = self.ui.lst_attributes.currentRow()
-        if index == 0:
-            return
-        new_index = index-1
-        value = self._attr_names[index]
-        self._attr_names.remove(value)
-        self._attr_names.insert(new_index, value)
-        self.refreshAttributeList(self._attr_names)
-        self.ui.lst_attributes.setCurrentRow(new_index)
+        self.updateAttributeOrder(self.attr_model.moveUp)
     
-    @logUICall
     @pyqtSlot()
     def attributeMoveDown(self):
-        index = self.ui.lst_attributes.currentRow()
-        if index == len(self._attr_names)-1:
-            return
-        new_index = index+1
-        value = self._attr_names[index]
-        self._attr_names.remove(value)
-        self._attr_names.insert(new_index, value)
-        self.refreshAttributeList(self._attr_names)
-        self.ui.lst_attributes.setCurrentRow(new_index)
+        self.updateAttributeOrder(self.attr_model.moveDown)
     
-    @logUICall
     @pyqtSlot()
     def setAttributeRanges(self):
-        index = self.ui.lst_attributes.currentRow()            
-        attr_value = self._attr_names[index]
-        self.app.setRange(self._ranges, attr_value)
+        index = self.ui.tree_attributes.selectedIndexes()[0]
+        data = self.attr_model.data(index, Qt.DisplayRole)
+        self.app.setRange(self.attribute_ranges, data)
             
-    @logUICall
     @pyqtSlot()
     def attributeMoveTop(self):
-        index = self.ui.lst_attributes.currentRow()
-        if index == 0:
-            return
-        value = self._attr_names[index]
-        self._attr_names.remove(value)
-        self._attr_names.insert(0, value)
-        self.refreshAttributeList(self._attr_names)
-        self.ui.lst_attributes.setCurrentRow(0)
+        self.updateAttributeOrder(self.attr_model.moveTop)
     
-    @logUICall
     @pyqtSlot()
     def attributeMoveBottom(self):
-        index = self.ui.lst_attributes.currentRow()
-        if index == len(self._attr_names)-1:
-            return
-        value = self._attr_names[index]
-        self._attr_names.remove(value)
-        self._attr_names.append(value)
-        self.refreshAttributeList(self._attr_names)
-        self.ui.lst_attributes.setCurrentRow(len(self._attr_names)-1)
-
-    @logUICall
-    @pyqtSlot()
-    def attributeAdd(self):
-        indices = self.ui.lst_attributes_not_included.selectedIndexes()
-        if len(indices) == 1:
-            attribute = str(indices[0].data().toString())
-            self._attr_names.append(attribute)
-        self.refreshAttributeList(self._attr_names)
-        self.refreshNotIncludedList()
-
-    @logUICall
-    @pyqtSlot()
-    def attributeDelete(self):
-        indices = self.ui.lst_attributes.selectedIndexes()
-        if len(indices) == 1:
-            attribute = str(indices[0].data().toString())
-            for _attr in self._attribute_has_range:
-                if attribute == '%s *' % _attr:
-                    attribute = _attr               
-            try:
-                self._attr_names.remove(attribute)
-            except:
-                pass
-        self.refreshAttributeList(self._attr_names)
-        self.refreshNotIncludedList()
-        
-    @logUICall
-    @pyqtSlot()
-    def selectedAttributeChanged(self):
-        indices = self.ui.lst_attributes.selectedIndexes()
-        if len(indices) == 1:
-            self.ui.widget_attribute_buttons.setEnabled(True)                                    
-            _can_set_range = False
-            _sel_attributes = str(indices[0].data().toString())
-            for _attr in self._attribute_has_range:
-                if _sel_attributes == '%s *' % _attr:
-                    _can_set_range = True
-                    break
-            self.ui.btn_range.setEnabled(_can_set_range)
-            self.ui.btn_move_right.setEnabled(True)            
-        else:
-            self.ui.widget_attribute_buttons.setEnabled(False)
-            self.ui.btn_move_right.setEnabled(False)            
+        self.updateAttributeOrder(self.attr_model.moveBottom)
     
-    @logUICall
     @pyqtSlot()
-    def selectedNotIncludedAttributeChanged(self):
-        indices = self.ui.lst_attributes_not_included.selectedIndexes()
-        self.ui.btn_move_left.setEnabled(len(indices) == 1)
+    def attributeChanged(self):
+        data = self.attr_model.data(self.ui.tree_attributes.selectedIndexes()[0], Qt.UserRole)
+        allow_set_range = False
+        allow_change_order = False
+        if data.level == 1:
+            attr_grp = self.taxonomy.get_attribute_group_by_name(data.value)
+            if attr_grp is not None:
+                allow_set_range = (attr_grp.type == 2)
+                allow_change_order = True
+        self.ui.btn_range.setEnabled(allow_set_range)
+        self.ui.btn_move_bottom.setEnabled(allow_change_order)
+        self.ui.btn_move_down.setEnabled(allow_change_order)
+        self.ui.btn_move_up.setEnabled(allow_change_order)
+        self.ui.btn_move_top.setEnabled(allow_change_order)
     
-    @logUICall
-    def resetList(self):
-        self._attr_names = []
-        try:
-            for att in self.app.taxonomy.attributes:
-                self._attr_names.append(att.name)                                
-        except:
-            self._attr_names = []
-    
-    def refreshAttributeList(self, attributes):
-        self.ui.lst_attributes.clear()
-        for attr in attributes:
-            if self._attribute_has_range.has_key(attr):
-                attr = '%s *' % attr
-            self.ui.lst_attributes.addItem(attr)
-        self.ui.widget_attribute_buttons.setEnabled(False)
-    
-    def refreshNotIncludedList(self):
-        # add to not_included if not already in attribute_order list
-        self.ui.lst_attributes_not_included.clear()
-        for _attr in self._attributes:            
-            try:
-                self._attr_names.index(_attr.name)
-            except:
-                self.ui.lst_attributes_not_included.addItem(_attr.name)              
+    def updateAttributeOrder(self, func):
+        func(self.ui.tree_attributes.selectedIndexes()[0])        

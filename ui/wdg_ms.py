@@ -35,7 +35,6 @@ from ui.dlg_edit_zone import DialogEditZoneName
 from ui.dlg_size_input import  DialogSizeInput
 from ui.helper.ms_tree import MSTreeModel
 from ui.helper.vlabel import VerticalQLabel
-from ui.helper.ms_level_table import MSLevelTableModel
 from ui.helper.ms_leaves_table import MSLeavesTableModel
 from ui.qt.wdg_ms_ui import Ui_widgetMappingSchemes
 
@@ -128,9 +127,9 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         
         self.dlgEditMS = DialogEditMS(self.app)
         self.dlgEditMS.setModal(True)
-        self.dlgSaveMS = DialogSaveMS(self.app)        
+        self.dlgSaveMS = DialogSaveMS(self.app)
         self.dlgSaveMS.setModal(True)        
-        self.dlgMSOptions = DialogMSOptions(self.app, self.app.taxonomy.attributes, {})
+        self.dlgMSOptions = DialogMSOptions(self.app, self.app.taxonomy, {})
         self.dlgMSOptions.setModal(True)
         self.dlgEditZone = DialogEditZoneName()
         self.dlgEditZone.setModal(True)
@@ -225,7 +224,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         options = self.app.project.operator_options
         self.dlgMSOptions.attribute_ranges.clear()
         for attr in self.dlgMSOptions.attributes:
-            if options.has_key(attr.name):    
+            if options.has_key(attr.name):
                 self.dlgMSOptions.attribute_ranges[attr.name] = options[attr.name]
         if options.has_key('attribute.order'):
             self.dlgMSOptions.attribute_order = options['attribute.order']
@@ -449,17 +448,15 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         """        
         self.app.buildExposure()
 
-    @logUICall
     @pyqtSlot()
     def showMSLibrary(self):        
         self.setMSLibraryVisible(True)
 
-    @logUICall
     @pyqtSlot()
     def showBuildingDistribution(self):
         self.setMSLibraryVisible(False)
             
-    @uiCallChecker
+    @logUICall
     @pyqtSlot(int)
     def regionSelected(self, modelIndex):
         """
@@ -474,7 +471,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         for mstype in self.msdb_dao.get_types_in_region(region):
             self.ui.list_ms_library_types.addItem(QString(mstype))
         
-    @uiCallChecker
+    @logUICall
     @pyqtSlot(int)
     def typeSelected(self, modelIndex):
         """
@@ -490,7 +487,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         for ms_name in self.msdb_dao.get_ms_in_region_type(region, mstype):
             self.ui.list_ms_library_msnames.addItem(QString(ms_name))        
 
-    @uiCallChecker
+    @logUICall
     @pyqtSlot(int)
     def msSelected(self, modelIndex):
         """ visualize selected mapping scheme from available list """
@@ -518,7 +515,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
             ms_type == get_ui_string('app.mslibrary.user.singlelevel')):
             self.ui.btn_del_lib_ms.setEnabled(True)
 
-    @uiCallChecker
+    @logUICall
     @pyqtSlot()    
     def deleteLibraryMS(self):
         # get selected region/type/ms
@@ -534,7 +531,6 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         self.msdb_dao.delete_ms(region, ms_type, ms_name)
         self.resetMSLibrary()        
 
-    @uiCallChecker
     @pyqtSlot(QModelIndex)    
     def treeNodeSelected(self, index=None):
         node = index.internalPointer()
@@ -561,12 +557,12 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         try:
             stats = self.ms.get_assignment_by_name(zone_selected)
             stats.refresh_leaves(use_modifier)
-            for _val, _wt, _node in stats.leaves:
-                _weight = _wt *100.0
-                _size = _node.get_additional_float(StatisticNode.AverageSize)
-                _cost = _node.get_additional_float(StatisticNode.UnitCost)                
-                total_weights += _weight
-                values.append([_val, _weight, _size, _cost, _node])
+            for val, wt, node in stats.leaves:
+                weight = wt *100.0
+                size = node.get_additional_float(StatisticNode.AverageSize)
+                cost = node.get_additional_float(StatisticNode.UnitCost)                
+                total_weights += weight
+                values.append([val, weight, size, cost, node])
         except Exception, err:
             raise SIDDException(str(err))
         try:
@@ -580,7 +576,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         self.ui.table_ms_leaves.horizontalHeader().resizeSection(3, self.ui.table_ms_leaves.width() * 0.13)
         self.ui.txt_leaves_total.setText('%.1f' % total_weights)
 
-    @uiCallChecker
+    @logUICall
     @pyqtSlot()
     def editAdditionalAttributes(self):
         selected =self.ui.table_ms_leaves.selectedIndexes()

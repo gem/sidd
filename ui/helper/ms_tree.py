@@ -195,15 +195,15 @@ class MSTreeModel(QAbstractItemModel):
             if (parentItem.level == 0):                
                 # top level, get zone
                 logUICall.log("\tchild is node level 1. parent is zone", logUICall.DEBUG_L2)
-                for _idx, _zone in enumerate(self.zones):
-                    if _zone.name == parentItem.value:
-                        return self.createIndex(_idx, 0, _zone)
+                for idx, zone in enumerate(self.zones):
+                    if zone.name == parentItem.value:
+                        return self.createIndex(idx, 0, zone)
                 return QModelIndex()
             else:
                 # not top level, get node's parent
                 logUICall.log("\tchild is node below level 1. parent is node", logUICall.DEBUG_L2)
-                _row_idx = parentItem.parent.children.index(parentItem)
-                return self.createIndex(_row_idx, 0, parentItem)
+                row_idx = parentItem.parent.children.index(parentItem)
+                return self.createIndex(row_idx, 0, parentItem)
         else:
             return QModelIndex()
     

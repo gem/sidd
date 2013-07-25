@@ -19,14 +19,12 @@ Widget (Panel) for specifying data inputs
 
 import os
 
-from PyQt4.QtGui import QWidget, QFileDialog, QPixmap, QDoubleValidator
-from PyQt4.QtCore import pyqtSlot
+from PyQt4.QtGui import QWidget, QPixmap, QDoubleValidator
+from PyQt4.QtCore import pyqtSlot, QObject
 
 from utils.shapefile import shapefile_fields, shapefile_projection
-from utils.system import get_app_dir
 
-from sidd.constants import logAPICall, \
-                           FootprintTypes, OutputTypes, SurveyTypes, ZonesTypes, PopGridTypes, \
+from sidd.constants import FootprintTypes, OutputTypes, SurveyTypes, ZonesTypes, PopGridTypes, \
                            ProjectStatus
 
 from ui.constants import logUICall, get_ui_string, UI_PADDING
@@ -135,6 +133,7 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
         
     # UI event handling calls
     ###############################
+    @pyqtSlot(QObject)
     def resizeEvent(self, event):
         """ handle window resize """
         width_panel = (self.width() - 3*UI_PADDING )/2
@@ -219,7 +218,7 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
                                  get_ui_string("app.extension.shapefile"),
                                  self.setFootprintFile)
 
-    @logUICall
+    @uiCallChecker
     @pyqtSlot(bool)
     def setFootprintDataType(self, checked=False):
         """ control UI based on footprint data radio button selected """        
@@ -515,88 +514,189 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
             # 2. verifyInput result updates multiple tabs        
             self.app.verifyInputs()
         
-        
-    def dataIsVerified(self): 
-        """ 
-        Performs checks on data and return true if checks passes
-        this call only performs basic verification to ensure
-        1. input file is specified is data type is not "No Data"
-        2. input file path is correct
-        3. required field(s), e.g. building count, is identified,
-        """
-        # footprint 
-        if (self.ui.radio_fp_height.isChecked() or 
-            self.ui.radio_fp_only.isChecked()):
-            # file set
-            path = self.ui.txt_fp_select_file.text() 
-            if path == '':
-                logUICall.log(get_ui_string('widget.input.fp.file.missing'), logUICall.WARNING)
-                return False
-            # file must exist
-            if not os.path.exists(path):
-                logUICall.log(get_ui_string('app.error.file.does.not.exist') % path, logUICall.WARNING)
-                return False
-        if self.ui.radio_fp_only.isChecked():
-            # story field set 
-            if self.ui.cb_fp_story_field.currentText() == ' ':
-                logUICall.log(get_ui_string('widget.input.fp.storyfield.missing'), logUICall.WARNING)
-                return False
-        # survey 
-        if (self.ui.radio_svy_complete.isChecked() or
-            self.ui.radio_svy_sampled.isChecked()):
-            # file set
-            path = self.ui.txt_svy_select_file.text() 
-            if path == '':            
-                logUICall.log(get_ui_string('widget.input.survey.file.missing'), logUICall.WARNING)
-                return False
-            # file must exist
-            if not os.path.exists(path):
-                logUICall.log(get_ui_string('app.error.file.does.not.exist') % path, logUICall.WARNING)
-                return False
-        # zone 
-        if (self.ui.radio_zones_only.isChecked() or
-            self.ui.radio_zones_count.isChecked()):
-            # file set
-            path = self.ui.txt_zones_select_file.text() 
-            if path == '':              
-                logUICall.log(get_ui_string('widget.input.zone.file.missing'), logUICall.WARNING)
-                return False
-            # file must exist
-            if not os.path.exists(path):
-                logUICall.log(get_ui_string('app.error.file.does.not.exist') % path, logUICall.WARNING)
-                return False
-            # zone field must be set
-            if self.ui.cb_zones_class_field.currentText() == ' ':
-                logUICall.log(get_ui_string('widget.input.zone.zonefield.missing'), logUICall.WARNING)
-                return False
-        # pop grid
-        if (self.ui.radio_pop_grid.isChecked()):
-            # file set
-            path = self.ui.txt_pop_select_file.text() 
-            if path == '':              
-                logUICall.log(get_ui_string('widget.input.popgrid.file.missing'), logUICall.WARNING)
-                return False
-            # file must exist
-            if not os.path.exists(path):
-                logUICall.log(get_ui_string('app.error.file.does.not.exist') % path, logUICall.WARNING)
-                return False
-            # zone field must be set
-            if self.ui.cb_pop_pop_field.currentText() == ' ':
-                logUICall.log(get_ui_string('widget.input.popgrid.popfield.missing'), logUICall.WARNING)
-                return False            
-            if self.ui.txt_pop_bldg_ratio.text() == ' ':
-                logUICall.log(get_ui_string('widget.input.popgrid.poptobldg.missing'), logUICall.WARNING)
-                return False
-                
-        if (self.ui.radio_zones_count.isChecked()):
-            # count field must be set
-            if self.ui.cb_zones_count_field.currentText() == ' ':
-                logUICall.log(get_ui_string('widget.input.zone.countfield.missing'), logUICall.WARNING)
-                return False            
-        return True
-    
-    # internal helper methods
+
+    # public methods
     ###############################    
+    @logUICall
+    def setProject(self, project):
+        """
+        update UI with given project
+        """        
+        self.project = None
+        
+        if project.fp_type == FootprintTypes.None:
+            self.ui.radio_fp_no_data.setChecked(True)
+        elif project.fp_type == FootprintTypes.FootprintHt:
+            self.ui.radio_fp_height.setChecked(True)
+            self.setFootprintFile(project.fp_file)             
+        else:
+            self.ui.radio_fp_only.setChecked(True)
+            self.setFootprintFile(project.fp_file)
+        
+        if project.survey_type == SurveyTypes.None:
+            self.ui.radio_svy_no_data.setChecked(True)
+        elif project.survey_type == SurveyTypes.CompleteSurvey:
+            self.ui.radio_svy_complete.setChecked(True)
+            self.setSurveyFile(project.survey_file)            
+        else:
+            self.ui.radio_svy_sampled.setChecked(True)
+            self.setSurveyFile(project.survey_file)            
+            
+        if project.zone_type == ZonesTypes.None:
+            self.ui.radio_zones_no_data.setChecked(True)
+        elif project.zone_type == ZonesTypes.Landuse:
+            self.ui.radio_zones_only.setChecked(True)
+            self.setZonesFile(project.zone_file)            
+            self.ui.cb_zones_class_field.setCurrentIndex(
+                self.ui.cb_zones_class_field.findText(project.zone_field))
+        else:
+            self.ui.radio_zones_count.setChecked(True)
+            self.setZonesFile(project.zone_file)            
+            self.ui.cb_zones_class_field.setCurrentIndex(
+                self.ui.cb_zones_class_field.findText(project.zone_field))
+            self.ui.cb_zones_count_field.setCurrentIndex(
+                self.ui.cb_zones_count_field.findText(project.zone_count_field))
+        
+        if project.popgrid_type == PopGridTypes.None:
+            self.ui.radio_pop_no_data.setChecked(True)
+        else:
+            self.ui.radio_pop_grid.setChecked(True)
+            self.setPopGridFile(project.popgrid_file)
+            if project.pop_to_bldg is not None:
+                self.ui.txt_pop_bldg_ratio.setText(project.pop_to_bldg)
+            self.ui.cb_pop_pop_field.setCurrentIndex(
+                self.ui.cb_pop_pop_field.findText(project.pop_field))
+        
+        if project.output_type == OutputTypes.Zone:
+            self.ui.radio_aggr_zones.setChecked(True)
+        else:
+            self.ui.radio_aggr_grid.setChecked(True)
+        
+        self.showVerificationResults()
+        self.project = project
+        WidgetDataInput.uiCallChecker.project = project        
+        WidgetDataInput.uiCallChecker.project_is_required = True
+
+    @logUICall
+    def showVerificationResults(self):
+        """
+        show the result of data verification
+        """            
+        NO_KEY = ":/imgs/icons/no.png"
+        YES_KEY = ":/imgs/icons/yes.png"
+        
+        project = self.project # 
+        if project is None or project.fp_type == FootprintTypes.None:
+            self.ui.img_lb_verify_fp.setPixmap(QPixmap(NO_KEY))
+        else:
+            self.ui.img_lb_verify_fp.setPixmap(QPixmap(YES_KEY))
+
+        if project is None or project.survey_type == SurveyTypes.None:
+            self.ui.img_lb_verify_svy.setPixmap(QPixmap(NO_KEY))
+        else:
+            self.ui.img_lb_verify_svy.setPixmap(QPixmap(YES_KEY))
+        
+        if project is None or project.zone_type == ZonesTypes.None:
+            self.ui.img_lb_verify_zones.setPixmap(QPixmap(NO_KEY))
+        else:
+            self.ui.img_lb_verify_zones.setPixmap(QPixmap(YES_KEY))
+        
+        if project is None or project.popgrid_type == PopGridTypes.None:
+            self.ui.img_lb_verify_pop.setPixmap(QPixmap(NO_KEY))
+        else:
+            self.ui.img_lb_verify_pop.setPixmap(QPixmap(YES_KEY))        
+            
+        if project is None or project.output_type == OutputTypes.Grid:
+            self.ui.img_lb_verify_agg_grid.setPixmap(QPixmap(YES_KEY))
+            self.ui.img_lb_verify_agg_zone.setPixmap(QPixmap(NO_KEY))
+        else:
+            self.ui.img_lb_verify_agg_zone.setPixmap(QPixmap(YES_KEY))
+            self.ui.img_lb_verify_agg_grid.setPixmap(QPixmap(NO_KEY))
+        
+        if project is None:
+            self.ui.txt_verify_text.setText('') 
+        elif project.status == ProjectStatus.ReadyForExposure:
+            self.ui.txt_verify_text.setText(get_ui_string('widget.input.verify.sucess'))
+        elif project.status == ProjectStatus.ReadyForMS:
+            self.ui.txt_verify_text.setText(get_ui_string('widget.input.verify.datarequired'))
+            # append error messages
+            for err in project.errors:                
+                errMsg = get_ui_string('project.error.%s' % str(err))
+                if errMsg == '':
+                    errMsg = get_ui_string('widget.input.verify.unknownerror')                 
+                self.ui.txt_verify_text.append('-%s' % errMsg)
+                                                                
+        else: #project.status == ProjectStatus.NotVerified:
+            self.ui.txt_verify_text.setText(get_ui_string('widget.input.verify.noaction'))            
+        
+       
+    @logUICall
+    def closeProject(self):
+        """
+        close project by reseting appropriate UI elements
+        """
+        self.project = None        
+        WidgetDataInput.uiCallChecker.project_is_required = False
+        WidgetDataInput.uiCallChecker.project = None
+        
+        self.resetUI(resetFP=True, resetZone=True, resetSurvey=True, resetOutput=True)
+
+    # internal helper methods
+    ############################### 
+    def resetUI(self, resetFP=False, resetZone=False, resetSurvey=False, resetPop=False, resetOutput=False):
+        """
+        helper method to reset appropriate UI elements
+        """
+        if resetFP:
+            logUICall.log('\treset footprint inputs ...',logUICall.DEBUG_L2)
+            self.ui.radio_fp_no_data.setChecked(True)
+            self.ui.txt_fp_select_file.setEnabled(False)
+            self.ui.txt_fp_select_file.setText('')
+            self.ui.btn_fp_select_file.setEnabled(False)
+            self.ui.cb_fp_story_field.setEnabled(False)
+            self.ui.cb_fp_story_field.clear()
+            self.ui.cb_fp_proj.setEnabled(False)
+            self.ui.cb_fp_proj.clear()
+        
+        if resetZone:
+            logUICall.log('\treset zones inputs  ...',logUICall.DEBUG_L2)
+            self.ui.radio_zones_no_data.setChecked(True)
+            self.ui.txt_zones_select_file.setEnabled(False)
+            self.ui.txt_zones_select_file.setText('')
+            self.ui.btn_zones_select_file.setEnabled(False)
+            self.ui.cb_zones_class_field.setEnabled(False)
+            self.ui.cb_zones_class_field.clear()
+            self.ui.cb_zones_count_field.setEnabled(False)
+            self.ui.cb_zones_count_field.clear()
+            self.ui.cb_zones_proj.setEnabled(False)
+            self.ui.cb_zones_proj.clear()
+            self.ui.txt_pop_bldg_ratio.setEnabled(False)
+            self.ui.txt_pop_bldg_ratio.clear()
+        
+        if resetSurvey:
+            logUICall.log('\treset survey inputs ...',logUICall.DEBUG_L2)
+            self.ui.radio_svy_no_data.setChecked(True)
+            self.ui.txt_svy_select_file.setEnabled(False)
+            self.ui.txt_svy_select_file.setText('')
+            self.ui.btn_svy_select_file.setEnabled(False)
+        
+        if resetPop:
+            logUICall.log('\treset popgrid inputs ...',logUICall.DEBUG_L2)
+            self.ui.radio_pop_no_data.setChecked(True)
+            self.ui.txt_pop_select_file.setEnabled(False)
+            self.ui.txt_pop_select_file.setText('')
+            self.ui.btn_pop_select_file.setEnabled(False)
+            self.ui.cb_pop_pop_field.clear()
+            self.ui.cb_pop_pop_field.setEnabled(False)
+            self.ui.cb_pop_proj.clear()
+            self.ui.cb_pop_proj.setEnabled(False)            
+            
+        if resetOutput:
+            logUICall.log('\treset output inputs ...',logUICall.DEBUG_L2)
+            self.ui.radio_aggr_zones.setChecked(False)
+            self.ui.radio_aggr_grid.setChecked(False)
+            # update project if project exists
+    
     def setFootprintFile(self, filename):
         """ 
         do following with given path to footprint file
@@ -693,187 +793,83 @@ class WidgetDataInput(Ui_widgetDataInput, QWidget):
         if self.project is not None:
             self.project.popgrid_file = filename
             self.app.refreshPreview()
-        
-    # public methods
-    ###############################
     
-    @logAPICall
-    def setProject(self, project):
+    def dataIsVerified(self): 
+        """ 
+        Performs checks on data and return true if checks passes
+        this call only performs basic verification to ensure
+        1. input file is specified is data type is not "No Data"
+        2. input file path is correct
+        3. required field(s), e.g. building count, is identified,
         """
-        update UI with given project
-        """        
-        self.project = None
-        
-        if project.fp_type == FootprintTypes.None:
-            self.ui.radio_fp_no_data.setChecked(True)
-        elif project.fp_type == FootprintTypes.FootprintHt:
-            self.ui.radio_fp_height.setChecked(True)
-            self.setFootprintFile(project.fp_file)             
-        else:
-            self.ui.radio_fp_only.setChecked(True)
-            self.setFootprintFile(project.fp_file)
-        
-        if project.survey_type == SurveyTypes.None:
-            self.ui.radio_svy_no_data.setChecked(True)
-        elif project.survey_type == SurveyTypes.CompleteSurvey:
-            self.ui.radio_svy_complete.setChecked(True)
-            self.setSurveyFile(project.survey_file)            
-        else:
-            self.ui.radio_svy_sampled.setChecked(True)
-            self.setSurveyFile(project.survey_file)            
-            
-        if project.zone_type == ZonesTypes.None:
-            self.ui.radio_zones_no_data.setChecked(True)
-        elif project.zone_type == ZonesTypes.Landuse:
-            self.ui.radio_zones_only.setChecked(True)
-            self.setZonesFile(project.zone_file)            
-            self.ui.cb_zones_class_field.setCurrentIndex(
-                self.ui.cb_zones_class_field.findText(project.zone_field))
-        else:
-            self.ui.radio_zones_count.setChecked(True)
-            self.setZonesFile(project.zone_file)            
-            self.ui.cb_zones_class_field.setCurrentIndex(
-                self.ui.cb_zones_class_field.findText(project.zone_field))
-            self.ui.cb_zones_count_field.setCurrentIndex(
-                self.ui.cb_zones_count_field.findText(project.zone_count_field))
-        
-        if project.popgrid_type == PopGridTypes.None:
-            self.ui.radio_pop_no_data.setChecked(True)
-        else:
-            self.ui.radio_pop_grid.setChecked(True)
-            self.setPopGridFile(project.popgrid_file)
-            if project.pop_to_bldg is not None:
-                self.ui.txt_pop_bldg_ratio.setText(project.pop_to_bldg)
-            self.ui.cb_pop_pop_field.setCurrentIndex(
-                self.ui.cb_pop_pop_field.findText(project.pop_field))
-        
-        if project.output_type == OutputTypes.Zone:
-            self.ui.radio_aggr_zones.setChecked(True)
-        else:
-            self.ui.radio_aggr_grid.setChecked(True)
-        
-        self.showVerificationResults()
-        self.project = project
-        WidgetDataInput.uiCallChecker.project = project        
-        WidgetDataInput.uiCallChecker.project_is_required = True
-
-    @logAPICall
-    def showVerificationResults(self):
-        """
-        show the result of data verification
-        """            
-        NO_KEY = ":/imgs/icons/no.png"
-        YES_KEY = ":/imgs/icons/yes.png"
-        
-        project = self.project # 
-        if project is None or project.fp_type == FootprintTypes.None:
-            self.ui.img_lb_verify_fp.setPixmap(QPixmap(NO_KEY))
-        else:
-            self.ui.img_lb_verify_fp.setPixmap(QPixmap(YES_KEY))
-
-        if project is None or project.survey_type == SurveyTypes.None:
-            self.ui.img_lb_verify_svy.setPixmap(QPixmap(NO_KEY))
-        else:
-            self.ui.img_lb_verify_svy.setPixmap(QPixmap(YES_KEY))
-        
-        if project is None or project.zone_type == ZonesTypes.None:
-            self.ui.img_lb_verify_zones.setPixmap(QPixmap(NO_KEY))
-        else:
-            self.ui.img_lb_verify_zones.setPixmap(QPixmap(YES_KEY))
-        
-        if project is None or project.popgrid_type == PopGridTypes.None:
-            self.ui.img_lb_verify_pop.setPixmap(QPixmap(NO_KEY))
-        else:
-            self.ui.img_lb_verify_pop.setPixmap(QPixmap(YES_KEY))        
-            
-        if project is None or project.output_type == OutputTypes.Grid:
-            self.ui.img_lb_verify_agg_grid.setPixmap(QPixmap(YES_KEY))
-            self.ui.img_lb_verify_agg_zone.setPixmap(QPixmap(NO_KEY))
-        else:
-            self.ui.img_lb_verify_agg_zone.setPixmap(QPixmap(YES_KEY))
-            self.ui.img_lb_verify_agg_grid.setPixmap(QPixmap(NO_KEY))
-        
-        if project is None:
-            self.ui.txt_verify_text.setText('') 
-        elif project.status == ProjectStatus.ReadyForExposure:
-            self.ui.txt_verify_text.setText(get_ui_string('widget.input.verify.sucess'))
-        elif project.status == ProjectStatus.ReadyForMS:
-            self.ui.txt_verify_text.setText(get_ui_string('widget.input.verify.datarequired'))
-            # append error messages
-            for err in project.errors:                
-                errMsg = get_ui_string('project.error.%s' % str(err))
-                if errMsg == '':
-                    errMsg = get_ui_string('widget.input.verify.unknownerror')                 
-                self.ui.txt_verify_text.append('-%s' % errMsg)
-                                                                
-        else: #project.status == ProjectStatus.NotVerified:
-            self.ui.txt_verify_text.setText(get_ui_string('widget.input.verify.noaction'))            
-        
-       
-    @logAPICall
-    def closeProject(self):
-        """
-        close project by reseting appropriate UI elements
-        """
-        self.project = None        
-        WidgetDataInput.uiCallChecker.project_is_required = False
-        WidgetDataInput.uiCallChecker.project = None
-        
-        self.resetUI(resetFP=True, resetZone=True, resetSurvey=True, resetOutput=True)
-
-
-    def resetUI(self, resetFP=False, resetZone=False, resetSurvey=False, resetPop=False, resetOutput=False):
-        """
-        helper method to reset appropriate UI elements
-        """
-        if resetFP:
-            logUICall.log('\treset footprint inputs ...',logUICall.DEBUG_L2)
-            self.ui.radio_fp_no_data.setChecked(True)
-            self.ui.txt_fp_select_file.setEnabled(False)
-            self.ui.txt_fp_select_file.setText('')
-            self.ui.btn_fp_select_file.setEnabled(False)
-            self.ui.cb_fp_story_field.setEnabled(False)
-            self.ui.cb_fp_story_field.clear()
-            self.ui.cb_fp_proj.setEnabled(False)
-            self.ui.cb_fp_proj.clear()
-        
-        if resetZone:
-            logUICall.log('\treset zones inputs  ...',logUICall.DEBUG_L2)
-            self.ui.radio_zones_no_data.setChecked(True)
-            self.ui.txt_zones_select_file.setEnabled(False)
-            self.ui.txt_zones_select_file.setText('')
-            self.ui.btn_zones_select_file.setEnabled(False)
-            self.ui.cb_zones_class_field.setEnabled(False)
-            self.ui.cb_zones_class_field.clear()
-            self.ui.cb_zones_count_field.setEnabled(False)
-            self.ui.cb_zones_count_field.clear()
-            self.ui.cb_zones_proj.setEnabled(False)
-            self.ui.cb_zones_proj.clear()
-            self.ui.txt_pop_bldg_ratio.setEnabled(False)
-            self.ui.txt_pop_bldg_ratio.clear()
-        
-        if resetSurvey:
-            logUICall.log('\treset survey inputs ...',logUICall.DEBUG_L2)
-            self.ui.radio_svy_no_data.setChecked(True)
-            self.ui.txt_svy_select_file.setEnabled(False)
-            self.ui.txt_svy_select_file.setText('')
-            self.ui.btn_svy_select_file.setEnabled(False)
-        
-        if resetPop:
-            logUICall.log('\treset popgrid inputs ...',logUICall.DEBUG_L2)
-            self.ui.radio_pop_no_data.setChecked(True)
-            self.ui.txt_pop_select_file.setEnabled(False)
-            self.ui.txt_pop_select_file.setText('')
-            self.ui.btn_pop_select_file.setEnabled(False)
-            self.ui.cb_pop_pop_field.clear()
-            self.ui.cb_pop_pop_field.setEnabled(False)
-            self.ui.cb_pop_proj.clear()
-            self.ui.cb_pop_proj.setEnabled(False)            
-            
-        if resetOutput:
-            logUICall.log('\treset output inputs ...',logUICall.DEBUG_L2)
-            self.ui.radio_aggr_zones.setChecked(False)
-            self.ui.radio_aggr_grid.setChecked(False)
-            # update project if project exists
-    
-    
+        # footprint 
+        if (self.ui.radio_fp_height.isChecked() or 
+            self.ui.radio_fp_only.isChecked()):
+            # file set
+            path = self.ui.txt_fp_select_file.text() 
+            if path == '':
+                logUICall.log(get_ui_string('widget.input.fp.file.missing'), logUICall.WARNING)
+                return False
+            # file must exist
+            if not os.path.exists(path):
+                logUICall.log(get_ui_string('app.error.file.does.not.exist') % path, logUICall.WARNING)
+                return False
+        if self.ui.radio_fp_only.isChecked():
+            # story field set 
+            if self.ui.cb_fp_story_field.currentText() == ' ':
+                logUICall.log(get_ui_string('widget.input.fp.storyfield.missing'), logUICall.WARNING)
+                return False
+        # survey 
+        if (self.ui.radio_svy_complete.isChecked() or
+            self.ui.radio_svy_sampled.isChecked()):
+            # file set
+            path = self.ui.txt_svy_select_file.text() 
+            if path == '':            
+                logUICall.log(get_ui_string('widget.input.survey.file.missing'), logUICall.WARNING)
+                return False
+            # file must exist
+            if not os.path.exists(path):
+                logUICall.log(get_ui_string('app.error.file.does.not.exist') % path, logUICall.WARNING)
+                return False
+        # zone 
+        if (self.ui.radio_zones_only.isChecked() or
+            self.ui.radio_zones_count.isChecked()):
+            # file set
+            path = self.ui.txt_zones_select_file.text() 
+            if path == '':              
+                logUICall.log(get_ui_string('widget.input.zone.file.missing'), logUICall.WARNING)
+                return False
+            # file must exist
+            if not os.path.exists(path):
+                logUICall.log(get_ui_string('app.error.file.does.not.exist') % path, logUICall.WARNING)
+                return False
+            # zone field must be set
+            if self.ui.cb_zones_class_field.currentText() == ' ':
+                logUICall.log(get_ui_string('widget.input.zone.zonefield.missing'), logUICall.WARNING)
+                return False
+        # pop grid
+        if (self.ui.radio_pop_grid.isChecked()):
+            # file set
+            path = self.ui.txt_pop_select_file.text() 
+            if path == '':              
+                logUICall.log(get_ui_string('widget.input.popgrid.file.missing'), logUICall.WARNING)
+                return False
+            # file must exist
+            if not os.path.exists(path):
+                logUICall.log(get_ui_string('app.error.file.does.not.exist') % path, logUICall.WARNING)
+                return False
+            # zone field must be set
+            if self.ui.cb_pop_pop_field.currentText() == ' ':
+                logUICall.log(get_ui_string('widget.input.popgrid.popfield.missing'), logUICall.WARNING)
+                return False            
+            if self.ui.txt_pop_bldg_ratio.text() == ' ':
+                logUICall.log(get_ui_string('widget.input.popgrid.poptobldg.missing'), logUICall.WARNING)
+                return False
+                
+        if (self.ui.radio_zones_count.isChecked()):
+            # count field must be set
+            if self.ui.cb_zones_count_field.currentText() == ' ':
+                logUICall.log(get_ui_string('widget.input.zone.countfield.missing'), logUICall.WARNING)
+                return False            
+        return True
+                

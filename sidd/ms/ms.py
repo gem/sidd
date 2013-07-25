@@ -110,7 +110,7 @@ class MappingScheme (object):
             ms_zone.stats = stats
             self.zones.append(ms_zone)
                       
-        self._sort_zones()
+        self.sort_zones()
     
     @logAPICall
     def save(self, xml_file, pretty=False):
@@ -204,7 +204,7 @@ class MappingScheme (object):
         statistics.get_tree().value = zone.name
         zone.stats = statistics
         self.zones.append(zone)   
-        self._sort_zones()     
+        self.sort_zones()     
     
     @logAPICall
     def get_assignment(self, ms_zone):
@@ -251,5 +251,5 @@ class MappingScheme (object):
         for zone in self.zones:            
             yield zone, zone.stats
 
-    def _sort_zones(self):
+    def sort_zones(self):
         self.zones.sort(key=attrgetter('name'))

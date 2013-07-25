@@ -73,8 +73,7 @@ class WidgetSecondaryModifier(Ui_widgetSecondaryModifier, QWidget):
         self.ui.table_mod.horizontalHeader().resizeSection(1, self.ui.table_mod.width() * 0.6)
         self.ui.table_mod.horizontalHeader().resizeSection(2, self.ui.table_mod.width() * 0.1)
         self.ui.table_mod.horizontalHeader().resizeSection(3, self.ui.table_mod.width() * 0.1)
-
-        
+    
     @logUICall
     @pyqtSlot()
     def addModifier(self):
@@ -153,6 +152,7 @@ class WidgetSecondaryModifier(Ui_widgetSecondaryModifier, QWidget):
 
     # public methods
     ###############################
+    @logUICall
     def showMappingScheme(self, ms):
         self.ms = ms
         self.ui.table_mod.setModel(MSTableModel(ms))
@@ -169,6 +169,7 @@ class WidgetSecondaryModifier(Ui_widgetSecondaryModifier, QWidget):
         self.ui.btn_build_exposure.setEnabled(True)
 
     
+    @logUICall
     def closeMappingScheme(self):
         """ clear current view """
         self.ui.table_mod.setModel(None)

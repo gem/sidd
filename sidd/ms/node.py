@@ -16,17 +16,10 @@
 """
 Module class for statistic node handling
 """
-
-import random
 from copy import deepcopy
-from operator import attrgetter
 
 from utils.xml import get_node_attrib
 from sidd.constants import logAPICall
-from sidd.taxonomy import (TaxonomyAttributeMulticodeValue,
-                           TaxonomyAttributePairValue,
-                           TaxonomyAttributeSinglecodeValue)
-
 from sidd.ms.exceptions import StatisticNodeError 
 
 class StatisticModifier(object):
@@ -147,8 +140,8 @@ class StatisticNode (object):
         del self.count
         del self.modifiers
         del self.level
-        for _child in self.children:
-            del _child
+        for child in self.children:
+            del child
     
     # property methods
     ###########################
@@ -166,9 +159,9 @@ class StatisticNode (object):
     def max_level(self):
         """ get max level under current node """
         level = self.level
-        for _child in self.children: 
-            if _child.max_level > level:
-                level = _child.level
+        for child in self.children: 
+            if child.max_level > level:
+                level = child.level
         return level
     
     @property
@@ -301,10 +294,10 @@ class StatisticNode (object):
         if with_modifier:
             for mod in self.modifiers:
                 # each modifier value will generate convolution with branch X modifiers.values
-                _branch_nodes = {}
-                _branch_weights = {}
-                for _mod_val, _mod_weight in mod.iteritems():   # loop through modifiers.values
-                    _mod_weight /= 100.0
+                cur_branch_nodes = {}
+                cur_branch_weights = {}
+                for mod_val, mod_weight in mod.iteritems():   # loop through modifiers.values
+                    mod_weight /= 100.0
                     for branch, value in branch_nodes.iteritems():  # loop through existing branches
                         branch_weight = branch_weights[branch]
                         # case that can occur are
@@ -313,23 +306,22 @@ class StatisticNode (object):
                         # 2. modifier value is None
                         #    No new branch is created in this case. the weight of the branch is 
                         #    updated with modifier value  
-                        if ( _mod_val is not None ):    # case 1
+                        if ( mod_val is not None ):    # case 1
                             if branch != "":    # case 1.1
-                                _branch_key = branch + "|"+ _mod_val
-                                _branch_nodes[_branch_key] = []
-                                _branch_nodes[_branch_key].append(_mod_val)
-                                _branch_weights[_branch_key] = branch_weight * _mod_weight                                
+                                branch_key = branch + "|"+ mod_val
+                                cur_branch_nodes[branch_key] = []
+                                cur_branch_nodes[branch_key].append(mod_val)
+                                cur_branch_weights[branch_key] = branch_weight * mod_weight                                
                             else:               # case 1.2                                                            
-                                _branch_nodes[_mod_val] = []
-                                _branch_nodes[_mod_val].append(_mod_val)
-                                _branch_weights[_mod_val] = branch_weight * _mod_weight
-                            
+                                cur_branch_nodes[mod_val] = []
+                                cur_branch_nodes[mod_val].append(mod_val)
+                                cur_branch_weights[mod_val] = branch_weight * mod_weight
                         else:                           # case 2                            
-                            _branch_weights[branch] = branch_weight * _mod_weight
-                branch_nodes = _branch_nodes
-                branch_weights = _branch_weights
+                            cur_branch_weights[branch] = branch_weight * mod_weight
+                branch_nodes = cur_branch_nodes
+                branch_weights = cur_branch_weights
 
-        for _branch_key, _nodes in branch_nodes.iteritems():
+        for branch_key, nodes in branch_nodes.iteritems():
             # root node (level=0) does not have taxonomy value attached
             # but could still have modifier attached
             added = 0
@@ -338,24 +330,23 @@ class StatisticNode (object):
                     parent_nodes.append(self.value)
                     added +=1
             # modifier values        
-            for _node in _nodes:
-                parent_nodes.append(_node)
+            for node in nodes:
+                parent_nodes.append(node)
                 added +=1
 
-            _weight = branch_weights[_branch_key]
+            weight = branch_weights[branch_key]
             if (self.is_leaf):
                 leaf_value = taxonomy.to_string(parent_nodes, order_attributes)
-                yield leaf_value, parent_weight * self.weight / 100.0 * _weight, self
+                yield leaf_value, parent_weight * self.weight / 100.0 * weight, self
             
-            for _child in self.children:
-                #print '\t','child leaf', _child.value                
-                for _l in _child.leaves(taxonomy, with_modifier, order_attributes,  
-                                        parent_nodes, parent_weight * self.weight / 100.0 * _weight):
-                    yield _l
+            for child in self.children:                                
+                for l in child.leaves(taxonomy, with_modifier, order_attributes,  
+                                      parent_nodes, parent_weight * self.weight / 100.0 * weight):
+                    yield l
 
             # remove nodes
             for i in range(added):
-                parent_nodes.pop()             
+                parent_nodes.pop()
 
     # weight related methods
     ###########################
@@ -398,15 +389,14 @@ class StatisticNode (object):
         
         if self.is_leaf:
             # update additional values
-            _total_size = self.count    # set to default for unitCost calculation
-            if self.additional.has_key(self.AverageSize):
-                # _size is total             
-                _total_size = self.additional[self.AverageSize]
-                self.additional[self.AverageSize] = float(_total_size) / self.count
+            total_size = self.count    # set to default for unitCost calculation
+            if self.additional.has_key(self.AverageSize):                             
+                total_size = self.additional[self.AverageSize]
+                self.additional[self.AverageSize] = float(total_size) / self.count
             if self.additional.has_key(self.UnitCost):
-                # _total_size defaults to 0, 
+                # total_size defaults to count, 
                 # so should not break even if AverageSize is not set 
-                self.additional[self.UnitCost] /= _total_size
+                self.additional[self.UnitCost] /= total_size
         
         # recursively travese down to all children
         # will be skipped by leaf nodes
@@ -500,10 +490,10 @@ class StatisticNode (object):
             if child.value is None:
                 # eliminate
                 self.children = []
-                for _grandchild in child.children:
-                    _grandchild.parent = self
-                    self.children.append(_grandchild)
-                    _grandchild.set_level_recursive(self.level+1)
+                for grandchild in child.children:
+                    grandchild.parent = self
+                    self.children.append(grandchild)
+                    grandchild.set_level_recursive(self.level+1)
                 del child
                 
     @logAPICall
@@ -607,16 +597,16 @@ class StatisticNode (object):
                 self.children.append(child)
         elif to_add < 0:
             # need to delete nodes
-            _start=len(values)
+            start=len(values)
             for i in range(to_add):
-                self.children.remove(self.children[_start+i])
+                self.children.remove(self.children[start+i])
         # set value/weights
-        _idx = 0
-        for _val, _weight in map(None, values, weights):         
-            _child = self.children[_idx]
-            _child.value = _val
-            _child.weight = _weight            
-            _idx += 1
+        idx = 0
+        for val, weight in map(None, values, weights):         
+            child = self.children[idx]
+            child.value = val
+            child.weight = weight            
+            idx += 1
         
     @logAPICall
     def update_children_complex(self, attribute, values, weights):

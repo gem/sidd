@@ -23,7 +23,6 @@ from sidd.ms import MappingScheme, MappingSchemeZone, Statistics, StatisticNode
 
 from ui.constants import logUICall
 from ui.dlg_save_ms import DialogSaveMS
-from ui.dlg_attr_range import DialogAttrRanges
 
 from ui.qt.dlg_ms_branch_ui import Ui_editMSDialog
 from ui.helper.ms_level_table import MSLevelTableModel
@@ -111,7 +110,7 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
     def editRanges(self):
         attribute_name = str(self.ui.cb_attributes.currentText())
         
-        if self.app.setRange(self._ranges, attribute_name):
+        if self.app.setRange(self.ranges, attribute_name):
             self.attributeUpdated(self.ui.cb_attributes.currentText())
 
     @logUICall
@@ -152,8 +151,8 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
         if attribute.type == 2: # numeric type that can have ranges
             
             # retrieve range if exists
-            if self._ranges.has_key(str(attribute_name)):
-                ranges = self._ranges[str(attribute_name)]                
+            if self.ranges.has_key(str(attribute_name)):
+                ranges = self.ranges[str(attribute_name)]                
 
                 # add all ranges to list of codes for drop-down
                 for min_val, max_val in map(None, ranges['min_values'], ranges['max_values']):
@@ -217,7 +216,7 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
         values = []
         weights = []
         
-        self._ranges = ranges
+        self.ranges = ranges
         if not addNew:
             self.node = node.parent
             attribute_name = node.name
@@ -261,9 +260,9 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
                     if (add_attribute):
                         self.ui.cb_attributes.addItem(attr.name)
         
-        for _child in self.node.children:
-            values.append(str(_child.value))
-            weights.append(_child.weight)
+        for child in self.node.children:
+            values.append(str(child.value))
+            weights.append(child.weight)
         
         self.levelModel = MSLevelTableModel(values, weights, self.taxonomy, self.taxonomy.codes,
                                             is_editable=[True, True])

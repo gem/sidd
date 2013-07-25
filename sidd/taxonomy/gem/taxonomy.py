@@ -55,7 +55,7 @@ class GemTaxonomy(Taxonomy):
         return "1.0"
     
     @property
-    def attributeGroups(self):
+    def attribute_groups(self):
         return self.__attrGroups
     
     @property
@@ -77,15 +77,15 @@ class GemTaxonomy(Taxonomy):
             raise TaxonomyError("Separator Type (%s) not supported" % separator_type)
 
     def get_attribute_group_by_name(self, name):
-        for _grp in self.__attrGroups:
-            if _grp.name == name:
-                return _grp
+        for grp in self.__attrGroups:
+            if grp.name == name:
+                return grp
         return None
 
     def get_attribute_by_name(self, name):
-        for _attr in self.__attrs:
-            if _attr.name == name:
-                return _attr
+        for attr in self.__attrs:
+            if attr.name == name:
+                return attr
         return None
     
     def get_code_by_name(self, name):        
@@ -94,18 +94,18 @@ class GemTaxonomy(Taxonomy):
         return None
 
     def get_code_by_attribute(self, attribute_name, parent_code=None):
-        _has_rule = False
-        if parent_code is not None:    
-            _parent_lookup = parent_code.attribute.lookup_table
-            _child_lookup = self.get_attribute_by_name(attribute_name).lookup_table                
-            _rule_key = '%s|%s' % (_parent_lookup, _child_lookup)
-            _has_rule = self.rules.has_key(_rule_key)
+        has_rule = False
+        if isinstance(parent_code, TaxonomyAttributeCode):    
+            parent_lookup = parent_code.attribute.lookup_table
+            child_lookup = self.get_attribute_by_name(attribute_name).lookup_table                
+            rule_key = '%s|%s' % (parent_lookup, child_lookup)
+            has_rule = self.rules.has_key(rule_key)
         
-        if _has_rule:
-            _rule = self.rules[_rule_key]
-            if not _rule.has_key(parent_code):
+        if has_rule:
+            rule = self.rules[rule_key]
+            if not rule.has_key(parent_code):
                 return
-            for code in _rule[parent_code]:
+            for code in rule[parent_code]:
                 yield code
         else:
             for code in self.__codes.values():                
@@ -115,49 +115,48 @@ class GemTaxonomy(Taxonomy):
     def has_rule(self, attribute):
         if type(attribute) == str: 
             attribute = self.get_attribute_by_name(attribute)
-        for _keys in self.rules.keys():
-            if _keys.find(attribute.lookup_table) >= 0:
+        for keys in self.rules.keys():
+            if keys.find(attribute.lookup_table) >= 0:
                 return True
         return False        
 
     @logAPICall
     def parse(self, taxonomy_str):
-        _str_attrs = str(taxonomy_str).split('/')
-        if len(_str_attrs)== 0:
+        str_attrs = str(taxonomy_str).split('/')
+        if len(str_attrs)== 0:
             raise TaxonomyParseError("Incorrect format")
 
-        _attributes = []
-        for _attr in _str_attrs:
+        attributes = []
+        for attr in str_attrs:
             # determine type
-            if re.match('\w+(\+\w+)+', _attr):
+            if re.match('\w+(\+\w+)+', attr):
                 # multiple codes, split and search each
-                _levels = _attr.split('+')
-                _attr_val = None
-                for _i, _lvl in enumerate(_levels):
-                    if not self.__codes.has_key(_lvl):
-                        raise TaxonomyParseError('%s is not a valid taxonomy code' %(_lvl))
-                    _code = self.__codes[_lvl]
-                    _codeValue = GemTaxonomyAttributeSinglecodeValue(_code.attribute)
-                    _codeValue.add_value(_code)
-                    _attributes.append(_codeValue)
-            elif re.match('\w+\:\d*', _attr):
+                levels = attr.split('+')
+                for lvl in levels:
+                    if not self.__codes.has_key(lvl):
+                        raise TaxonomyParseError('%s is not a valid taxonomy code' %(lvl))
+                    code = self.__codes[lvl]
+                    codeValue = GemTaxonomyAttributeSinglecodeValue(code.attribute)
+                    codeValue.add_value(code)
+                    attributes.append(codeValue)
+            elif re.match('\w+\:\d*', attr):
                 # code:value format
-                (_type_id, _val) = _attr.split(':')
-                if not self.__codes.has_key(_type_id):
-                    raise TaxonomyParseError('%s is not a valid taxonomy code' %(_type_id))
-                _code = self.__codes[_type_id]
-                _codeValue = GemTaxonomyAttributePairValue(_code.attribute)
-                _codeValue.add_value(_code, _val)
-                _attributes.append(_codeValue)
-            elif re.match('\w+', _attr):
+                (type_id, val) = attr.split(':')
+                if not self.__codes.has_key(type_id):
+                    raise TaxonomyParseError('%s is not a valid taxonomy code' %(type_id))
+                code = self.__codes[type_id]
+                codeValue = GemTaxonomyAttributePairValue(code.attribute)
+                codeValue.add_value(code, val)
+                attributes.append(codeValue)
+            elif re.match('\w+', attr):
                 # code only, search code table
-                if not self.__codes.has_key(_attr):
-                    raise TaxonomyParseError('%s is not a valid taxonomy code' %(_attr))
-                _code = self.__codes[_attr]
-                _codeValue = GemTaxonomyAttributeSinglecodeValue(_code.attribute)
-                _codeValue.add_value(_code)
-                _attributes.append(_codeValue)                
-        return _attributes
+                if not self.__codes.has_key(attr):
+                    raise TaxonomyParseError('%s is not a valid taxonomy code' %(attr))
+                code = self.__codes[attr]
+                codeValue = GemTaxonomyAttributeSinglecodeValue(code.attribute)
+                codeValue.add_value(code)
+                attributes.append(codeValue)                
+        return attributes
 
     def is_valid_string(self, tax_string):
         return True
@@ -167,7 +166,7 @@ class GemTaxonomy(Taxonomy):
         """ serialize a set of taxonomy values into GEM specific taxonomy string """
         vals = self.parse("/".join([str(n) for n in taxonomy_values]))        
         if (fill_missing):
-            to_add = [g.name for g in self.attributeGroups]
+            to_add = [g.name for g in self.attribute_groups]
             for v in vals:
                 try:
                     to_add.remove(v.code.attribute.group.name)
@@ -232,9 +231,9 @@ class GemTaxonomy(Taxonomy):
         logAPICall.log('initialize taxonomy from database %s' % db_path, logAPICall.DEBUG)
         
         # load attributes / code from DB for parsing
-        _conn = sqlite3.connect(db_path)
+        conn = sqlite3.connect(db_path)
 
-        c = _conn.cursor()
+        c = conn.cursor()
         
         # load attribute groups
         # attribute group default value for fill-in to missing groups                 
@@ -242,18 +241,18 @@ class GemTaxonomy(Taxonomy):
             select a.attribute, a.default_value from dic_gem_attributes g inner join dic_gem_attribute_levels a on g.attribute=a.attribute where level=1 and order_in_basic <> ''
         """     
         c.execute(sql)
-        _default_values = {}
+        default_values = {}
         for row in c:
-            _default_values[str(row[0])]=str(row[1])
+            default_values[str(row[0])]=str(row[1])
 
         sql = """
             select order_in_extended, attribute from dic_gem_attributes g order by order_in_extended asc
         """     
         c.execute(sql)
-        _output_str = []
+        output_str = []
         for row in c:
-            _output_str.append(str(row[1]))                  
-        self._output_str = _output_str[:3]+_output_str
+            output_str.append(str(row[1]))                  
+        self._output_str = output_str[:3]+output_str
         sql = """
             select g.order_in_basic,  g.attribute, max(a.level) levels, g.format
             from dic_gem_attributes g
@@ -265,9 +264,9 @@ class GemTaxonomy(Taxonomy):
         c.execute(sql)
         self.__attrGroups = []
         for row in c:            
-            _grp = GemTaxonomyAttributeGroup(str(row[1]).strip(), int(row[0]), int(row[2]), 
-                                             _default_values[str(row[1])], int(row[3]))
-            self.__attrGroups.append(_grp)
+            grp = GemTaxonomyAttributeGroup(str(row[1]).strip(), int(row[0]), int(row[2]), 
+                                            default_values[str(row[1])], int(row[3]))
+            self.__attrGroups.append(grp)
             
         # load attributes
         sql = """
@@ -281,43 +280,43 @@ class GemTaxonomy(Taxonomy):
         c.execute(sql)
         self.__attrs = []
         for row in c:
-            _grp = self.get_attribute_group_by_name(str(row[2]).strip())
-            _attr = GemTaxonomyAttribute(str(row[0]).strip(), _grp, 
-                                         int(row[1]), None, int(row[3]))
-            _attr.lookup_table = str(row[4])
-            _grp.add_attribute(_attr)
-            self.__attrs.append(_attr)
+            grp = self.get_attribute_group_by_name(str(row[2]).strip())
+            attr = GemTaxonomyAttribute(str(row[0]).strip(), grp, 
+                                        int(row[1]), None, int(row[3]))
+            attr.lookup_table = str(row[4])
+            grp.add_attribute(attr)
+            self.__attrs.append(attr)
 
         # load codes
         sql = """select code, description, scope from %s"""
         self.__codes = {}
-        for _attr in self.__attrs:
-            if _attr.lookup_table == "":
+        for attr in self.__attrs:
+            if attr.lookup_table == "":
                 continue
-            c.execute(sql % _attr.lookup_table)
+            c.execute(sql % attr.lookup_table)
             for row in c: 
-                _code_value = str(row[0]).strip()
-                _code = TaxonomyAttributeCode(_attr, 
-                                              _code_value, str(row[1]).strip(), str(row[2]).strip())
-                self.__codes[_code_value] = _code
-                _attr.add_code(_code)
+                code_value = str(row[0]).strip()
+                code = TaxonomyAttributeCode(attr, 
+                                             code_value, str(row[1]).strip(), str(row[2]).strip())
+                self.__codes[code_value] = code
+                attr.add_code(code)
         
         # load rules
         sql = """ select parent_table, child_table, parent_code, child_code from GEM_RULES """
         c.execute(sql)
         self.rules = {}
         for row in c:
-            _rule_key = '%s|%s' % (str(row[0]).strip(), str(row[1]).strip())
-            _parent_code = self.__codes[str(row[2]).strip()]            
-            _child_code = self.__codes[str(row[3]).strip()]
-            if not self.rules.has_key(_rule_key):
-                self.rules[_rule_key] = {}
-            _rule = self.rules[_rule_key]
-            if not _rule.has_key(_parent_code):
-                _rule[_parent_code] = []
-            _rule[_parent_code].append(_child_code)
+            rule_key = '%s|%s' % (str(row[0]).strip(), str(row[1]).strip())
+            parent_code = self.__codes[str(row[2]).strip()]            
+            child_code = self.__codes[str(row[3]).strip()]
+            if not self.rules.has_key(rule_key):
+                self.rules[rule_key] = {}
+            rule = self.rules[rule_key]
+            if not rule.has_key(parent_code):
+                rule[parent_code] = []
+            rule[parent_code].append(child_code)
                         
-        _conn.close()
+        conn.close()
         self.__initialized=True
 
 class GemTaxonomyAttribute(TaxonomyAttribute):
@@ -402,13 +401,13 @@ class GemTaxonomyAttributeMulticodeValue(TaxonomyAttributeMulticodeValue):
     def __str__(self):
         """ string representation """
         outstr=""
-        __total = len(self.codes)
-        if __total == 0:
+        total = len(self.codes)
+        if total == 0:
             return outstr        
         # first code is primary
         outstr = self.codes[0]
-        for _i in range(1, __total):
-            outstr += '+%s' % (self.codes[_i].code)
+        for i in range(1, total):
+            outstr += '+%s' % (self.codes[i].code)
         #outstr += "/"
         return outstr
         

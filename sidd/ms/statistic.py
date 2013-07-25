@@ -16,14 +16,10 @@
 """
 Module class for statistic tree handling
 """
-import copy
 from xml.etree import ElementTree
 from random import random 
 
-from utils.enum import Enum
-
 from sidd.constants import logAPICall, ExtrapolateOptions
-from sidd.taxonomy import Taxonomy
 from sidd.ms.exceptions import StatisticError
 from sidd.ms.node import StatisticNode
 
@@ -132,10 +128,10 @@ class Statistics (object):
         """
         # do nothing if finalized            
         self.leaves = []
-        for _val, _wt, _node in self.root.leaves(self.taxonomy, 
-                                                 with_modifier,
-                                                 order_attributes):
-            self.leaves.append([_val, _wt, _node])
+        for val, wt, node in self.root.leaves(self.taxonomy, 
+                                              with_modifier,
+                                              order_attributes):
+            self.leaves.append([val, wt, node])
         return self.leaves
     
     @logAPICall
@@ -274,39 +270,37 @@ class Statistics (object):
         pre-condition: finalize() must be called first
         """
         samples = {}
-        _sample = ''
-        
         if len(self.leaves)==0:
             self.refresh_leaves(with_modifier=True, order_attributes=True)
         
         if method == ExtrapolateOptions.Fraction or method == ExtrapolateOptions.FractionRounded:            
             # multiple weights, size and replacement cost
-            for _val, _wt, _node in self.leaves:
-                t_count = _wt * total
+            for val, wt, node in self.leaves:
+                t_count = wt * total
                 if method == ExtrapolateOptions.FractionRounded:
                     t_count = round(t_count)
-                _size = _node.get_additional_float(StatisticNode.AverageSize)
-                _cost = _node.get_additional_float(StatisticNode.UnitCost)
-                samples[_val] = (_val, t_count, t_count*_size, t_count*_size*_cost)
+                size = node.get_additional_float(StatisticNode.AverageSize)
+                cost = node.get_additional_float(StatisticNode.UnitCost)
+                samples[val] = (val, t_count, t_count*size, t_count*size*cost)
         else: 
             # method=ExtrapolateOptions.RandomWalk
             def get_leaf(leaves, thresh):                                
-                for _val, _wt, _node in leaves:
-                    if _wt < thresh:
-                        thresh -= _wt
+                for val, wt, node in leaves:
+                    if wt < thresh:
+                        thresh -= wt
                     else:
-                        return _val, _node
-                return _val, _node
+                        return val, node
+                return val, node
             
             for i in range(total):
-                _val, _node = get_leaf(self.leaves, random())
-                _size = _node.get_additional_float(StatisticNode.AverageSize)
-                _cost = _node.get_additional_float(StatisticNode.UnitCost)   
-                if samples.has_key(_val):
-                    t_val, t_count, t_size, t_cost = samples[_val]
-                    samples[_val] = (_val, t_count+1, t_size+_size, t_cost+t_size+_cost)
+                val, node = get_leaf(self.leaves, random())
+                size = node.get_additional_float(StatisticNode.AverageSize)
+                cost = node.get_additional_float(StatisticNode.UnitCost)   
+                if samples.has_key(val):
+                    t_val, t_count, t_size, t_cost = samples[val]
+                    samples[val] = (val, t_count+1, t_size+size, t_cost+size*cost)
                 else:
-                    samples[_val]=(_val, 1, _size, _size+_cost)
+                    samples[val]=(val, 1, size, size*cost)
         return samples.values()
     
     @logAPICall

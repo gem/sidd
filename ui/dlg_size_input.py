@@ -114,16 +114,15 @@ class DialogSizeInput(Ui_sizeInputDialog, QDialog):
         node = index.internalPointer()
         if isinstance(node, StatisticNode):
             self.node = node
-            _parent = node
-            _parent_str = []
+            parent = node
+            parent_str = []
             for i in range(node.level):
-                _parent_idx = node.level-1-i
-                _parent_str.append(_parent.value)
+                parent_str.append(parent.value)
                 # move up to next parent
-                _parent = _parent.parent
+                parent = parent.parent
             # reverse to put root at the beginning
-            _parent_str.reverse()                
-            self.ui.txt_bldg_type.setText(self.ms.taxonomy.to_string(_parent_str))
+            parent_str.reverse()                
+            self.ui.txt_bldg_type.setText(self.ms.taxonomy.to_string(parent_str))
         elif isinstance(node, MappingSchemeZone):
             self.node = node.stats.root
             self.ui.txt_bldg_type.setText(node.name)

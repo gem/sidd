@@ -40,25 +40,25 @@ class DialogEditAttributes(Ui_editAttributesDialog, QDialog):
         self.ui.buttonBox.accepted.connect(self.accept)
         self.ui.buttonBox.rejected.connect(self.reject)
 
-        self._taxonomy = taxonomy
-        self._separator = str(self._taxonomy.get_separator(self._taxonomy.Separators.Attribute))
-        self._attribute_group = attribute_group
-        self._node = node
+        self.taxonomy = taxonomy
+        self.separator = str(self.taxonomy.get_separator(self.taxonomy.Separators.Attribute))
+        self.attribute_group = attribute_group
+        self.node = node
         
-        self._code_widgets = []
-        self._code_attribute = {}
+        self.code_widgets = []
+        self.code_attribute = {}
         for idx, attribute in enumerate(attribute_group.attributes):
-            _widget = WidgetSelectAttribute(self.ui.boxAttributes, attribute.name, {}, "")
+            widget = WidgetSelectAttribute(self.ui.boxAttributes, attribute.name, {}, "")
             if idx > 0:
-                _widget.setEnabled(False)
-            self._code_widgets.append(_widget)
-            self._code_attribute[attribute.name] = idx        
-        self._fill_attribute_input(self._code_widgets[0],
-                                   self._code_widgets[0].attribute_name,
-                                   '', None)
+                widget.setEnabled(False)
+            self.code_widgets.append(widget)
+            self.code_attribute[attribute.name] = idx        
+        self.fill_attribute_input(self.code_widgets[0],
+                                  self.code_widgets[0].attribute_name,
+                                  '', None)
         
-        for _widget in self._code_widgets:
-            _widget.codeUpdated.connect(self.updateAttributeValue)
+        for widget in self.code_widgets:
+            widget.codeUpdated.connect(self.updateAttributeValue)
 
         self.ui.txt_attribute_name.setText(attribute_group.name)
         self.set_modifier_value(modifier_value)
@@ -72,7 +72,7 @@ class DialogEditAttributes(Ui_editAttributesDialog, QDialog):
         # adjust all widget
         _width = self.width()
         _widget_y = 10;
-        for _widget in self._code_widgets:
+        for _widget in self.code_widgets:
             _widget.move(10, _widget_y)                
             _widget_y+= _widget.height()
             _widget.resizeUI(_width-4*UI_PADDING, _widget.height())
@@ -88,46 +88,48 @@ class DialogEditAttributes(Ui_editAttributesDialog, QDialog):
         """ return attribute value from combining the selection of all input widget """
         return str(self.ui.txt_modifier_value.text())
 
-    def _fill_attribute_input(self, widget, attribute_name, current, filter=None):
-        _valid_codes = {}
-        _valid_codes['']=''
-        for _code in self._taxonomy.get_code_by_attribute(attribute_name, filter):
-            _valid_codes[_code.description] = _code                    
-        widget.set_attribute(attribute_name, _valid_codes, current)
-    
-    def updateAttributeValue(self, source):
-        """ event handler for attribute value combo box """
-        # filter available options        
-        filter_code = None
-        if self._taxonomy.has_rule(source.attribute_name):
-            filter_code = source.selected_code
-        
-        attribute_idx = self._code_attribute[source.attribute_name]+1
-        if attribute_idx < len(self._code_widgets) :
-            _widget = self._code_widgets[attribute_idx]
-            self._fill_attribute_input(_widget, 
-                                       _widget.attribute_name, 
-                                       _widget.selected_code, filter_code)
-            _widget.setEnabled(True)
-        
-        # build modifier_value
-        codes = []        
-        for _widget in self._code_widgets:
-            if str(_widget.selected_code) == '':
-                continue
-            codes.append(str(_widget.selected_code.code))
-        if len(codes)>0:
-            self.ui.buttonBox.button(QDialogButtonBox.Ok).setEnabled(True)
-            self.ui.txt_modifier_value.setText(self._separator.join(codes))
-        else:
-            self.ui.txt_modifier_value.setText('')
-
     # public methods
     ###############################
     @logUICall
     def set_modifier_value(self, modifier_value):
         """ set UI with given modifier value """
-        vals = self._taxonomy.parse(modifier_value)
+        vals = self.taxonomy.parse(modifier_value)
         for val in vals:
-            cIdx = self._code_attribute[val.code.attribute.name]
-            self._code_widgets[cIdx].selected_code = val.code
+            cIdx = self.code_attribute[val.code.attribute.name]
+            self.code_widgets[cIdx].selected_code = val.code
+
+    # internal helper methods
+    ###############################
+    def fill_attribute_input(self, widget, attribute_name, current, code_filter=None):
+        valid_codes = {}
+        valid_codes['']=''
+        for code in self.taxonomy.get_code_by_attribute(attribute_name, code_filter):
+            valid_codes[code.description] = code                    
+        widget.set_attribute(attribute_name, valid_codes, current)
+    
+    def updateAttributeValue(self, source):
+        """ event handler for attribute value combo box """
+        # filter available options        
+        filter_code = None
+        if self.taxonomy.has_rule(source.attribute_name):
+            filter_code = source.selected_code
+        
+        attribute_idx = self.code_attribute[source.attribute_name]+1
+        if attribute_idx < len(self.code_widgets) :
+            widget = self.code_widgets[attribute_idx]
+            self.fill_attribute_input(widget, 
+                                      widget.attribute_name, 
+                                      widget.selected_code, filter_code)
+            widget.setEnabled(True)
+        
+        # build modifier_value
+        codes = []        
+        for widget in self.code_widgets:
+            if str(widget.selected_code) == '':
+                continue
+            codes.append(str(widget.selected_code.code))
+        if len(codes)>0:
+            self.ui.buttonBox.button(QDialogButtonBox.Ok).setEnabled(True)
+            self.ui.txt_modifier_value.setText(self.separator.join(codes))
+        else:
+            self.ui.txt_modifier_value.setText('')

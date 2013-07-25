@@ -16,8 +16,7 @@
 #
 
 # import sidd packages for testing
-from sidd.taxonomy import get_taxonomy, \
-                          TaxonomyAttributeMulticodeValue, TaxonomyAttributePairValue
+from sidd.taxonomy import get_taxonomy, TaxonomyAttributePairValue
 
 from common import SIDDTestCase
 
@@ -31,7 +30,7 @@ class TaxonomyTestCase(SIDDTestCase):
         self.taxonomy = get_taxonomy("gem")
     
     def test_Load(self):
-        self.assertEquals(len(self.taxonomy.attributeGroups), 8)
+        self.assertEquals(len(self.taxonomy.attribute_groups), 8)
         self.assertEquals(len(self.taxonomy.attributes), 22)
         
         material = self.taxonomy.get_attribute_group_by_name('Material')

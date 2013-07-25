@@ -48,33 +48,31 @@ class MSTableModel(QAbstractTableModel):
         self.modifiers = []
         self.row_count = 0        # total row count
         
-        for  _zone, _stat in self.ms.assignments():
+        for zone, stat in self.ms.assignments():
             # get all modifier in the tree
-            for _node, _idx, _modifier in _stat.get_modifiers(10):
+            for node, idx, modifier in stat.get_modifiers(10):
                 # each modifier has several values that will be listed in
                 # different rows in the table
                 # start_count / end_count are start/end row index for the table
-                _start_count = self.row_count
-                self.row_count += len(_modifier.keys())
-                _end_count = self.row_count
+                start_count = self.row_count
+                self.row_count += len(modifier.keys())
+                end_count = self.row_count
                 # build the string containing path to the node 
-                _parent = _node
-                _parent_str = []
-                for i in range(_node.level):
-                    _parent_idx = _node.level-1-i
-                    _parent_str.append(str(_parent.value))
+                parent = node
+                parent_str = []
+                for i in range(node.level):                    
+                    parent_str.append(str(parent.value))
                     # move up to next parent
-                    _parent = _parent.parent
+                    parent = parent.parent
                 # reverse to put root at the beginning
-                _parent_str.reverse()
-                self.modifiers.append((_zone.name, "/".join(_parent_str),
-                                       _start_count, _end_count,
-                                       _idx, _modifier, _node))
-
+                parent_str.reverse()
+                self.modifiers.append((zone.name, "/".join(parent_str),
+                                       start_count, end_count,
+                                       idx, modifier, node))
 
     def columnCount(self, parent):
         """ number of columns for the table """
-        return 4
+        return 4    
 
     def rowCount(self, parent):
         """ number of rows for the table """
@@ -83,9 +81,9 @@ class MSTableModel(QAbstractTableModel):
     def index(self, row, column, parent):
         """ provide index to data given a cell """
         logAPICall.log('index row %s col %s parent %s' % (row, column, parent), logAPICall.DEBUG_L2)
-        _mod = self._get_modifier(row)
-        if _mod is not None:
-            return self.createIndex(row, column, _mod)
+        mod = self.get_modifier(row)
+        if mod is not None:
+            return self.createIndex(row, column, mod)
         else:
             return QModelIndex()
 
@@ -96,7 +94,7 @@ class MSTableModel(QAbstractTableModel):
         
         if role == Qt.DisplayRole:
             # construct data for display in table
-            _mod = self._get_modifier(row)
+            _mod = self.get_modifier(row)
             _idx = row - _mod[self.STR_INDEX]
             if (col < self.STR_INDEX):
                 # for first 4 columns, only first row in new modifier
@@ -117,7 +115,7 @@ class MSTableModel(QAbstractTableModel):
                         _idx -=1
         elif role == Qt.ToolTipRole:
             # construct data for display in tooltip
-            _mod = self._get_modifier(row)
+            _mod = self.get_modifier(row)
             _idx = row - _mod[self.STR_INDEX]
             if col==1:
                 if (_idx == 0):                    
@@ -142,10 +140,12 @@ class MSTableModel(QAbstractTableModel):
                 return QVariant()
         else:
             return QVariant()
-            
-    def _get_modifier(self, row):
-        for _mod in self.modifiers:                
-            if (_mod[self.STR_INDEX]<= row and _mod[self.END_INDEX] > row):
-                return _mod
+
+    # internal helper methods
+    ###############################             
+    def get_modifier(self, row):
+        for mod in self.modifiers:                
+            if (mod[self.STR_INDEX]<= row and mod[self.END_INDEX] > row):
+                return mod
         return None
         

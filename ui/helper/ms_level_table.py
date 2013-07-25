@@ -147,12 +147,12 @@ class MSLevelTableModel(QAbstractTableModel):
         """ cell condition flag """
         # NOTE: 
         #   ItemIsEditable also required data() and setData() function
-        _combined_flag = Qt.ItemIsEnabled | Qt.ItemIsSelectable  
+        combined_flag = Qt.ItemIsEnabled | Qt.ItemIsSelectable  
         if index.column() < 0 and index.column() > len(self.is_editable):
-            return _combined_flag
+            return combined_flag
         if self.is_editable[index.column()] or self.editable_indices.has_key((index.column(), index.row())):
-            _combined_flag = _combined_flag | Qt.ItemIsEditable
-        return _combined_flag 
+            combined_flag = combined_flag | Qt.ItemIsEditable
+        return combined_flag 
 
     def set_cell_editable(self, column, row, editable=True):
         key = (column, row)
@@ -169,13 +169,15 @@ class MSLevelTableModel(QAbstractTableModel):
         self.layoutAboutToBeChanged.emit()
         
         if ncol == 0:
-            self.values, self.weights = self._sort(self.values, self.weights, reverse_sort=order==Qt.DescendingOrder)
+            self.values, self.weights = self.do_sort(self.values, self.weights, reverse_sort=order==Qt.DescendingOrder)
         else:
-            self.weights, self.values = self._sort(self.weights, self.values, reverse_sort=order==Qt.DescendingOrder)            
+            self.weights, self.values = self.do_sort(self.weights, self.values, reverse_sort=order==Qt.DescendingOrder)            
                         
         self.layoutChanged.emit()
 
-    def _sort(self, col1, col2, reverse_sort=False):
+    # internal helper methods
+    ############################### 
+    def do_sort(self, col1, col2, reverse_sort=False):
         dist = []
         for v, w in map(None, col1, col2):
             dist.append({v:w})

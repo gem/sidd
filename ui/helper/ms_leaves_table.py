@@ -95,10 +95,12 @@ class MSLeavesTableModel(QAbstractTableModel):
         if ncol < 0 or ncol > len(self.headers):
             return
         self.layoutAboutToBeChanged.emit()            
-        self._sort(sortIndex=ncol, reverse_sort=order==Qt.DescendingOrder)
+        self.do_sort(sortIndex=ncol, reverse_sort=order==Qt.DescendingOrder)
         self.layoutChanged.emit()
 
-    def _sort(self, sortIndex = 0, reverse_sort=False):
+    # internal helper methods
+    ############################### 
+    def do_sort(self, sortIndex = 0, reverse_sort=False):
         def sort_key(row):
             return row[sortIndex]        
         self.values.sort(key=sort_key, reverse=reverse_sort)

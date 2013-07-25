@@ -18,7 +18,7 @@ common functions for ui helper classes
 """
 from sidd.taxonomy import TaxonomyAttributeSinglecodeValue, TaxonomyAttributeMulticodeValue, TaxonomyAttributePairValue
 
-def _build_tooltip(code):
+def build_tooltip(code):
     lines = []
     if code is not None:        
         lines.append("Code: %s" % code.code)
@@ -34,11 +34,11 @@ def build_attribute_tooltip(valid_codes, attributes):
             continue
         if isinstance(attr, TaxonomyAttributeMulticodeValue):
             for code in attr.codes:
-                tooltips.append(_build_tooltip(code))
+                tooltips.append(build_tooltip(code))
         elif isinstance(attr, TaxonomyAttributeSinglecodeValue):
-            tooltips.append(_build_tooltip(attr.code))
+            tooltips.append(build_tooltip(attr.code))
         elif isinstance(attr, TaxonomyAttributePairValue):
-            tooltips.append(_build_tooltip(attr.code))
+            tooltips.append(build_tooltip(attr.code))
         tooltips.append("")
     return "\n".join(tooltips)
             

@@ -16,10 +16,10 @@
 """
 dialog for editing secondary modifiers
 """
-from PyQt4.QtGui import QDialog, QAbstractItemView
+from PyQt4.QtGui import QDialog
 from PyQt4.QtCore import pyqtSlot
 
-from ui.constants import logUICall 
+from ui.constants import UI_PADDING, logUICall 
 from ui.qt.dlg_build_ms_ui import Ui_msOptionsDialog
 from ui.wdg_attr_list import WidgetAttributeList 
 
@@ -29,7 +29,7 @@ class DialogMSOptions(Ui_msOptionsDialog, QDialog):
     """
     BUILD_EMPTY, BUILD_FROM_SURVEY=range(2)
     
-    def __init__(self, app, attributes, ranges):
+    def __init__(self, app, taxonomy, ranges):
         """ constructor """
         super(DialogMSOptions, self).__init__()
         self.ui = Ui_msOptionsDialog()
@@ -37,8 +37,10 @@ class DialogMSOptions(Ui_msOptionsDialog, QDialog):
 
         self.app = app
 
-        self.attributeList = WidgetAttributeList(self, app, attributes, [], ranges)
-        self.attributeList.setGeometry(30, 90, 501,201)        
+        self.attributeList = WidgetAttributeList(self, app, taxonomy, [], ranges)
+        self.attributeList.move(30, 90)
+        self.attributeList.setFixedSize(self.width() - 30 - 2*UI_PADDING, 
+                                        self.ui.buttons.y() - 90 - 2*UI_PADDING)
         
         # connect slot (ui event)
         self.ui.buttons.accepted.connect(self.accept)
@@ -53,7 +55,7 @@ class DialogMSOptions(Ui_msOptionsDialog, QDialog):
 
 
     def exec_(self):
-        self.attributeList.refreshAttributeList(self.attributeList.attribute_order)
+        #self.attributeList.refreshAttributeList(self.attributeList.attribute_order)
         return super(DialogMSOptions, self).exec_()
         
     # property accessor/mutators
