@@ -17,4 +17,4 @@
 package contains SIDD operators
 """
 from exposure import ExposureSHPWriter, ExposureKMLWriter, ExposureCSVWriter, ExposureNRMLWriter
-from ms import MSLeavesCSVWriter
+from ms import MSLeavesCSVWriter, MSXMLWriter

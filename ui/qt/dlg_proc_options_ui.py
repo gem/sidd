@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qt\dlg_proc_options.ui'
 #
-# Created: Thu Apr 25 17:06:39 2013
+# Created: Wed Jun 19 18:19:45 2013
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -22,14 +22,15 @@ class Ui_procOptionsDialog(object):
         self.box_extrapolate_options.setGeometry(QtCore.QRect(10, 20, 291, 91))
         self.box_extrapolate_options.setObjectName(_fromUtf8("box_extrapolate_options"))
         self.radio_random = QtGui.QRadioButton(self.box_extrapolate_options)
-        self.radio_random.setGeometry(QtCore.QRect(20, 20, 200, 17))
-        self.radio_random.setChecked(True)
+        self.radio_random.setGeometry(QtCore.QRect(20, 60, 200, 17))
+        self.radio_random.setChecked(False)
         self.radio_random.setObjectName(_fromUtf8("radio_random"))
         self.radio_actual = QtGui.QRadioButton(self.box_extrapolate_options)
-        self.radio_actual.setGeometry(QtCore.QRect(20, 40, 200, 17))
+        self.radio_actual.setGeometry(QtCore.QRect(20, 20, 200, 17))
+        self.radio_actual.setChecked(True)
         self.radio_actual.setObjectName(_fromUtf8("radio_actual"))
         self.radio_actual_rounded = QtGui.QRadioButton(self.box_extrapolate_options)
-        self.radio_actual_rounded.setGeometry(QtCore.QRect(20, 60, 200, 17))
+        self.radio_actual_rounded.setGeometry(QtCore.QRect(20, 40, 200, 17))
         self.radio_actual_rounded.setObjectName(_fromUtf8("radio_actual_rounded"))
         self.widgetButtons = QtGui.QWidget(procOptionsDialog)
         self.widgetButtons.setGeometry(QtCore.QRect(10, 130, 291, 31))

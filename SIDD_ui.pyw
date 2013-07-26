@@ -26,57 +26,81 @@ from qgis.core import QgsApplication
 
 from sidd.appconfig import SIDDConfig
 from sidd.constants import logAPICall 
-from utils.system import get_app_dir
+from utils.system import get_app_dir, check_environ, check_required_files
 
 from ui.constants import logUICall
 from ui.win_main import AppMainWindow
 from ui.win_splash import AppSplashScreen 
 
-# check for required environment parameters
-#############################
-errMsg = """
-Environ variable %s is required for application.
-Please see README.txt for more detail instructions
-"""
-env_keys = ['QGIS']
-for _key in env_keys:
-    if not os.environ.has_key(_key):
-        print >> sys.stderr, errMsg % _key 
+if __name__=='__main__':
+    # check for required environment parameters
+    #############################
+    try:            
+        env_keys = ['QGIS']
+        check_environ(env_keys)
+    except Exception, err:
+        errMsg = """
+        Environ variable %s is required for application.
+        Please see README.txt for more detail instructions
+        """
+        print >> sys.stderr, errMsg % err 
+        sys.exit(1)
+                
+    # start application 
+    ############################# initialize QT
+    qtApp = QApplication(sys.argv)
+    
+    splash = AppSplashScreen()
+    splash.show()
+    qtApp.processEvents()
+    
+    # show splash screen for at least 1 second
+    from time import sleep
+    sleep(1)
+    
+    # check required files 
+    appDir = get_app_dir()
+    try:    
+        from sidd.project import FILE_PROJ_TEMPLATE 
+        from ui.constants import FILE_MS_DB
+        required_files = [
+            FILE_PROJ_TEMPLATE,
+            FILE_MS_DB,
+        ]
+        check_required_files(required_files, appDir)
+    except Exception, err:
+        errMsg = """
+        Required file %s is missing. 
+        Please make sure installation files are intact.  
+        """
+        print >> sys.stderr, errMsg % err 
         sys.exit(1)
 
-# start application 
-############################# initialize QT
-qtApp = QApplication(sys.argv)
-
-splash = AppSplashScreen()
-splash.show()
-qtApp.processEvents()
-
-# show splash screen for at least 1 second
-from time import sleep
-sleep(1)
-
-# read configuration
-sidd_config = SIDDConfig(get_app_dir() + '/app.cfg')
-
-# initialize logging based on configuration
-logging.basicConfig(level=logging.NOTSET)
-logAPICall.setLevel(sidd_config.get('logging', 'core', 30, types.IntType))
-logUICall.setLevel(sidd_config.get('logging', 'ui', 20, types.IntType))
-os.environ['QGIS_DEBUG'] = sidd_config.get('logging', 'qgis', '-1')
-
-# supply path to where is your qgis installed
-QgsApplication.setPrefixPath(os.environ['QGIS'], True)
-# load providers
-QgsApplication.initQgis()
-
-# initialize and show main window
-mainWin = AppMainWindow(qtApp, sidd_config)
-mainWin.show()
-
-splash.finish(mainWin)
-
-#exit
-sys.exit(qtApp.exec_())
-QgsApplication.exitQgis()
-
+    
+    # read configuration
+    sidd_config = SIDDConfig(appDir + '/app.cfg')
+    
+    # initialize logging based on configuration
+    logging.basicConfig(level=logging.NOTSET)
+    logAPICall.setLevel(sidd_config.get('logging', 'core', 30, types.IntType))
+    logUICall.setLevel(sidd_config.get('logging', 'ui', 20, types.IntType))
+    os.environ['QGIS_DEBUG'] = sidd_config.get('logging', 'qgis', '-1')
+    
+    # supply path to where is your qgis installed
+    QgsApplication.setPrefixPath(os.environ['QGIS'], True)
+    # load providers
+    QgsApplication.initQgis()
+    
+    # initialize and show main window
+    mainWin = AppMainWindow(qtApp, sidd_config)
+    mainWin.show()
+    
+    # if project file given as part of parameter, 
+    # open project file 
+    if len(sys.argv) == 2:
+        mainWin.openProjectFile(sys.argv[1])
+    splash.finish(mainWin)
+    
+    #exit
+    sys.exit(qtApp.exec_())
+    QgsApplication.exitQgis()

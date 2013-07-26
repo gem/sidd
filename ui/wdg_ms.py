@@ -19,11 +19,12 @@ Widget (Panel) for creating mapping scheme
 import functools
 
 from PyQt4.QtGui import QWidget, QMessageBox, QDialog, QAbstractItemView, QFileDialog
-from PyQt4.QtCore import QObject, QSize, QPoint, pyqtSlot, QString, Qt
+from PyQt4.QtCore import QObject, QSize, QPoint, pyqtSlot, QString, Qt, QModelIndex
 
 from utils.system import get_app_dir
-from sidd.ms import MappingScheme, MappingSchemeZone, Statistics  
+from sidd.ms import MappingScheme, MappingSchemeZone, Statistics, StatisticNode
 from sidd.exception import SIDDException
+from sidd.constants import MSExportTypes
 
 from ui.exception import SIDDUIException
 from ui.constants import logUICall, get_ui_string, UI_PADDING
@@ -31,9 +32,10 @@ from ui.dlg_ms_branch import DialogEditMS
 from ui.dlg_save_ms import DialogSaveMS
 from ui.dlg_build_ms import DialogMSOptions 
 from ui.dlg_edit_zone import DialogEditZoneName
+from ui.dlg_size_input import  DialogSizeInput
 from ui.helper.ms_tree import MSTreeModel
 from ui.helper.vlabel import VerticalQLabel
-from ui.helper.ms_level_table import MSLevelTableModel
+from ui.helper.ms_leaves_table import MSLeavesTableModel
 from ui.qt.wdg_ms_ui import Ui_widgetMappingSchemes
 
 class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
@@ -56,23 +58,41 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
                     retval =  f(*args, **kw)
                     return retval                
                 except SIDDUIException as err:
-                    logUICall.log(get_ui_string("app.error.unexpected"), logUICall.WARNING)
+                    logUICall.log(self.errString(get_ui_string("app.error.ui"), err), logUICall.WARNING)
                 except SIDDException as err:
-                    logUICall.log(get_ui_string("app.error.model"), logUICall.WARNING)
+                    logUICall.log(self.errString(get_ui_string("app.error.model"), err), logUICall.WARNING)
                 except Exception as err:
-                    logUICall.log(get_ui_string("app.error.ui"), logUICall.ERROR)
+                    logUICall.log(self.errString(get_ui_string("app.error.unexpected"),err), logUICall.ERROR)
             return wrapper
+        
+        def errString(self, title, err):
+            return '%s\n%s' % (title, err)
+            
         
     uiCallChecker = UICallChecker()
 
     # constructor / destructor
     ###############################    
     def __init__(self, app):
-        QWidget.__init__(self)        
+        """
+        constructor
+        - initialize UI elements
+        - connect UI elements to callback            
+        """
+        super(WidgetMappingSchemes, self).__init__()
         self.ui = Ui_widgetMappingSchemes()
         self.ui.setupUi(self)
+        
+        self.allow_repeats = app.app_config.get('options', 'allow_repeats', False, bool)
 
         # vertical label for toggle mapping scheme library 
+        # table header
+        self.table_ms_headers = []
+        self.table_ms_headers.append([get_ui_string('widget.ms.distribution.value'), get_ui_string('widget.ms.distribution.value.desc')])
+        self.table_ms_headers.append([get_ui_string('widget.ms.distribution.weight'), get_ui_string('widget.ms.distribution.weight.desc')])
+        self.table_ms_headers.append([get_ui_string('widget.ms.distribution.size'), get_ui_string('widget.ms.distribution.size.desc')])
+        self.table_ms_headers.append([get_ui_string('widget.ms.distribution.cost'), get_ui_string('widget.ms.distribution.cost.desc')])
+        self.table_ms_display_formats = ['%s', '%.2f', '%.2f', '%.2f']
 
         self.ms_library_vlabel = VerticalQLabel(self)
         self.ms_library_vlabel.setText(get_ui_string('widget.ms.library.title'))
@@ -86,10 +106,14 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         self.bldg_dist_vlabel.setText(get_ui_string('widget.ms.distribution.title'))
         self.bldg_dist_vlabel.clicked.connect(self.showBuildingDistribution)
         
+        # fix selection mode for tree view
+        self.ui.tree_ms.setSelectionMode(QAbstractItemView.SingleSelection)        
+        
         # fix column size for leaf table
         self.ui.table_ms_leaves.verticalHeader().hide()
         self.ui.table_ms_leaves.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.ui.table_ms_leaves.setSortingEnabled(True)
+        self.ui.table_ms_leaves.setSelectionMode(QAbstractItemView.SingleSelection)
 
         self.app = app
         self.ms = None
@@ -103,16 +127,23 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         
         self.dlgEditMS = DialogEditMS(self.app)
         self.dlgEditMS.setModal(True)
-        self.dlgSaveMS = DialogSaveMS(self.app)        
+        self.dlgSaveMS = DialogSaveMS(self.app)
         self.dlgSaveMS.setModal(True)        
-        self.dlgMSOptions = DialogMSOptions(self.app.taxonomy.attributes, {})
+        self.dlgMSOptions = DialogMSOptions(self.app, self.app.taxonomy, {})
         self.dlgMSOptions.setModal(True)
         self.dlgEditZone = DialogEditZoneName()
         self.dlgEditZone.setModal(True)
 
+        self.dlgSizeInput = DialogSizeInput(self.app)        
+        self.dlgSizeInput.setModal(True)
+
         # connect slots (ui event)
-        self.ui.btn_create_ms.clicked.connect(self.createMS)        
+        self.ui.tree_ms.clicked[QModelIndex].connect(self.treeNodeSelected)
+
+        self.ui.btn_create_ms.clicked.connect(self.createMS)
+        self.ui.btn_load_ms.clicked.connect(self.loadMS)
         self.ui.btn_save_ms.clicked.connect(self.saveMS)
+        self.ui.btn_save_to_lib.clicked.connect(self.saveMSToLib)
         self.ui.btn_expand_tree.clicked.connect(self.expandTree)
         self.ui.btn_collapse_tree.clicked.connect(self.collapseTree)
         
@@ -122,8 +153,8 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         self.ui.btn_edit_level.clicked.connect(self.editBranch)
 
         self.ui.cb_ms_zones.currentIndexChanged[str].connect(self.refreshLeaves)
-        self.ui.ck_use_modifier.toggled.connect(self.refreshLeaves)
-        self.ui.btn_save_bldg_distribution.clicked.connect(self.saveMSLeaves)
+        self.ui.btn_save_ms_leaves.clicked.connect(self.saveMSLeaves)
+        self.ui.ck_use_modifier.toggled.connect(self.refreshLeaves)        
 
         self.ui.list_ms_library_regions.clicked.connect(self.regionSelected)
         self.ui.list_ms_library_types.clicked.connect(self.typeSelected)
@@ -134,27 +165,25 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         
         self.ui.btn_secondary_mod.clicked.connect(self.setModifiers)
         self.ui.btn_build_exposure.clicked.connect(self.applyMS)
+        self.ui.table_ms_leaves.doubleClicked.connect(self.editAdditionalAttributes)
         
         self.ms_library_visible = True
-        self.setMSLibraryVisible(False)
+        self.setMSLibraryVisible(False)        
 
+        if not app.app_config.get('options', 'parse_modifier', True, bool):
+            self.ui.btn_secondary_mod.setVisible(False)
+            
     # UI event handling calls
     ###############################
     @pyqtSlot(QObject)
     def resizeEvent(self, event):
         """ handle window resize """ 
         ui = self.ui
-        # adjust location of vertical label 
+        # adjust location of vertical label
         self.bldg_dist_vlabel.move(self.width()-self.bldg_dist_vlabel.width(),
                                       self.ui.widget_ms_library.y())        
         self.ms_library_vlabel.move(self.width()-self.ms_library_vlabel.width(),
                                     self.ui.widget_ms_library.y()+self.bldg_dist_vlabel.height())
-        # right align ms_library and ms_leaves 
-        # NOTE: they occupy the same location (same size)
-        ui.widget_ms_library.move(self.width()-self.ms_library_vlabel.width()-ui.widget_ms_library.width()-UI_PADDING,
-                                  ui.widget_ms_library.y())
-        ui.widget_ms_leaves.move(self.width()-self.ms_library_vlabel.width()-ui.widget_ms_leaves.width()-UI_PADDING,
-                                 ui.widget_ms_library.y())
 
         # move buttons to bottom right
         ui.btn_build_exposure.move(self.width()-ui.btn_build_exposure.width()-UI_PADDING,
@@ -162,13 +191,30 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         ui.btn_secondary_mod.move(
             QPoint(ui.btn_build_exposure.x()-ui.btn_secondary_mod.width()-UI_PADDING,
                    ui.btn_build_exposure.y()))
+        
+        panel_width = (self.width() - self.bldg_dist_vlabel.width()) / 2 - UI_PADDING
+        panel_height = ui.btn_build_exposure.y()- ui.widget_ms_library.y()
         # adjust widget_ms_tree
-        ui.widget_ms_tree.resize(
-            QSize(ui.widget_ms_library.x()-ui.widget_ms_tree.x()-(UI_PADDING/2),
-                  ui.btn_build_exposure.y()-ui.widget_ms_tree.y()-UI_PADDING))        
-        ui.tree_ms.resize(QSize(ui.widget_ms_tree.width(), ui.widget_ms_tree.height()-ui.tree_ms.y()))
+        ui.widget_ms_tree.resize(panel_width, panel_height)       
+        ui.tree_ms.resize(QSize(ui.widget_ms_tree.width(), ui.widget_ms_tree.height()-ui.tree_ms.y()))        
         ui.widget_ms_buttons_r.move(
             QPoint(ui.widget_ms_tree.width()-ui.widget_ms_buttons_r.width(), ui.widget_ms_buttons_r.y()))
+        
+        # right align ms_library and ms_leaves 
+        # NOTE: they occupy the same location (same size)
+        ui.widget_ms_library.setGeometry(ui.widget_ms_tree.x()+ui.widget_ms_tree.width(),   # x
+                                         ui.widget_ms_library.y(),                          # y
+                                         panel_width, panel_height)        
+        ui.widget_ms_leaves.setGeometry(ui.widget_ms_tree.x()+ui.widget_ms_tree.width(),    # x
+                                        ui.widget_ms_library.y(),                          # y
+                                        panel_width, panel_height)
+        ui.txt_leaves_total.move(ui.widget_ms_leaves.width() - ui.txt_leaves_total.width()-2*UI_PADDING, 
+                                 panel_height-ui.txt_leaves_total.height()-2*UI_PADDING)
+        ui.lb_leaves_total.move(ui.txt_leaves_total.x() - ui.txt_leaves_total.width(),
+                                ui.txt_leaves_total.y())
+        ui.table_ms_leaves.resize(panel_width - 6*UI_PADDING, ui.lb_leaves_total.y()-ui.table_ms_leaves.y() - 2*UI_PADDING)
+        # logo
+        self.ui.lb_gem_logo.move(self.width()-self.ui.lb_gem_logo.width(), self.ui.lb_gem_logo.y())
         
     @uiCallChecker
     @pyqtSlot()
@@ -178,7 +224,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         options = self.app.project.operator_options
         self.dlgMSOptions.attribute_ranges.clear()
         for attr in self.dlgMSOptions.attributes:
-            if options.has_key(attr.name):    
+            if options.has_key(attr.name):
                 self.dlgMSOptions.attribute_ranges[attr.name] = options[attr.name]
         if options.has_key('attribute.order'):
             self.dlgMSOptions.attribute_order = options['attribute.order']
@@ -199,11 +245,48 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
             if self.dlgMSOptions.build_option == self.dlgMSOptions.BUILD_EMPTY:
                 self.app.createEmptyMS()
             else:
-                self.app.buildMappingScheme()                
+                self.app.buildMappingScheme()
+    
+    @uiCallChecker
+    @pyqtSlot()
+    def loadMS(self):
+        """ save existing mapping scheme """
+        if self.ms is not None and not self.ms.is_empty:
+            # alert user
+            answer = QMessageBox.warning(self,
+                                         get_ui_string("app.confirm.title"),
+                                         get_ui_string("widget.ms.warning.replace"),
+                                         QMessageBox.Yes | QMessageBox.No)
+            if answer == QMessageBox.No:
+                return
+        self.app.getOpenFileName(self, 
+                                 get_ui_string("widget.ms.file.open"),
+                                 get_ui_string("app.extension.xml"), 
+                                 self.app.loadMS)
         
     @uiCallChecker
     @pyqtSlot()
     def saveMS(self):
+        filename = QFileDialog.getSaveFileName(self,
+                                               get_ui_string("widget.result.export.folder.open"),
+                                               get_app_dir(),
+                                               get_ui_string("app.extension.xml"))
+        if not filename.isNull():            
+            self.app.exportMS(filename, MSExportTypes.XML)
+
+    @uiCallChecker
+    @pyqtSlot()
+    def saveMSLeaves(self):
+        filename = QFileDialog.getSaveFileName(self,
+                                               get_ui_string("widget.result.export.folder.open"),
+                                               get_app_dir(),
+                                               get_ui_string("app.extension.csv"))
+        if not filename.isNull():            
+            self.app.exportMS(filename, MSExportTypes.CSV)
+
+    @uiCallChecker
+    @pyqtSlot()
+    def saveMSToLib(self):
         """ save existing mapping scheme """
         if self.ms is not None:
             # show save dialogbox for mapping scheme
@@ -261,9 +344,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
             #       values/weights pair, we can safely assume that data is clean 
             #       to be used    
                         
-            # TODO: refactor call into main controller
             node.update_children(self.dlgEditMS.current_attribute, self.dlgEditMS.values, self.dlgEditMS.weights)
-            #self.app.visualizeMappingScheme(self.ms)
             self.refreshTree()
             self.refreshLeaves(self.ui.cb_ms_zones.currentText())            
 
@@ -273,7 +354,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         """ remove branch from mapping scheme tree """
         node = self.getSelectedNode(self.ui.tree_ms)
         answer = QMessageBox.warning(self,
-                                     get_ui_string("app.popup.delete.confirm"),
+                                     get_ui_string("app.confirm.title"),
                                      get_ui_string("widget.ms.warning.deletebranch"),
                                      QMessageBox.Yes | QMessageBox.No)
         if answer == QMessageBox.Yes:
@@ -325,12 +406,11 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
                 # some children were deleted confirm again
                 if len(self.dlgEditMS.values) < len(node.children): 
                     answer = QMessageBox.warning(self,
-                                                 get_ui_string("app.popup.delete.confirm"),
+                                                 get_ui_string("app.confirm.title"),
                                                  get_ui_string("widget.ms.warning.deletebranch"),
                                                  QMessageBox.Yes | QMessageBox.No)
                     if answer == QMessageBox.No:
                         return
-                # TODO: refactor call into main controller            
                 node.parent.update_children(self.dlgEditMS.current_attribute, self.dlgEditMS.values, self.dlgEditMS.weights)            
                 self.refreshTree()
                 self.refreshLeaves(self.ui.cb_ms_zones.currentText())
@@ -343,8 +423,11 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         - append branch to mapping scheme tree 
         """
         # get selected node from working mapping scheme tree
-        node = self.getSelectedNode(self.ui.tree_ms)
-        branch = self.getSelectedNode(self.ui.tree_ms_library)
+        try:
+            node = self.getSelectedNode(self.ui.tree_ms)
+            branch = self.getSelectedNode(self.ui.tree_ms_library)
+        except:
+            raise SIDDUIException(get_ui_string("widget.ms.warning.node.branch.required"))
         self.app.appendMSBranch(node, branch)
         
     @uiCallChecker
@@ -365,17 +448,15 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         """        
         self.app.buildExposure()
 
-    @logUICall
     @pyqtSlot()
     def showMSLibrary(self):        
         self.setMSLibraryVisible(True)
 
-    @logUICall
     @pyqtSlot()
     def showBuildingDistribution(self):
         self.setMSLibraryVisible(False)
             
-    @uiCallChecker
+    @logUICall
     @pyqtSlot(int)
     def regionSelected(self, modelIndex):
         """
@@ -390,7 +471,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         for mstype in self.msdb_dao.get_types_in_region(region):
             self.ui.list_ms_library_types.addItem(QString(mstype))
         
-    @uiCallChecker
+    @logUICall
     @pyqtSlot(int)
     def typeSelected(self, modelIndex):
         """
@@ -406,7 +487,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         for ms_name in self.msdb_dao.get_ms_in_region_type(region, mstype):
             self.ui.list_ms_library_msnames.addItem(QString(ms_name))        
 
-    @uiCallChecker
+    @logUICall
     @pyqtSlot(int)
     def msSelected(self, modelIndex):
         """ visualize selected mapping scheme from available list """
@@ -434,7 +515,7 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
             ms_type == get_ui_string('app.mslibrary.user.singlelevel')):
             self.ui.btn_del_lib_ms.setEnabled(True)
 
-    @uiCallChecker
+    @logUICall
     @pyqtSlot()    
     def deleteLibraryMS(self):
         # get selected region/type/ms
@@ -450,45 +531,62 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         self.msdb_dao.delete_ms(region, ms_type, ms_name)
         self.resetMSLibrary()        
 
+    @pyqtSlot(QModelIndex)    
+    def treeNodeSelected(self, index=None):
+        node = index.internalPointer()
+        new_zone = None     
+        if type(node) == MappingSchemeZone:
+            new_zone = node.name
+        else:
+            stat = self.ms.get_assignment_by_node(node)
+            if stat is not None:
+                new_zone = stat.root.value
+        if new_zone is not None:
+            if self.ui.cb_ms_zones.currentText() != new_zone:
+                    self.ui.cb_ms_zones.setCurrentIndex(self.ui.cb_ms_zones.findText(new_zone))
+
     @uiCallChecker
     @pyqtSlot(str)
-    def refreshLeaves(self, value):        
-        values, weights = [], []
+    def refreshLeaves(self, value): 
+        if self.ms is None or self.ui.cb_ms_zones.count() == 0:
+            return       
+        values = []
         total_weights = 0
         use_modifier = self.ui.ck_use_modifier.isChecked()
         zone_selected = str(self.ui.cb_ms_zones.currentText())
         try:
-            stats = self.ms.get_assignment_by_name(zone_selected)            
-            for leaf in stats.get_leaves(True, use_modifier):
-                values.append(leaf[0])
-                weight = leaf[1]*100.0
-                weights.append(weight)
+            stats = self.ms.get_assignment_by_name(zone_selected)
+            stats.refresh_leaves(use_modifier)
+            for val, wt, node in stats.leaves:
+                weight = wt *100.0
+                size = node.get_additional_float(StatisticNode.AverageSize)
+                cost = node.get_additional_float(StatisticNode.UnitCost)                
                 total_weights += weight
-        except:
-            pass
+                values.append([val, weight, size, cost, node])
+        except Exception, err:
+            raise SIDDException(str(err))
         try:
-            self.ui.table_ms_leaves.setModel(MSLevelTableModel(values, weights, self.ms.taxonomy, self.ms.taxonomy.codes, 
-                                                               is_editable=[False, False]))
-        except:
-            pass
-        self.ui.table_ms_leaves.horizontalHeader().resizeSection(0, self.ui.table_ms_leaves.width() * 0.75)
-        self.ui.table_ms_leaves.horizontalHeader().resizeSection(1, self.ui.table_ms_leaves.width() * 0.25)  
+            self.ui.table_ms_leaves.setModel(MSLeavesTableModel(values, self.table_ms_headers, self.table_ms_display_formats,
+                                                                self.ms.taxonomy, self.ms.taxonomy.codes))
+        except Exception, err:
+            raise SIDDException(str(err))
+        self.ui.table_ms_leaves.horizontalHeader().resizeSection(0, self.ui.table_ms_leaves.width() * 0.60)
+        self.ui.table_ms_leaves.horizontalHeader().resizeSection(1, self.ui.table_ms_leaves.width() * 0.14)  
+        self.ui.table_ms_leaves.horizontalHeader().resizeSection(2, self.ui.table_ms_leaves.width() * 0.13)
+        self.ui.table_ms_leaves.horizontalHeader().resizeSection(3, self.ui.table_ms_leaves.width() * 0.13)
         self.ui.txt_leaves_total.setText('%.1f' % total_weights)
-    
-    @uiCallChecker
+
+    @logUICall
     @pyqtSlot()
-    def saveMSLeaves(self):
-        #folder = QFileDialog.getExistingDirectory(self,
-        #                                          get_ui_string("widget.result.export.folder.open"),
-        #                                          get_app_dir())        
-        #if not folder.isNull():
-        #    self.app.exportMSLeaves(folder)
-        filename = QFileDialog.getSaveFileName(self, 
-                                               get_ui_string("widget.result.export.folder.open"),
-                                               get_app_dir(),
-                                               "*.csv")
-        if not filename.isNull(): 
-            self.app.exportMSLeaves(filename)
+    def editAdditionalAttributes(self):
+        selected =self.ui.table_ms_leaves.selectedIndexes()
+        if (len(selected) > 0):            
+            self.dlgSizeInput.setNode(selected[0].internalPointer(), self.ms)
+            if self.dlgSizeInput.exec_() == QDialog.Accepted:
+                self.dlgSizeInput.node.set_additional(StatisticNode.AverageSize, self.dlgSizeInput.avg_size)
+                self.dlgSizeInput.node.set_additional(StatisticNode.UnitCost, self.dlgSizeInput.unit_cost)
+                self.refreshLeaves(self.ui.cb_ms_zones.currentText())                
+        return
     
     # public methods
     ###############################
@@ -499,10 +597,8 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         treeUI = self.ui.tree_ms
         self.tree_model = MSTreeModel(ms)        
         treeUI.setModel(self.tree_model)
-        treeUI.setSelectionMode(QAbstractItemView.SingleSelection)
         self.ui.tree_ms.setEnabled(True)
-        self.ui.tree_ms.expandAll()
-
+        
         self.ui.cb_ms_zones.clear()
         for zone in self.ms.get_zones():
             self.ui.cb_ms_zones.addItem(zone.name)
@@ -531,11 +627,19 @@ class WidgetMappingSchemes(Ui_widgetMappingSchemes, QWidget):
         self.ui.widget_ms_leaves.setVisible(not visible)
         if not visible:
             self.resetMSLibrary()
-            self.ms_library_vlabel.setEnabled(True)
+            self.ms_library_vlabel.setEnabled(True)            
+            # set Disable stops event
             self.bldg_dist_vlabel.setEnabled(False)
+            # Selected label is black, not selected is gray 
+            self.ms_library_vlabel.setSelected(False)
+            self.bldg_dist_vlabel.setSelected(True)
         else:
+            # set Disable stops event
             self.ms_library_vlabel.setEnabled(False)
             self.bldg_dist_vlabel.setEnabled(True)
+            # Selected label is black, not selected is gray 
+            self.ms_library_vlabel.setSelected(True)
+            self.bldg_dist_vlabel.setSelected(False)
 
     def getSelectedNode(self, tree):
         """ retrieve currently selected node from given tree """

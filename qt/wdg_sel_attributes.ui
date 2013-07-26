@@ -16,9 +16,9 @@
   <widget class="QLabel" name="lb_description">
    <property name="geometry">
     <rect>
-     <x>140</x>
+     <x>420</x>
      <y>5</y>
-     <width>351</width>
+     <width>71</width>
      <height>22</height>
     </rect>
    </property>
@@ -26,9 +26,19 @@
   <widget class="QComboBox" name="cb_codes">
    <property name="geometry">
     <rect>
-     <x>10</x>
+     <x>130</x>
      <y>5</y>
-     <width>121</width>
+     <width>261</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lb_attribute">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>5</y>
+     <width>131</width>
      <height>22</height>
     </rect>
    </property>

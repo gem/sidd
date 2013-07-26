@@ -16,11 +16,11 @@
 """
 dialog for editing mapping scheme branches
 """
-from PyQt4.QtGui import QDialog, QAbstractItemView
-from PyQt4.QtCore import Qt, QVariant, QString, QAbstractTableModel
+from PyQt4.QtGui import QDialog, QCloseEvent, QAbstractItemView
+from PyQt4.QtCore import Qt, pyqtSlot, QSettings, QVariant, QString, QAbstractTableModel
 from operator import itemgetter
 
-from sidd.constants import logAPICall, CNT_FIELD_NAME
+from sidd.constants import logAPICall, SIDD_COMPANY, SIDD_APP_NAME, SIDD_VERSION, CNT_FIELD_NAME
 
 from ui.constants import logUICall, UI_PADDING
 from ui.qt.dlg_res_detail_ui import Ui_tablePreviewDialog
@@ -29,6 +29,11 @@ class DialogResult(Ui_tablePreviewDialog, QDialog):
     """
     dialog for visualize result details
     """
+    
+    # CONSTANTS
+    #############################    
+    UI_WINDOW_GEOM = 'dlg_result/geometry'
+        
     # constructor
     ###############################     
     def __init__(self):
@@ -42,6 +47,9 @@ class DialogResult(Ui_tablePreviewDialog, QDialog):
         # connect slots (ui event)
         self.ui.btn_ok.clicked.connect(self.accept)
     
+        self.settings = QSettings(SIDD_COMPANY, '%s %s' %(SIDD_APP_NAME, SIDD_VERSION));
+        self.restoreGeometry(self.settings.value(self.UI_WINDOW_GEOM).toByteArray());
+    
     # window event handler overrides
     #############################
     def resizeEvent(self, event):
@@ -52,6 +60,11 @@ class DialogResult(Ui_tablePreviewDialog, QDialog):
         self.ui.lb_bldgcount.move(UI_PADDING, below_table)        
         self.ui.txt_bldgcount.move(self.ui.lb_bldgcount.width()+(2*UI_PADDING), below_table)
         self.ui.btn_ok.move(self.width()-UI_PADDING-self.ui.btn_ok.width(), below_table)
+
+    @pyqtSlot(QCloseEvent)
+    def closeEvent(self, event):
+        self.settings.setValue(self.UI_WINDOW_GEOM, self.saveGeometry());
+        super(DialogResult, self).closeEvent(event)
         
     # public method
     ###############################     

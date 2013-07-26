@@ -29,7 +29,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>20</y>
+      <y>60</y>
       <width>200</width>
       <height>17</height>
      </rect>
@@ -38,14 +38,14 @@
      <string>Monte-Carlo Simulation</string>
     </property>
     <property name="checked">
-     <bool>true</bool>
+     <bool>false</bool>
     </property>
    </widget>
    <widget class="QRadioButton" name="radio_actual">
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>40</y>
+      <y>20</y>
       <width>200</width>
       <height>17</height>
      </rect>
@@ -53,12 +53,15 @@
     <property name="text">
      <string>Building Distribution Fraction</string>
     </property>
+    <property name="checked">
+     <bool>true</bool>
+    </property>
    </widget>
    <widget class="QRadioButton" name="radio_actual_rounded">
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>60</y>
+      <y>40</y>
       <width>200</width>
       <height>17</height>
      </rect>
