@@ -153,7 +153,7 @@ class StatisticNode (object):
 
     @property
     def is_valid(self):
-        return sum([c.weight for c in self.children]) == 100                    
+        return round(sum([c.weight for c in self.children]),0) == 100                    
 
     @property
     def max_level(self):
@@ -415,7 +415,7 @@ class StatisticNode (object):
             if adj_factor == 0:
                 child.weight = 100.0 / total_children
             else:
-                child.weight = child.weight / adj_factor        
+                child.weight = child.weight / adj_factor
 
     # tree modifying methods
     ###########################

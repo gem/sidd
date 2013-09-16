@@ -129,9 +129,9 @@ class ExposureCSVWriter(ExposureSHPWriter):
                 for fidx, value in feature.attributeMap().iteritems():
                     # retrieve data according to field type
                     if fields[fidx].type() == QVariant.Int:
-                        row.append(str(value.toInt()[0]))
+                        row.append(value.toInt()[0])
                     elif fields[fidx].type() == QVariant.Double:
-                        row.append(str(value.toDouble()[0]))
+                        row.append(value.toDouble()[0])
                     else:
                         row.append(str(value.toString()))
                 csvwriter.writerow(row)

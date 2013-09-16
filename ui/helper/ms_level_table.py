@@ -37,7 +37,7 @@ class MSLevelTableModel(QAbstractTableModel):
         ]        
         self.parser=parser
         self.valid_codes=valid_codes
-        self.values, self.weights = self._sort(values, weights)
+        self.values, self.weights = self.do_sort(values, weights)
         self.is_editable = is_editable
         self.editable_indices = {}
     

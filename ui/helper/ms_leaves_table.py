@@ -32,7 +32,7 @@ class MSLeavesTableModel(QAbstractTableModel):
         self.parser=parser
         self.valid_codes=valid_codes
         self.values = values
-        self._sort(sortIndex=0)                
+        self.do_sort(sortIndex=0)                
     
     def columnCount(self, parent):
         """ only three columns exist. always return 3 """
