@@ -45,7 +45,7 @@ class ProjectTestCase(SIDDTestCase):
         self.proj_file3 = self.test_data_dir +  'test3.db'
         
         self.fp_path = self.test_data_dir +  'footprints3.shp'
-        self.survey_path = self.test_data_dir +  "survey3.gemdb"
+        self.survey_path = self.test_data_dir +  "survey3.db3"
         self.zone_path = self.test_data_dir +  "zones3.shp"
         self.zone_field = 'LandUse'
         self.bldgcount_field = 'NumBldg'
@@ -185,9 +185,9 @@ class ProjectTestCase(SIDDTestCase):
         
         proj.operator_options['tmp_dir'] = proj_tmp_dir
         proj.temp_dir = proj_tmp_dir
-        proj.fp_file = '%s%s' % (self.test_data_dir, 'footprints3.shp')
-        proj.survey_file = '%s%s' % (self.test_data_dir, 'survey3.gemdb')
-        proj.zone_file = '%s%s' % (self.test_data_dir, 'zones3.shp')
+        proj.fp_file = self.fp_path 
+        proj.survey_file = self.survey_path 
+        proj.zone_file = self.zone_path 
         
         proj.verify_data()
         proj.build_exposure()

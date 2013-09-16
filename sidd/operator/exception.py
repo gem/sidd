@@ -23,7 +23,6 @@ class OperatorDataError(SIDDException):
     def __init__(self, msg):
         Exception.__init__(self, msg)
 
-
 class OperatorError(SIDDException):
     """ SIDD operators data errors """
     

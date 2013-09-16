@@ -16,10 +16,7 @@
 """
 dialog for editing mapping scheme branches
 """
-from PyQt4.QtGui import QDialog, QAbstractItemView
-from PyQt4.QtCore import QString, pyqtSlot
-
-from ui.constants import logUICall, get_ui_string
+from PyQt4.QtGui import QDialog
 from ui.qt.dlg_search_feature_ui import Ui_searchFeatureDialog
 
 class DialogSearchFeature(Ui_searchFeatureDialog, QDialog):

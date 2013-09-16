@@ -17,10 +17,11 @@
 Main application window
 """
 import functools
+import os
 from time import sleep
 
 from PyQt4.QtCore import pyqtSlot, QSettings
-from PyQt4.QtGui import QMainWindow, QFileDialog, QMessageBox, QCloseEvent, QDialog
+from PyQt4.QtGui import QMainWindow, QFileDialog, QMessageBox, QCloseEvent, QDialog, QLabel
 
 from sidd.exception import SIDDException, SIDDProjectException
 from utils.system import get_app_dir, get_temp_dir, delete_folders_in_dir
@@ -40,6 +41,7 @@ from ui.dlg_about import DialogAbout
 from ui.dlg_apply import DialogApply
 from ui.dlg_proc_options import DialogProcessingOptions
 from ui.wdg_data_wizard import WidgetDataWizard
+from ui.dlg_attr_range import DialogAttrRanges        
 
 from ui.helper.msdb_dao import MSDatabaseDAO
 from ui.helper.async import invoke_async
@@ -70,10 +72,10 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
                     self.main_window.ui.statusbar.showMessage(get_ui_string('app.error.ui'))
                 except SIDDException as se:
                     logUICall.log(se, logUICall.WARNING)
-                    self.main_window.ui.statusbar.showMessage(get_ui_string('app.error.ui'))
+                    self.main_window.ui.statusbar.showMessage(get_ui_string('app.error.model'))
                 except Exception as e:
                     logUICall.log(e, logUICall.ERROR)
-                    self.main_window.ui.statusbar.showMessage(get_ui_string('app.error.ui'))
+                    self.main_window.ui.statusbar.showMessage(get_ui_string('app.error.unexpected'))
                 finally:
                     self.main_window.setEnabled(True)
             return wrapper
@@ -82,14 +84,19 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
 
     # CONSTANTS
     #############################    
-    UI_WINDOW_GEOM = 'main/geometry'
-    UI_WINDOW_STATE = 'main/windowState'
+    UI_WINDOW_GEOM = 'app_main/geometry'
+    UI_WINDOW_STATE = 'app_main/windowState'
+
+    TAB_DATA, TAB_MS, TAB_MOD, TAB_RESULT = range(4)
 
     # constructor / destructor
     #############################    
     def __init__(self, qtapp, app_config):
-        """ constructor """
-        
+        """
+        constructor
+        - initialize UI elements
+        - connect UI elements to callback            
+        """
         # create UI
         super(AppMainWindow, self).__init__()
         AppMainWindow.apiCallChecker.setWindow(self)
@@ -100,9 +107,13 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         self.ui = Ui_mainWindow()
         self.ui.setupUi(self)
         
-        settings = QSettings(SIDD_COMPANY, '%s %s' %(SIDD_APP_NAME, SIDD_VERSION));
-        self.restoreGeometry(settings.value(self.UI_WINDOW_GEOM).toByteArray());
-        self.restoreState(settings.value(self.UI_WINDOW_STATE).toByteArray());
+        self.settings = QSettings(SIDD_COMPANY, '%s %s' %(SIDD_APP_NAME, SIDD_VERSION));
+        self.restoreGeometry(self.settings.value(self.UI_WINDOW_GEOM).toByteArray());
+        self.restoreState(self.settings.value(self.UI_WINDOW_STATE).toByteArray());
+        
+        self.lb_map_location = QLabel(self)
+        self.lb_map_location.resize(self.ui.statusbar.width()/3, self.ui.statusbar.height())
+        self.ui.statusbar.addPermanentWidget(self.lb_map_location)
         
         self.msdb_dao = MSDatabaseDAO(FILE_MS_DB)
         
@@ -122,13 +133,18 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         self.about = DialogAbout(self)
         self.about.setModal(True)        
         
+        self.dlgAttrRange = DialogAttrRanges()
+        self.dlgAttrRange.setModal(True)
+        
         self.progress = DialogApply(self)
         self.progress.setModal(True)
         
         self.proc_options = DialogProcessingOptions(self)
         self.proc_options.setModal(True)
         
-        # connect menu action to slots (ui events)
+        # connect menu action to slots (ui events)        
+        self.ui.mainTabs.currentChanged.connect(self.tabChanged)
+        
         self.ui.actionProject_Blank.triggered.connect(self.createBlank)
         self.ui.actionUsing_Data_Wizard.triggered.connect(self.createWizard)
         self.ui.actionOpen_Existing.triggered.connect(self.loadProj)
@@ -149,28 +165,24 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         self.ui.statusbar.showMessage(get_ui_string("app.status.ready"))
 
         # perform clean up from previous runs
-        delete_folders_in_dir(get_temp_dir(), "tmp*")
+        try:
+            delete_folders_in_dir(get_temp_dir(), "tmp*")
+        except:
+            # cleanup is not-critical. no action taken even if fails
+            pass
 
-        # enable following during development
-        #self._dev_short_cut()
-        
-    def _dev_short_cut(self):
-        self.ui.mainTabs.setTabEnabled (1, True)
-        self.ui.mainTabs.setTabEnabled (2, True)
-        self.ui.mainTabs.setTabEnabled (3, True)
-
-        from os import curdir        
-        project = Project(self.app_config, self.taxonomy)
-        project.set_project_path(curdir + "/test.db")
-        project.sync(SyncModes.Read)
-        self.setProject(project)
-        
-        self.project.build_exposure()
-        self.project.verify_result()
-        # show result
-        self.tab_result.refreshResult()        
-        self.showTab(3)
-
+        # hide features 
+        if not app_config.get('options', 'parse_modifier', True, bool):
+            self.tab_mod.setVisible(False)
+            self.ui.mainTabs.removeTab(self.TAB_MOD) 
+            self.TAB_MOD = self.TAB_MS
+            self.TAB_RESULT -= 1             
+            
+        # hide view menu
+        self.ui.menuView.menuAction().setVisible(False)
+        # hide data wizard
+        self.ui.actionUsing_Data_Wizard.setVisible(False)
+
     # event handlers
     #############################
     @pyqtSlot(QCloseEvent)
@@ -181,9 +193,8 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
     @pyqtSlot(QCloseEvent)    
     def closeEvent(self, event):
         self.closeProject()
-        settings = QSettings(SIDD_COMPANY, '%s %s' %(SIDD_APP_NAME, SIDD_VERSION));
-        settings.setValue(self.UI_WINDOW_GEOM, self.saveGeometry());
-        settings.setValue(self.UI_WINDOW_STATE, self.saveState());
+        self.settings.setValue(self.UI_WINDOW_GEOM, self.saveGeometry());
+        self.settings.setValue(self.UI_WINDOW_STATE, self.saveState());
         self.msdb_dao.close()       
         super(AppMainWindow, self).closeEvent(event)
     
@@ -220,27 +231,19 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
             # return to normal window
             # these calls are reached 
             # 1. in case any exception occurs,
-            # 2. wizard cancelled  
+            # 2. wizard finished or cancelled  
             self.setVisible(True)
             self.previewInput = True
     
     @logUICall 
     @pyqtSlot()   
     def loadProj(self):
-        """ open file dialog to load an existing application """        
-        filename = QFileDialog.getOpenFileName(self,
-                                               get_ui_string("app.window.msg.project.open"),
-                                               get_app_dir(),
-                                               get_ui_string("app.extension.db"))
-        # no need to check for file exists, because QFileDialog return is always valid path or null 
-        if not filename.isNull():        
-            # open existing project 
-            project = Project(self.app_config, self.taxonomy)
-            project.set_project_path(str(filename))
-            project.sync(SyncModes.Read)
-            # open project and sync UI        
-            self.setProject(project)
-            self.ui.statusbar.showMessage(get_ui_string("app.status.project.loaded"))
+        """ open file dialog to load an existing application """
+        self.getOpenFileName(self, 
+                             get_ui_string("app.window.msg.project.open"),
+                             get_ui_string("app.extension.db"), 
+                             self.openProjectFile)
+        self.ui.statusbar.showMessage(get_ui_string("app.status.project.loaded"))
     
     @logUICall
     @pyqtSlot()    
@@ -266,18 +269,40 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
                                                get_ui_string("app.extension.db"))
         # no need to check for file overwrite, because QFileDialog return always confirmed overwrite       
         if not filename.isNull():
-            self.project.set_project_path(str(filename))    
+            filename = str(filename)
+            self.project.set_project_path(filename)                
             self.project.sync(SyncModes.Write)
+            self.saveLastOpenDir(filename[0:filename.rfind("/")])            
             self.ui.statusbar.showMessage(get_ui_string("app.status.project.saved"))                
 
     @logUICall
     @pyqtSlot()    
     def setProcessingOptions(self):
-        if self.proc_options.exec_() == QDialog.Accepted:
-            #self.project.set_options()
-            for attribute in dir(self.proc_options):
-                self.project.operator_options['proc.%s'%attribute] = getattr(self.proc_options, attribute)
+        if self.project is None:                
+            return
+
+        # set options to be those defined in project
+        self.proc_options.resetOptions()
+        for attribute in dir(self.proc_options):
+            try:
+                proc_attribute = self.project.operator_options['proc.%s'%attribute]
+                setattr(self.proc_options, attribute, proc_attribute)
+            except:
+                # for empty project, this is the first time proc.options is set
+                # just use default from proc_option dialogbox
+                pass
             
+        if self.proc_options.exec_() == QDialog.Accepted:
+            for attribute in dir(self.proc_options):                
+                self.project.operator_options['proc.%s'%attribute] = getattr(self.proc_options, attribute)
+            # alert user
+            answer = QMessageBox.question(self,
+                                         get_ui_string("app.confirm.title"),
+                                         get_ui_string("app.confirm.build.exposure"),
+                                         buttons = QMessageBox.No | QMessageBox.Yes,
+                                         defaultButton=QMessageBox.No)
+            if answer == QMessageBox.No:
+                return
             self.buildExposure()
             
     @logUICall
@@ -298,60 +323,87 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         """
         sender = self.sender()
         if sender == self.ui.actionData_Input:
-            self.showTab(0)
+            self.showTab(self.TAB_DATA)
         elif sender == self.ui.actionMapping_Schemes:
-            self.showTab(1)            
+            self.showTab(self.TAB_MS)            
         elif sender == self.ui.actionResult:
-            self.showTab(3)
+            self.showTab(self.TAB_RESULT)
         else:
             logUICall.log('\tdo nothing. should not even be here', logUICall.WARNING)
 
+    @logUICall 
+    @pyqtSlot(int)   
+    def tabChanged(self, index):
+        if index == self.TAB_RESULT:
+            self.lb_map_location.setVisible(True)
+        else:
+            self.lb_map_location.setVisible(False)
+
     # public methods    
-    #############################    
+    #############################
+    @apiCallChecker
+    def openProjectFile(self, path_to_file):
+        """ 
+        load project from given path
+        shows error if path does not exist 
+        """
+        # NOTE: set_project_path will create new project if path_to_file
+        #       does not exist, os.path.exists check is not optional
+        if os.path.exists(path_to_file):
+            # read file to create project
+            project = Project(self.app_config, self.taxonomy)
+            project.set_project_path(path_to_file)
+            project.sync(SyncModes.Read)
+            # open project and sync UI        
+            self.setProject(project)
+    
     @apiCallChecker
     def setProject(self, project, skipVerify=False):
         """ open a project and sync UI accordingly"""        
         # close and reset UI 
         self.closeProject()
-
         self.project = project        
         
         # sync ui
         self.tab_datainput.setProject(project)
-        if self.project.ms is not None:
-            self.visualizeMappingScheme(self.project.ms)
-            self.ui.mainTabs.setTabEnabled(1, True)
-            self.ui.mainTabs.setTabEnabled(2, True)                           
-        self.ui.mainTabs.setTabEnabled(0, True)
-        self.tab_result.set_project(project)
-        self.ui.mainTabs.setTabEnabled(3, True)
         
-        # NOTE: project temp directory is clear everytime the project is closed.
-        #       therefore, exposure from previous run cannot be preserved  
         # set processing options
         for attribute in dir(self.proc_options):
             if self.project.operator_options.has_key('proc.%s'%attribute):
                 setattr(self.proc_options, attribute, self.project.operator_options['proc.%s'%attribute])
         
         if not skipVerify:
-            self.verifyInputs()
+            # verify to make sure input file are still in same place
+            self.verifyInputs()        
+
+        if self.project.ms is not None:
+            self.visualizeMappingScheme(self.project.ms)
+            self.ui.mainTabs.setTabEnabled(self.TAB_MS, True)
+            self.ui.mainTabs.setTabEnabled(self.TAB_MOD, True)                           
+        self.ui.mainTabs.setTabEnabled(self.TAB_DATA, True)
+        self.ui.mainTabs.setTabEnabled(self.TAB_RESULT, True)
+        self.ui.actionSave.setEnabled(True)
+        self.ui.actionSave_as.setEnabled(True)                
+        self.tab_result.set_project(project)
 
     @apiCallChecker    
     def closeProject(self):
         """ close opened project and update UI elements accordingly """
         # adjust UI in application window
         self.tab_result.closeAll()  # this call must happen first. 
-                                    # otherwise, it locks temporary GIS files 
-        self.ui.mainTabs.setTabEnabled(0, False)            
-        self.ui.mainTabs.setTabEnabled(1, False)
-        self.ui.mainTabs.setTabEnabled(2, False)               
-        self.ui.mainTabs.setTabEnabled(3, False) 
-        self.showTab(0)
+                                    # otherwise, it locks temporary GIS files
+        self.ui.mainTabs.setTabEnabled(self.TAB_DATA, False)            
+        self.ui.mainTabs.setTabEnabled(self.TAB_MS, False)
+        self.ui.mainTabs.setTabEnabled(self.TAB_MOD, False)               
+        self.ui.mainTabs.setTabEnabled(self.TAB_RESULT, False) 
+        self.showTab(self.TAB_DATA)
         # disable menu/menu items
+        self.ui.actionSave.setEnabled(False)
+        self.ui.actionSave_as.setEnabled(False)
         self.ui.actionMapping_Schemes.setEnabled(False)
         self.ui.actionResult.setEnabled(False)
         self.ui.actionProcessing_Options.setEnabled(False)
-        
+
         if getattr(self, 'project', None) is not None:
             # save existing project is needed
             if self.project.require_save:
@@ -367,7 +419,7 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
             self.tab_datainput.closeProject()
             self.tab_ms.clearMappingScheme()
             self.tab_mod.closeMappingScheme()
-            self.project.clean_up()            
+            self.project.clean_up()           
             del self.project
             self.project = None
             
@@ -384,10 +436,8 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         self.tab_datainput.showVerificationResults()
         
         # always allow mapping scheme
-        self.ui.mainTabs.setTabEnabled(1, True)
-        self.ui.mainTabs.setTabEnabled(2, True)
-        self.tab_result.refreshView()        
-
+        self.ui.mainTabs.setTabEnabled(self.TAB_MS, True)
+        self.ui.mainTabs.setTabEnabled(self.TAB_MOD, True)
         self.ui.actionMapping_Schemes.setEnabled(True)
         self.ui.actionResult.setEnabled(True)      
         self.ui.actionProcessing_Options.setEnabled(True)   
@@ -402,6 +452,7 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         try:
             invoke_async(get_ui_string("app.status.processing"), self.project.build_ms)
         except SIDDException as err:
+            # different error message used in this case
             raise SIDDUIException(get_ui_string('project.error.sampling', str(err)))
         
         self.visualizeMappingScheme(self.project.ms)
@@ -433,12 +484,20 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         self.ui.statusbar.showMessage(get_ui_string("app.status.ms.modified"))
 
     @apiCallChecker
-    def exportMSLeaves(self, path):
+    def exportMS(self, path, format):
         """ export mapping scheme leaves as CSV """
         self.ui.statusbar.showMessage(get_ui_string("app.status.ms.processing"))
-        # invoke asynchronously        
-        invoke_async(get_ui_string("app.status.processing"), self.project.export_ms_leaves, path)
+        # invoke asynchronously       
+        invoke_async(get_ui_string("app.status.processing"), self.project.export_ms, path, format)
         self.ui.statusbar.showMessage(get_ui_string("app.status.ms.exported"))
+        
+    @apiCallChecker
+    def loadMS(self, path):
+        self.ui.statusbar.showMessage(get_ui_string("app.status.ms.processing"))
+        # invoke asynchronously       
+        invoke_async(get_ui_string("app.status.processing"), self.project.load_ms, path)
+        self.visualizeMappingScheme(self.project.ms)
+        self.ui.statusbar.showMessage(get_ui_string("app.status.ms.created"))
 
     @apiCallChecker
     def exportResults(self, export_format, export_path):
@@ -463,12 +522,12 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
 
             # show result 
             self.tab_datainput.showVerificationResults()
-            self.ui.mainTabs.setCurrentIndex(0)
+            self.ui.mainTabs.setCurrentIndex(self.TAB_DATA)
             return
         
         # close current results
         self.tab_result.closeResult()
-        self.ui.mainTabs.setTabEnabled(3, True)
+        self.ui.mainTabs.setTabEnabled(self.TAB_RESULT, True)
 
         # reset progress dialog
         self.progress.setVisible(True)
@@ -481,35 +540,36 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         error_occured = False
         error_message = ""
         curStep = 0
-        for step in self.project.build_exposure_steps():
-            if cancelled or error_occured:
-                break
-            
-            # use introspection to get operator class                           
-            class_name = str(step.__class__)
-            # result of above call has format 
-            # <class '...'> where ... is the class name of interest
-            class_name = class_name[class_name.find("'")+1:class_name.rfind("'")]
-            
-            # update UI
-            logAPICall.log('\t %s' % step.name, logAPICall.DEBUG)
-            self.progress.ui.txt_progress.appendPlainText(get_ui_string('message.%s'% class_name))
-            self.progress.ui.pb_progress.setValue(curStep)                        
-            self.qtapp.processEvents()
-            sleep(0.5)
-            
-            # perform operation
-            try:
+        try:
+            for step in self.project.build_exposure_steps():
+                if cancelled or error_occured:
+                    break
+                
+                # use introspection to get operator class                           
+                class_name = str(step.__class__)
+                # result of above call has format 
+                # <class '...'> where ... is the class name of interest
+                class_name = class_name[class_name.find("'")+1:class_name.rfind("'")]
+                
+                # update UI
+                logAPICall.log('\t %s' % step.name, logAPICall.DEBUG)
+                self.progress.ui.txt_progress.appendPlainText(get_ui_string('message.%s'% class_name))
+                self.progress.ui.pb_progress.setValue(curStep)                        
+                self.qtapp.processEvents()
+                sleep(0.5)
+                
+                # perform operation
                 step.do_operation()
                 if not self.progress.isVisible():
                     cancelled = True
-            except Exception as err:
-                error_message = err.message
-                error_occured = True
-                self.progress.setVisible(False)
-            
-            # operation successful
-            curStep+=1
+                
+                # operation successful
+                curStep+=1
+        except Exception as err:
+            # exception are thrown if data is not ready for exposure 
+            error_message = err.message
+            error_occured = True
+            self.progress.setVisible(False)
             
         if error_occured:
             # processing cancelled
@@ -526,28 +586,64 @@ class AppMainWindow(Ui_mainWindow, QMainWindow):
         
             # show result
             self.tab_result.refreshResult()
-            self.ui.mainTabs.setTabEnabled(3, True)
-            self.ui.mainTabs.setCurrentIndex(3)
+            self.ui.mainTabs.setTabEnabled(self.TAB_RESULT, True)
+            self.ui.mainTabs.setCurrentIndex(self.TAB_RESULT)
             self.ui.statusbar.showMessage(get_ui_string("app.status.exposure.created"))       
     
-    # safe methods
-    # methods below only makes UI change
-    # no need to check call
-    ###############################
-    @logAPICall
     def showTab(self, index):
         """ switch view to tab with given index. do nothing if index is not valid """
-        if index >=0 and index <=3:
+        if index >=self.TAB_DATA and index <=self.TAB_RESULT:
             self.ui.mainTabs.setCurrentIndex(index)
     
-    @logAPICall
     def refreshPreview(self):
         """ refresh all layers shown in Preview tab """
         if self.previewInput:
             self.tab_result.refreshView()
 
-    @logAPICall
     def visualizeMappingScheme(self, ms):
         """ display the given mapping scheme in Mapping scheme and Modifier tabs"""
         self.tab_ms.showMappingScheme(ms)
         self.tab_mod.showMappingScheme(ms)
+    
+    def updateMapLocation(self, x, y):
+        self.lb_map_location.setText("Longitude %.4f latitude %4f" % (x, y))
+    
+    # utility methods    
+    # no error checking is performed in these functions
+    # caller must catch possible exception
+    ###############################
+    def setRange(self, ranges, attribute):         
+        if ranges.has_key(attribute):
+            range = ranges[attribute]
+            self.dlgAttrRange.set_values(attribute, range['min_values'], range['max_values'])
+        else:
+            self.dlgAttrRange.set_values(attribute, [], [])
+        
+        range_updated = self.dlgAttrRange.exec_() == QDialog.Accepted         
+        if range_updated:
+            ranges[attribute] = {'min_values':self.dlgAttrRange.min_values,
+                                 'max_values':self.dlgAttrRange.max_values}
+        return range_updated
+                
+    def getOpenFileName(self, parent, title, extension, callback):
+        """ show open file dialog box to get a filename """
+        filename = QFileDialog.getOpenFileName(parent, title, self.getLastOpenDir(), extension)
+        if not filename.isNull():
+            filename = str(filename)
+            if os.path.exists(filename):                
+                # store directory to file, so next Open will be in same dir
+                self.saveLastOpenDir(filename[0:filename.rfind("/")])
+                callback(filename)  # no error catching to make sure callback is actually a function
+
+    def saveLastOpenDir(self, dir_path):
+        """ store path so it can be retrieved by other parts of the application """
+        self.settings.setValue('LAST_OPEN_DIR', dir_path)
+
+    def getLastOpenDir(self):
+        """ retrieve remembered path """
+        last_dir = self.settings.value('LAST_OPEN_DIR').toString()
+        if last_dir is None:
+            return get_app_dir()
+        else:
+            return str(last_dir)
+    

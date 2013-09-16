@@ -148,7 +148,7 @@ class Operator(object):
         # check out size
         if (len(outputs) != len(self.output_types)):
             raise OperatorDataError("incorrect number of output")
-        
+
         # verify output types
         _i = 1
         for _output, _expected in map(None, outputs, self.output_types):
@@ -196,11 +196,13 @@ class Operator(object):
     
     def _test_layer_loaded(self, layer):        
         if layer.dataProvider() is None:
-            raise OperatorDataError("layer %s not correctly loaded" % layer.name(), self.__class__)
+            raise OperatorDataError("layer %s not correctly loaded" % layer.name())
     
     def _test_layer_field_exists(self, layer, field):
-        if layer_field_index(layer, field) == -1:
-            raise OperatorDataError("field %s not found in input layer" % field, self.__class__)          
+        idx = layer_field_index(layer, field) 
+        if idx == -1:
+            raise OperatorDataError("field %s not found in input layer" % field)
+        return idx
 
 class EmptyOperator(Operator):
     '''

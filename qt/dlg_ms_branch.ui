@@ -168,7 +168,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Some of Weights</string>
+    <string>Sum of weights</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>

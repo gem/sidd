@@ -24,3 +24,4 @@ class AppSplashScreen(QSplashScreen):
         splash_pix = QPixmap(':/imgs/logo.png')
         super(AppSplashScreen, self).__init__(splash_pix, Qt.WindowStaysOnTopHint)
         self.setMask(splash_pix.mask())
+        

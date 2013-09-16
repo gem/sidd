@@ -41,6 +41,9 @@ class DialogProcessingOptions(Ui_procOptionsDialog, QDialog):
     def __dir__(self):
         return ['extrapolation']
 
+    def resetOptions(self):
+        self.extrapolation = ExtrapolateOptions.Fraction
+
     @property
     def extrapolation(self):
         if self.ui.radio_random.isChecked():
@@ -51,7 +54,7 @@ class DialogProcessingOptions(Ui_procOptionsDialog, QDialog):
             return ExtrapolateOptions.FractionRounded
         else:
             # default case
-            return ExtrapolateOptions.RandomWalk
+            return ExtrapolateOptions.Fraction
     
     @extrapolation.setter
     def extrapolation(self, value):
@@ -63,4 +66,4 @@ class DialogProcessingOptions(Ui_procOptionsDialog, QDialog):
             self.ui.radio_actual_rounded.setChecked(True)
         else:
             # default case
-            self.ui.radio_random.setChecked(True)
+            self.ui.radio_actual.setChecked(True)

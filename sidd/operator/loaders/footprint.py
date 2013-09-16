@@ -119,6 +119,8 @@ class FootprintLoader(Operator):
                 centroid  = geom.centroid().asPoint()
                 if transform_required:
                     t_centroid = transform.transform(centroid)
+                else:
+                    t_centroid = centroid
                 
                 # 3. project into mercator and get area in m2
                 geom.transform(mercator_transform)
@@ -130,7 +132,7 @@ class FootprintLoader(Operator):
                 f.addAttribute(0, QVariant(gid))
                 f.addAttribute(1, QVariant(t_centroid.x()))
                 f.addAttribute(2, QVariant(t_centroid.y()))
-                f.addAttribute(3, QVariant(area))    
+                f.addAttribute(3, QVariant(area))
                 if ht_idx != -1:
                     f.addAttribute(4, _f.attributeMap()[ht_idx])
                 else:

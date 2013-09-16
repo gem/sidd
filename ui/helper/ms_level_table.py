@@ -19,6 +19,7 @@ dialog for editing mapping scheme branches
 from PyQt4.QtCore import Qt, QVariant, QString, QAbstractTableModel
 from ui.constants import logUICall, get_ui_string
 from ui.helper.common import build_attribute_tooltip
+from sidd.exception import SIDDException
 
 class MSLevelTableModel(QAbstractTableModel):
     """
@@ -36,8 +37,9 @@ class MSLevelTableModel(QAbstractTableModel):
         ]        
         self.parser=parser
         self.valid_codes=valid_codes
-        self.values, self.weights = self._sort(values, weights)
+        self.values, self.weights = self.do_sort(values, weights)
         self.is_editable = is_editable
+        self.editable_indices = {}
     
     def columnCount(self, parent):
         """ only two columns exist. always return 2 """
@@ -107,7 +109,16 @@ class MSLevelTableModel(QAbstractTableModel):
         if role == Qt.EditRole:
             if (index.column() == 0):
                 # first column, change value
-                taxStr = str(value.toString())
+                taxStr = str(value.toString())                
+                # make sure there is no repeat
+                try:                    
+                    self.values.index(taxStr)
+                    # no error means taxStr already in self.value
+                    found = True                    
+                except:
+                    found = False
+                if found:
+                    raise SIDDException(get_ui_string("dlg.msbranch.error.attribute.exists") % taxStr)
                 # do nothing for empty string
                 if taxStr == "":
                     return False           
@@ -120,10 +131,10 @@ class MSLevelTableModel(QAbstractTableModel):
                 (dVal, sucess) = value.toDouble()
                 # conversion to double failed
                 if not sucess:
-                    raise Exception(get_ui_string("dlg.msbranch.edit.warning.invalidweight"))
+                    raise SIDDException(get_ui_string("dlg.msbranch.edit.warning.invalidweight"))
                 # make sure 0 <= dVal <= 100
                 if dVal < 0 or dVal > 100:
-                    raise Exception(get_ui_string("dlg.msbranch.edit.warning.invalidweight"))
+                    raise SIDDException(get_ui_string("dlg.msbranch.edit.warning.invalidweight"))
                                     
                 # passed all checks. set value
                 self.weights[index.row()] = round(dVal, 1)
@@ -131,17 +142,25 @@ class MSLevelTableModel(QAbstractTableModel):
             self.dataChanged.emit(self.createIndex(0, 0), self.createIndex(self.rowCount(0),self.columnCount(0)))
             return True
         return False
-    
+        
     def flags(self, index):
         """ cell condition flag """
         # NOTE: 
         #   ItemIsEditable also required data() and setData() function
-        _combined_flag = Qt.ItemIsEnabled | Qt.ItemIsSelectable  
+        combined_flag = Qt.ItemIsEnabled | Qt.ItemIsSelectable  
         if index.column() < 0 and index.column() > len(self.is_editable):
-            return _combined_flag
-        if self.is_editable[index.column()]:
-            _combined_flag = _combined_flag | Qt.ItemIsEditable
-        return _combined_flag 
+            return combined_flag
+        if self.is_editable[index.column()] or self.editable_indices.has_key((index.column(), index.row())):
+            combined_flag = combined_flag | Qt.ItemIsEditable
+        return combined_flag 
+
+    def set_cell_editable(self, column, row, editable=True):
+        key = (column, row)
+        if editable:
+            self.editable_indices[key] = editable
+        else:
+            if self.editable_indices.has_key(key):
+                self.editable_indices.pop(key) 
 
     def sort(self, ncol, order):
         """ sort table """
@@ -150,13 +169,15 @@ class MSLevelTableModel(QAbstractTableModel):
         self.layoutAboutToBeChanged.emit()
         
         if ncol == 0:
-            self.values, self.weights = self._sort(self.values, self.weights, reverse_sort=order==Qt.DescendingOrder)
+            self.values, self.weights = self.do_sort(self.values, self.weights, reverse_sort=order==Qt.DescendingOrder)
         else:
-            self.weights, self.values = self._sort(self.weights, self.values, reverse_sort=order==Qt.DescendingOrder)            
+            self.weights, self.values = self.do_sort(self.weights, self.values, reverse_sort=order==Qt.DescendingOrder)            
                         
         self.layoutChanged.emit()
 
-    def _sort(self, col1, col2, reverse_sort=False):
+    # internal helper methods
+    ############################### 
+    def do_sort(self, col1, col2, reverse_sort=False):
         dist = []
         for v, w in map(None, col1, col2):
             dist.append({v:w})

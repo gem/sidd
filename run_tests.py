@@ -37,24 +37,27 @@ def suite():
     #suite.addTest(MSTestCase('test_StatsAddBranch'))
     #suite.addTest(MSTestCase('test_StatsRandomWalk'))
     #suite.addTest(MSTestCase('test_StatsLeaves'))
+    #suite.addTest(MSTestCase('test_Sampling'))
     
     # operator tests
     #suite.addTest(OperatorTestCase('test_LoadZone'))
+    #suite.addTest(OperatorTestCase('test_LoadZone2'))
     #suite.addTest(OperatorTestCase('test_MakeGrid'))
     #suite.addTest(OperatorTestCase('test_ZoneGridJoin'))
     #suite.addTest(OperatorTestCase('test_CreateMSFromSurveyZone'))
     #suite.addTest(OperatorTestCase('test_CreateMSFromSurveyOnly'))
-    #suite.addTest(OperatorTestCase('test_ApplyMS'))    
+    #suite.addTest(OperatorTestCase('test_ApplyMS'))
     #suite.addTest(OperatorTestCase('test_LoadGEMDBSurvey'))
     #suite.addTest(OperatorTestCase('test_VerifyExposure'))
     #suite.addTest(OperatorTestCase('test_MakeGridGeometry'))
     #suite.addTest(OperatorTestCase('test_StratifiedSampleMS'))
     #suite.addTest(OperatorTestCase('test_ZoneFootprintToGridJoin'))
     #suite.addTest(OperatorTestCase('test_ZoneToGridJoin'))
+    #suite.addTest(OperatorTestCase('test_ZonePopGridJoin'))
     
     # taxonomy tests    
     suite.addTest(TaxonomyTestCase('test_Load'))
-    #suite.addTest(TaxonomyTestCase('test_Parse'))
+    suite.addTest(TaxonomyTestCase('test_Parse'))
     
     # project tests
     #suite.addTest(ProjectTestCase('test_WorkflowBuilder'))

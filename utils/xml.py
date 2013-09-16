@@ -16,7 +16,6 @@
 """
 XML helper functions
 """
-
 def get_node_attrib(node, attrib_name):
     try:
         return node.attrib[attrib_name]

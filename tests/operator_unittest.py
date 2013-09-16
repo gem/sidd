@@ -18,11 +18,12 @@ import os
 import logging
 
 # import sidd packages for testing
-from sidd.ms import MappingScheme
+from sidd.ms import MappingScheme, MappingSchemeZone
 from sidd.operator import *
-from utils.shapefile import remove_shapefile, layer_fields_stats, load_shapefile, layer_features, layer_field_index
+from utils.shapefile import remove_shapefile, layer_field_stats, load_shapefile, layer_features, layer_field_index
 from sidd.constants import AREA_FIELD_NAME, HT_FIELD_NAME, CNT_FIELD_NAME
 from sidd.taxonomy import get_taxonomy
+
 
 from common import SIDDTestCase
 
@@ -45,17 +46,30 @@ class OperatorTestCase(SIDDTestCase):
         # test data set 2
         self.zone2_path = self.test_data_dir +  "zones2.shp"
         self.zone2_field = 'LandUse'
-        self.zone2_bldg_count = 546
+        self.zone2_feature_count = 546
+        self.zone2_total_bldg_cnt = 292377
+        self.zone2_total_bldg_area = 71582303
         self.zone2_bldgcount_field = 'NumBldg'
+        self.zone2_bldgarea_field = 'SqMtBldg'
 
         # test data set 3
         self.fp3_path = self.test_data_dir +  "footprints3.shp"
         self.fp3_height_field = "HEIGHT"
         self.fp3_feature_count = 785
-        self.gemdb3_path = self.test_data_dir +  "survey3.gemdb"
+        self.fp3_total_area = 774814.441
+        self.gemdb3_path = self.test_data_dir +  "survey3.db3"
         self.zone3_path = self.test_data_dir +  "zones3.shp"
         self.zone3_field = "ZONE"
         self.zone3_bldgcount_field = 'NumBldgs'
+        self.zone3_bldgarea_field = 'SqMtBldg'        
+        self.zone3_total_bldg_cnt = 850
+        self.zone3_total_bldg_area = 500000
+        
+        self.popgrid_path = self.test_data_dir + 'popgrid.shp'
+        self.pop_field = "Population"
+        self.popgrid_feature_count = 4 
+        self.popgrid_zone_path = self.test_data_dir + 'popgrid_zone.shp'
+        self.popgrid_zone_field = "ZONE"
         
         self.grid_path = self.test_data_dir +  "grid.shp"
         self.grid2_path = self.test_data_dir +  "grid2.shp"
@@ -63,7 +77,7 @@ class OperatorTestCase(SIDDTestCase):
         self.operator_options = {
             'tmp_dir': self.test_tmp_dir,
             'taxonomy':self.taxonomy,
-            'skips':[1,2,3,4,5,6],
+            'attribute.order':['Material Type', 'Material Technology', 'Lateral Load Resisting System', 'Height', 'Occupancy'],            
         }
 
     def tearDown(self):
@@ -125,6 +139,25 @@ class OperatorTestCase(SIDDTestCase):
         del layer
         self._clean_layer(loader.outputs)  
     
+    def test_LoadPopGrid(self, skipTest=False):
+        logging.debug('test_LoadPopGrid %s' % skipTest)
+        """ create operator for loading zone data and add to workflow """
+        # required operator_data for additional processing
+        loader = PopGridLoader(self.operator_options)
+        loader.inputs = [OperatorData(OperatorDataTypes.Shapefile, self.popgrid_path),
+                         OperatorData(OperatorDataTypes.StringAttribute, self.pop_field)]        
+        loader.outputs = [OperatorData(OperatorDataTypes.Population),
+                          OperatorData(OperatorDataTypes.Shapefile)]
+        # add to workflow
+        loader.do_operation()
+        if skipTest:
+            return loader.outputs
+        layer = loader.outputs[0].value        
+        self.assertEquals(self.popgrid_feature_count, layer.dataProvider().featureCount())        
+        
+        del layer
+        self._clean_layer(loader.outputs)  
+                
 
     def test_LoadZone(self, skipTest=False, zone=1):
         logging.debug('test_LoadZone %s' % skipTest)
@@ -135,9 +168,12 @@ class OperatorTestCase(SIDDTestCase):
         elif zone ==2:
             zone_path = self.zone2_path
             zone_field = self.zone2_field
-        else:
+        elif zone ==3:
             zone_path = self.zone3_path
             zone_field = self.zone3_field
+        elif zone==4:            
+            zone_path = self.popgrid_zone_path
+            zone_field = self.popgrid_zone_field
         
         loader = ZoneLoader(self.operator_options)
         loader.inputs = [
@@ -163,10 +199,12 @@ class OperatorTestCase(SIDDTestCase):
             zone_path = self.zone2_path
             zone_field = self.zone2_field
             zone_count_field = self.zone2_bldgcount_field
+            zone_area_field = self.zone2_bldgarea_field
         elif zone==3: 
             zone_path = self.zone3_path
             zone_field = self.zone3_field
             zone_count_field = self.zone3_bldgcount_field
+            zone_area_field  = self.zone3_bldgarea_field
         else:
             raise Exception("zone not supported")
         
@@ -175,6 +213,7 @@ class OperatorTestCase(SIDDTestCase):
             OperatorData(OperatorDataTypes.Shapefile, zone_path),
             OperatorData(OperatorDataTypes.StringAttribute, zone_field),
             OperatorData(OperatorDataTypes.StringAttribute, zone_count_field),
+            OperatorData(OperatorDataTypes.StringAttribute, zone_area_field),
         ]
         loader.outputs = [
             OperatorData(OperatorDataTypes.Zone),
@@ -185,13 +224,15 @@ class OperatorTestCase(SIDDTestCase):
             return loader.outputs
         
         zones = loader.outputs[0].value
-        self.assertEquals(zones.featureCount(), self.zone2_bldg_count)
-
-        classes = layer_fields_stats(zones, self.zone2_field)
-        _total = 0
-        for _k, _v in classes.iteritems():
-            _total+=_v
-        self.assertEquals(_total, self.zone2_bldg_count)
+        self.assertEquals(zones.featureCount(), self.zone2_feature_count)
+        bldg_cnt_idx = layer_field_index(zones, zone_count_field)
+        bldg_area_idx = layer_field_index(zones, zone_area_field)
+        total_bldg_cnt, total_bldg_area = 0, 0
+        for feature in layer_features(zones):
+            total_bldg_cnt += feature.attributeMap()[bldg_cnt_idx].toDouble()[0]
+            total_bldg_area += feature.attributeMap()[bldg_area_idx].toDouble()[0]
+        self.assertEquals(total_bldg_cnt, self.zone2_total_bldg_cnt)
+        self.assertEquals(total_bldg_area, self.zone2_total_bldg_area)
         
         # clean up
         del zones
@@ -203,7 +244,8 @@ class OperatorTestCase(SIDDTestCase):
         loader = GEMDBSurveyLoader(self.operator_options)
         loader.inputs = [
             OperatorData(OperatorDataTypes.File, self.gemdb3_path),
-            OperatorData(OperatorDataTypes.StringAttribute, 'GEMDB'),            
+            OperatorData(OperatorDataTypes.StringAttribute, 'GEMDB'),
+            OperatorData(OperatorDataTypes.StringAttribute, None),            
         ]
         loader.outputs = [
             OperatorData(OperatorDataTypes.Survey),
@@ -212,6 +254,21 @@ class OperatorTestCase(SIDDTestCase):
         loader.do_operation()
         if skipTest:
             return loader.outputs
+        
+        # perform test
+        survey_layer = loader.outputs[0].value
+        self.assertEqual(survey_layer.dataProvider().featureCount(), 24)
+        
+        grp_idx = layer_field_index(survey_layer, "GROUP")
+        groups = {}
+        for svy in layer_features(survey_layer):
+            group = str(svy.attributeMap()[grp_idx].toString())
+            if not groups.has_key(group):
+                groups[group]=1
+            else:
+                groups[group]+=1
+        self.assertEqual(len(groups), 3)
+        self.assertEqual(groups.values(), [8, 8, 8])
         
         # clean up
         self._clean_layer(loader.outputs)  
@@ -231,7 +288,12 @@ class OperatorTestCase(SIDDTestCase):
                               OperatorData(OperatorDataTypes.ZoneStatistic),]
         
         ms_creator.do_operation()
-        
+        ms = ms_creator.outputs[0].value
+        stats = ms.get_assignment_by_name("ALL")
+        stats.refresh_leaves(with_modifier=False)
+        self.assertEquals(len(stats.leaves), 12)
+        self.assertAlmostEquals(sum([l[1] for l in stats.leaves]), 1)
+
         # clean up
         self._clean_layer(fp_data)
         self._clean_layer(survey_data)        
@@ -429,7 +491,8 @@ class OperatorTestCase(SIDDTestCase):
         merger.inputs = [
             zone_data[0],
             OperatorData(OperatorDataTypes.StringAttribute, self.zone2_field),
-            OperatorData(OperatorDataTypes.StringAttribute, self.zone2_bldgcount_field),            
+            OperatorData(OperatorDataTypes.StringAttribute, self.zone2_bldgcount_field),
+            OperatorData(OperatorDataTypes.StringAttribute, self.zone2_bldgarea_field),          
         ]
         merger.outputs = [
             OperatorData(OperatorDataTypes.Grid),
@@ -444,12 +507,18 @@ class OperatorTestCase(SIDDTestCase):
         
         self.assertTrue(os.path.exists(merger.outputs[1].value))
         cnt_idx = layer_field_index(merger.outputs[0].value, CNT_FIELD_NAME)
-        total_cnt = 0
+        area_idx = layer_field_index(merger.outputs[0].value, AREA_FIELD_NAME)
+        total_cnt, total_sqmt = 0, 0
         for _f in layer_features(merger.outputs[0].value):
             cnt = _f.attributeMap()[cnt_idx].toDouble()[0]
+            area = _f.attributeMap()[area_idx].toDouble()[0]
             total_cnt+= cnt
-        self.assertAlmostEqual(total_cnt, 292400, places=-2)
+            total_sqmt+=area
         
+        # sum(count)=292377  sum(sqmt)=71582303
+        self.assertAlmostEqual(total_cnt, self.zone2_total_bldg_cnt, places=-2)
+        self.assertAlmostEqual(total_sqmt, self.zone2_total_bldg_area, places=-2)
+
         # cleanup
         self._clean_layer(zone_data)
         self._clean_layer(merger.outputs)
@@ -457,9 +526,10 @@ class OperatorTestCase(SIDDTestCase):
     def test_ZoneFootprintToGridJoin(self, skipTest=False):
         logging.debug('test_ZoneFootprintJoin %s' % skipTest)
         
-        # load data
+        # test 1
+        # area from footprint
         zone_data = self.test_LoadZone2(True, 3)
-        fp_opdata = self.test_LoadFootprint(True, 3)
+        fp_opdata = self.test_LoadFootprintHT(skipTest=True)
         
         # test 1
         merger = FootprintZoneToGrid(self.operator_options)
@@ -467,7 +537,8 @@ class OperatorTestCase(SIDDTestCase):
             fp_opdata[0],
             zone_data[0],
             OperatorData(OperatorDataTypes.StringAttribute, self.zone3_field),
-            OperatorData(OperatorDataTypes.StringAttribute, self.zone3_bldgcount_field),            
+            OperatorData(OperatorDataTypes.StringAttribute, self.zone3_bldgcount_field),
+            OperatorData(OperatorDataTypes.StringAttribute, self.zone3_bldgarea_field),            
         ]
         merger.outputs = [
             OperatorData(OperatorDataTypes.Grid),
@@ -480,23 +551,62 @@ class OperatorTestCase(SIDDTestCase):
             self._clean_layer(fp_opdata)
             self._clean_layer(zone_data)
             return merger.outputs
-        
+
         self.assertTrue(os.path.exists(merger.outputs[1].value))
         cnt_idx = layer_field_index(merger.outputs[0].value, CNT_FIELD_NAME)
-        total_cnt = 0
+        area_idx = layer_field_index(merger.outputs[0].value, AREA_FIELD_NAME)
+        total_cnt, total_sqmt = 0, 0
         for _f in layer_features(merger.outputs[0].value):
             cnt = _f.attributeMap()[cnt_idx].toDouble()[0]
+            area = _f.attributeMap()[area_idx].toDouble()[0]
             total_cnt+= cnt
-        self.assertAlmostEqual(total_cnt, 850, places=2)
+            total_sqmt +=area 
+        self.assertAlmostEqual(total_cnt, self.zone3_total_bldg_cnt, places=2)
+        self.assertAlmostEqual(total_sqmt, self.fp3_total_area, places=-2)
         self._clean_layer(merger.outputs)
-
-        # test 2        
+                
+        # load data
+        self._clean_layer(fp_opdata)
+        fp_opdata = self.test_LoadFootprint(True, 3)
+        
+        # test 2
+        # area from zone
         merger = FootprintZoneToGrid(self.operator_options)
         merger.inputs = [
             fp_opdata[0],
             zone_data[0],
             OperatorData(OperatorDataTypes.StringAttribute, self.zone3_field),
-            OperatorData(OperatorDataTypes.StringAttribute, ''),            
+            OperatorData(OperatorDataTypes.StringAttribute, self.zone3_bldgcount_field),
+            OperatorData(OperatorDataTypes.StringAttribute, self.zone3_bldgarea_field),            
+        ]
+        merger.outputs = [
+            OperatorData(OperatorDataTypes.Grid),
+            OperatorData(OperatorDataTypes.Shapefile)
+        ]
+        merger.do_operation()
+        
+        self.assertTrue(os.path.exists(merger.outputs[1].value))
+        cnt_idx = layer_field_index(merger.outputs[0].value, CNT_FIELD_NAME)
+        area_idx = layer_field_index(merger.outputs[0].value, AREA_FIELD_NAME)
+        total_cnt, total_sqmt = 0, 0
+        for _f in layer_features(merger.outputs[0].value):
+            cnt = _f.attributeMap()[cnt_idx].toDouble()[0]
+            area = _f.attributeMap()[area_idx].toDouble()[0]
+            total_cnt+= cnt
+            total_sqmt +=area 
+        self.assertAlmostEqual(total_cnt, self.zone3_total_bldg_cnt, places=2)
+        self.assertAlmostEqual(total_sqmt, self.zone3_total_bldg_area, places=-2)
+        self._clean_layer(merger.outputs)
+
+        # test 3
+        # no area    
+        merger = FootprintZoneToGrid(self.operator_options)
+        merger.inputs = [
+            fp_opdata[0],
+            zone_data[0],
+            OperatorData(OperatorDataTypes.StringAttribute, self.zone3_field),
+            OperatorData(OperatorDataTypes.StringAttribute),
+            OperatorData(OperatorDataTypes.StringAttribute),
         ]
         merger.outputs = [
             OperatorData(OperatorDataTypes.Grid),
@@ -509,12 +619,12 @@ class OperatorTestCase(SIDDTestCase):
         for _f in layer_features(merger.outputs[0].value):
             cnt = _f.attributeMap()[cnt_idx].toDouble()[0]
             total_cnt+= cnt
-        self.assertAlmostEqual(total_cnt, 785, places=2)
+        self.assertAlmostEqual(total_cnt, self.fp3_feature_count, places=2)
         
         # cleanup
         self._clean_layer(fp_opdata)
         self._clean_layer(zone_data)
-        self._clean_layer(merger.outputs)        
+        self._clean_layer(merger.outputs)
 
     # test mapping scheme creator
     ##################################
@@ -640,9 +750,14 @@ class OperatorTestCase(SIDDTestCase):
         
         # load zone with count
         zone_data = self.test_LoadZone2(True, 2)
-        
+        zone_stats = layer_field_stats(zone_data[0].value, self.zone2_field)
         # load ms
         ms_opdata = self.test_LoadMS(True)
+        ms = ms_opdata[0].value
+        stats = ms.get_assignment_by_name('ALL')
+        for zone in zone_stats.keys():
+            newZone = MappingSchemeZone(zone)
+            ms.assign(newZone, stats)
         
         # apply mapping scheme        
         ms_applier = ZoneMSApplier(self.operator_options)
@@ -678,7 +793,7 @@ class OperatorTestCase(SIDDTestCase):
         ms_applier.outputs = [
             OperatorData(OperatorDataTypes.Exposure),
             OperatorData(OperatorDataTypes.Shapefile),
-        ]        
+        ]
         ms_applier.do_operation()
         self.assertTrue(os.path.exists(ms_applier.outputs[1].value))
         
@@ -750,7 +865,34 @@ class OperatorTestCase(SIDDTestCase):
         #print report.value
         self.assertEquals(report.value['total_source'], report.value['total_exposure'])
     
-    
+    def test_ZonePopGridJoin(self):
+        # 1 attach population counts to zones (convert to building count in process)
+        ###################################        
+        
+        pop_grid = self.test_LoadPopGrid(skipTest=True)
+        zone = self.test_LoadZone(skipTest=True, zone=4)
+
+        grid_writer = ZonePopgridCounter(self.operator_options)
+        grid_writer.inputs = [zone[0],
+                              OperatorData(OperatorDataTypes.StringAttribute, self.popgrid_zone_field),                              
+                              pop_grid[0],
+                              OperatorData(OperatorDataTypes.NumericAttribute, 10)]                         
+                    
+        grid_writer.outputs = [OperatorData(OperatorDataTypes.Zone),
+                               OperatorData(OperatorDataTypes.Shapefile),]        
+        grid_writer.do_operation()
+                
+        grid_writer = PopgridZoneToGrid(self.operator_options)
+        grid_writer.inputs = [pop_grid[0],
+                              zone[0],
+                              OperatorData(OperatorDataTypes.StringAttribute, self.popgrid_zone_field),                              
+                              OperatorData(OperatorDataTypes.NumericAttribute, 10)]                         
+                    
+        grid_writer.outputs = [OperatorData(OperatorDataTypes.Grid),
+                               OperatorData(OperatorDataTypes.Shapefile),]        
+        grid_writer.do_operation()
+
+            
     def _clean_layer(self, output):
         del output[0].value
         remove_shapefile(output[1].value)

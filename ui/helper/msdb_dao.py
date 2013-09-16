@@ -58,7 +58,7 @@ class MSDatabaseDAO:
         if not self.initialized:
             return []
         else:
-            regions = self._get_list( self.sql['GET_REGIONS'] )
+            regions = self.get_list( self.sql['GET_REGIONS'] )
             # add undefined region to allow user to store 
             # mapping schemes not associated with any region
             try:
@@ -73,37 +73,37 @@ class MSDatabaseDAO:
         if not self.initialized:
             return []
         else:
-            return self._get_list( self.sql['GET_TYPES'], [region] )
+            return self.get_list( self.sql['GET_TYPES'], [region] )
     
     def get_ms_in_region_type(self, region, ms_type):
         logUICall.log('get_ms_in_region_type %s %s' % (region, ms_type), logUICall.DEBUG_L2)
         if not self.initialized:
             return []
         else:
-            return self._get_list( self.sql['GET_MSNAME'], [region, ms_type])
+            return self.get_list( self.sql['GET_MSNAME'], [region, ms_type])
     
     def get_ms(self, region, ms_type, ms_name):
         logUICall.log('get_ms %s %s %s' % (region, ms_type, ms_name), logUICall.DEBUG_L2)        
         if not self.initialized:
             return []
         else:
-            return self._get_list( self.sql['GET_MS'], [region, ms_type, ms_name], first_column=False)[0]
+            return self.get_list( self.sql['GET_MS'], [region, ms_type, ms_name], first_column=False)[0]
     
     def save_ms(self, region, ms_name, source, date, datasource, quality, notes, ms_xml):
         logUICall.log('get_ms %s %s %s %s %s %s %s %s' % (region, ms_name, source,
                                                           date, datasource, quality,
                                                           notes, ms_xml[0:20]), 
                       logUICall.DEBUG_L2)
-        _id = int(self._get_list(self.sql['GET_MAX_MS_ID'])[0]) + 1
-        return self._exec(self.sql['INSERT_MS'], [_id, region, ms_name,
-                                                   source, date, datasource,
-                                                   quality, notes, ms_xml], True)
+        rowid = int(self.get_list(self.sql['GET_MAX_MS_ID'])[0]) + 1
+        return self.exec_sql(self.sql['INSERT_MS'], [rowid, region, ms_name,
+                                                     source, date, datasource,
+                                                     quality, notes, ms_xml], True)
      
     
     def delete_ms(self, region, ms_type, ms_name):
-        return self._exec(self.sql['DELETE_MS'], [region, ms_type, ms_name], True)
+        return self.exec_sql(self.sql['DELETE_MS'], [region, ms_type, ms_name], True)
     
-    def _get_list(self, sql, param=[], first_column=True):
+    def get_list(self, sql, param=[], first_column=True):
         results = []
         try:
             c = self.conn.cursor()                        
@@ -118,7 +118,7 @@ class MSDatabaseDAO:
             logUICall.log(e, logUICall.ERROR)
         return results   
     
-    def _exec(self, sql, param, require_commit=False):
+    def exec_sql(self, sql, param, require_commit=False):
         try:
             c = self.conn.cursor()                        
             c.execute(sql, param)            
