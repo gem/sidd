@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>360</x>
-     <y>270</y>
+     <y>240</y>
      <width>156</width>
      <height>23</height>
     </rect>
@@ -73,7 +73,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>140</y>
+     <y>110</y>
      <width>500</width>
      <height>131</height>
     </rect>
@@ -86,7 +86,7 @@
    <property name="geometry">
     <rect>
      <x>100</x>
-     <y>100</y>
+     <y>80</y>
      <width>251</width>
      <height>20</height>
     </rect>
@@ -96,86 +96,13 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>100</y>
+     <y>80</y>
      <width>100</width>
      <height>20</height>
     </rect>
    </property>
    <property name="text">
     <string>Modifier Value</string>
-   </property>
-  </widget>
-  <widget class="QWidget" name="widget_mod_values_menu_r" native="true">
-   <property name="geometry">
-    <rect>
-     <x>420</x>
-     <y>120</y>
-     <width>91</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <widget class="QPushButton" name="btn_add">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>0</y>
-      <width>31</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="toolTip">
-     <string>Add value</string>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="icon">
-     <iconset resource="resources/SIDDResource.qrc">
-      <normaloff>:/imgs/icons/add.png</normaloff>:/imgs/icons/add.png</iconset>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btn_delete">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>0</y>
-      <width>31</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="toolTip">
-     <string>Delete Last Value</string>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="icon">
-     <iconset resource="resources/SIDDResource.qrc">
-      <normaloff>:/imgs/icons/minus.png</normaloff>:/imgs/icons/minus.png</iconset>
-    </property>
-   </widget>
-  </widget>
-  <widget class="QLineEdit" name="txt_attribute">
-   <property name="geometry">
-    <rect>
-     <x>100</x>
-     <y>75</y>
-     <width>251</width>
-     <height>20</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLabel" name="lb_attribute">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>75</y>
-     <width>100</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Attribute</string>
    </property>
   </widget>
  </widget>

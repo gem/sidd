@@ -23,7 +23,6 @@ from sidd.ms import MappingScheme, MappingSchemeZone, Statistics, StatisticNode
 
 from ui.constants import logUICall
 from ui.dlg_save_ms import DialogSaveMS
-from ui.dlg_attr_range import DialogAttrRanges
 
 from ui.qt.dlg_ms_branch_ui import Ui_editMSDialog
 from ui.helper.ms_level_table import MSLevelTableModel
@@ -50,14 +49,12 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
         self.dlgSave = DialogSaveMS(self.app)
         self.dlgSave.setModal(True)
         
-        self.dlgAttrRange = DialogAttrRanges()
-        
         # connect slots (ui events)
         self.ui.btn_apply.clicked.connect(self.updateWeights)
         self.ui.btn_add.clicked.connect(self.addValue)
         self.ui.btn_range.clicked.connect(self.editRanges)
-        self.ui.btn_delete.clicked.connect(self.deleteValue)        
-        self.ui.cb_attributes.currentIndexChanged[str].connect(self.attributeUpdated)        
+        self.ui.btn_delete.clicked.connect(self.deleteValue)
+        self.ui.cb_attributes.currentIndexChanged[str].connect(self.attributeUpdated)
         self.ui.btn_save.clicked.connect(self.saveMSBranch)
         self.ui.btn_close.clicked.connect(self.reject)
 
@@ -112,15 +109,9 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
     @pyqtSlot()     
     def editRanges(self):
         attribute_name = str(self.ui.cb_attributes.currentText())
-        if self._ranges.has_key(attribute_name):
-            ranges = self._ranges[attribute_name]
-            self.dlgAttrRange.set_values(attribute_name, ranges['min_values'], ranges['max_values'])
-        else:
-            self.dlgAttrRange.set_values(attribute_name, [], [])
-                    
-        if self.dlgAttrRange.exec_() == QDialog.Accepted:
-            self._ranges[attribute_name] = {'min_values':self.dlgAttrRange.min_values,
-                                            'max_values':self.dlgAttrRange.max_values}
+        
+        if self.app.setRange(self.ranges, attribute_name):
+            self.attributeUpdated(self.ui.cb_attributes.currentText())
 
     @logUICall
     @pyqtSlot()
@@ -160,48 +151,55 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
         if attribute.type == 2: # numeric type that can have ranges
             
             # retrieve range if exists
-            if self._ranges.has_key(str(attribute_name)):
-                ranges = self._ranges[str(attribute_name)]                
-            else:
-                # allow user to input range
-                self.dlgAttrRange.set_values(attribute_name, [], [])
-                if self.dlgAttrRange.exec_() == QDialog.Accepted:
-                    self._ranges[attribute_name] = {'min_values':self.dlgAttrRange.min_values,
-                                                    'max_values':self.dlgAttrRange.max_values}
-                    ranges = self._ranges[attribute_name]
-                else:
-                    # range is required, otherwise, nothing to show in drop-down
-                    return
-            
-            # add all ranges to list of codes for drop-down
-            for min_val, max_val in map(None, ranges['min_values'], ranges['max_values']):
-                value = attribute.make_string([min_val, max_val])
-                self.valid_codes[value] = value
+            if self.ranges.has_key(str(attribute_name)):
+                ranges = self.ranges[str(attribute_name)]                
 
-            # test for range [0,0], which is the unknown case
-            if ranges['min_values'] >0 and ranges['max_values']>0:
-                value = attribute.make_string([None, None])
-                self.valid_codes[value] = value
-                
+                # add all ranges to list of codes for drop-down
+                for min_val, max_val in map(None, ranges['min_values'], ranges['max_values']):
+                    value = attribute.make_string([min_val, max_val])
+                    self.valid_codes[value] = value
+    
+                # test for range [0,0], which is the unknown case
+                if ranges['min_values'] >0 and ranges['max_values']>0:
+                    value = attribute.make_string([None, None])
+                    self.valid_codes[value] = value                    
+            #else:
+                # allow user use default edit feature
+                            
             # enable button for editing ranges 
-            self.ui.btn_range.setEnabled(True)             
+            self.ui.btn_range.setEnabled(True)
+        else:               # code only types that cannot have ranges 
+            try:
+                node = self.node
+                taxonomy = self.taxonomy
+                filter_code = taxonomy.get_code_by_name(str(node.value))
+                while filter_code.attribute.order > 1 and not taxonomy.has_rule(filter_code.attribute.name):
+                    node = node.parent
+                    filter_code = taxonomy.get_code_by_name(str(node.value))                                        
+                attribute = taxonomy.get_attribute_by_name(attribute_name)                
+                if filter_code.attribute.group.name != attribute.group.name:
+                    filter_code = None
+            except:
+                filter_code = None
+            for code in self.taxonomy.get_code_by_attribute(attribute_name, filter_code):
+                self.valid_codes[code.description]=code.code
+            # disable button for editing ranges            
+            self.ui.btn_range.setEnabled(False)
         
-        else:               # code only types that cannot have ranges
-            # find appropriate level 1 code
-            # and add to list of codes for drop-down
-            for code_name, code in self.taxonomy.codes.iteritems():                
-                if code.attribute.name == attribute_name and code.level == 1:
-                    self.valid_codes[code.description]=code_name
-            # enable button for editing ranges            
-            self.ui.btn_range.setEnabled(False)            
-        
-        # set list of values to table editor 
-        if len(self.valid_codes) > 0:
+        # set list of values to table editor
+        # do not allow add if there is no codes available
+        allow_add = False 
+        if len(self.valid_codes) > 1:
             attr_editor = MSAttributeItemDelegate(self.ui.table_ms_level, self.valid_codes, 0)
             self.ui.table_ms_level.setItemDelegateForColumn(0, attr_editor)
-        else:
-            self.ui.table_ms_level.setItemDelegateForColumn(0, self.ui.table_ms_level.itemDelegateForColumn(1))
-
+            allow_add = True            
+        
+        # adjust ui
+        self.ui.btn_add.setEnabled(allow_add)
+        self.ui.btn_apply.setEnabled(allow_add)
+        self.ui.btn_delete.setEnabled(allow_add)
+        self.ui.btn_range.setEnabled(allow_add)
+        self.ui.btn_save.setEnabled(allow_add)            
 
     # public methods    
     #############################            
@@ -218,7 +216,7 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
         values = []
         weights = []
         
-        self._ranges = ranges
+        self.ranges = ranges
         if not addNew:
             self.node = node.parent
             attribute_name = node.name
@@ -236,17 +234,36 @@ class DialogEditMS(Ui_editMSDialog, QDialog):
             self.ui.cb_attributes.addItem(attribute_name)
         else:
             existing_attributes = node.ancestor_names
-            existing_attributes.append(node.name)
+            existing_attributes.append(node.name)            
+            
+            node_attr = self.taxonomy.get_attribute_by_name(node.name)
+            if node_attr is None:
+                node_group, node_order = '', 1
+            else:
+                node_group, node_order = node_attr.group.name, node_attr.order 
+                        
             for attr in self.taxonomy.attributes:
                 try:
+                    # make sure it does not already exist
                     existing_attributes.index(attr.name)
                 except:
-                    self.ui.cb_attributes.addItem(attr.name)
-            
-        for _child in self.node.children:
-            values.append(_child.value)
-            weights.append(_child.weight)
-            
+                    # this step reached if attribute not found in existing_attributes list 
+                    add_attribute = False
+                    # add 1st attribute of group or in current group  
+                    if (node_group != attr.group.name and attr.order == 1 ):    
+                        add_attribute = True
+                    
+                    # add next attribute of current group
+                    if (node_group == attr.group.name and attr.order == node_order+1):
+                        add_attribute = True
+                        
+                    if (add_attribute):
+                        self.ui.cb_attributes.addItem(attr.name)
+        
+        for child in self.node.children:
+            values.append(str(child.value))
+            weights.append(child.weight)
+        
         self.levelModel = MSLevelTableModel(values, weights, self.taxonomy, self.taxonomy.codes,
                                             is_editable=[True, True])
         # initialize table view 

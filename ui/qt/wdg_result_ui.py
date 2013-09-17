@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qt\wdg_result.ui'
 #
-# Created: Tue May 07 14:56:31 2013
+# Created: Tue Jun 25 16:36:42 2013
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -19,7 +19,7 @@ class Ui_widgetResult(object):
         widgetResult.setObjectName(_fromUtf8("widgetResult"))
         widgetResult.resize(941, 655)
         self.widget_export = QtGui.QWidget(widgetResult)
-        self.widget_export.setGeometry(QtCore.QRect(650, 30, 281, 181))
+        self.widget_export.setGeometry(QtCore.QRect(650, 70, 281, 181))
         self.widget_export.setObjectName(_fromUtf8("widget_export"))
         self.btn_export_select_path = QtGui.QToolButton(self.widget_export)
         self.btn_export_select_path.setGeometry(QtCore.QRect(250, 70, 21, 20))
@@ -57,7 +57,7 @@ class Ui_widgetResult(object):
         self.lb_export_format.setFont(font)
         self.lb_export_format.setObjectName(_fromUtf8("lb_export_format"))
         self.widget_dq_test = QtGui.QWidget(widgetResult)
-        self.widget_dq_test.setGeometry(QtCore.QRect(650, 220, 281, 401))
+        self.widget_dq_test.setGeometry(QtCore.QRect(650, 260, 281, 361))
         self.widget_dq_test.setObjectName(_fromUtf8("widget_dq_test"))
         self.lbl_dq_test_title = QtGui.QLabel(self.widget_dq_test)
         self.lbl_dq_test_title.setGeometry(QtCore.QRect(10, 10, 251, 31))
@@ -141,6 +141,13 @@ class Ui_widgetResult(object):
         icon7.addPixmap(QtGui.QPixmap(_fromUtf8(":/imgs/icons/world.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.btn_zoom_full.setIcon(icon7)
         self.btn_zoom_full.setObjectName(_fromUtf8("btn_zoom_full"))
+        self.btn_stop = QtGui.QPushButton(self.widget_map_menu_l)
+        self.btn_stop.setGeometry(QtCore.QRect(120, 0, 31, 23))
+        self.btn_stop.setText(_fromUtf8(""))
+        icon8 = QtGui.QIcon()
+        icon8.addPixmap(QtGui.QPixmap(_fromUtf8(":/imgs/icons/stop.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.btn_stop.setIcon(icon8)
+        self.btn_stop.setObjectName(_fromUtf8("btn_stop"))
         self.lb_panel_title = QtGui.QLabel(widgetResult)
         self.lb_panel_title.setGeometry(QtCore.QRect(10, 0, 591, 31))
         font = QtGui.QFont()
@@ -149,6 +156,12 @@ class Ui_widgetResult(object):
         font.setBold(True)
         self.lb_panel_title.setFont(font)
         self.lb_panel_title.setObjectName(_fromUtf8("lb_panel_title"))
+        self.lb_gem_logo = QtGui.QLabel(widgetResult)
+        self.lb_gem_logo.setGeometry(QtCore.QRect(820, 0, 121, 61))
+        self.lb_gem_logo.setText(_fromUtf8(""))
+        self.lb_gem_logo.setPixmap(QtGui.QPixmap(_fromUtf8(":/imgs/gem_logo_120X60.png")))
+        self.lb_gem_logo.setScaledContents(False)
+        self.lb_gem_logo.setObjectName(_fromUtf8("lb_gem_logo"))
 
         self.retranslateUi(widgetResult)
         QtCore.QMetaObject.connectSlotsByName(widgetResult)
@@ -175,6 +188,7 @@ class Ui_widgetResult(object):
         self.btn_pan.setToolTip(QtGui.QApplication.translate("widgetResult", "Pan", None, QtGui.QApplication.UnicodeUTF8))
         self.btn_zoom_out.setToolTip(QtGui.QApplication.translate("widgetResult", "Zoom Out", None, QtGui.QApplication.UnicodeUTF8))
         self.btn_zoom_full.setToolTip(QtGui.QApplication.translate("widgetResult", "Zoom to Full Extent", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_stop.setToolTip(QtGui.QApplication.translate("widgetResult", "Cancel Rendering", None, QtGui.QApplication.UnicodeUTF8))
         self.lb_panel_title.setText(QtGui.QApplication.translate("widgetResult", "Preview", None, QtGui.QApplication.UnicodeUTF8))
 
 import SIDDResource_rc

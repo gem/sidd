@@ -37,6 +37,12 @@ def load_shapefile(input_file, layer_name):
     _layer = False
     if os.path.exists(input_file):
         _layer = QgsVectorLayer(input_file, layer_name, 'ogr')
+        # create spatial index if missing
+        # QGIS spatial index file has ,qix extension  
+        if _layer.dataProvider() is None:
+            raise Exception('Error Loading Shapefile %s\n'%input_file)
+        if not os.path.exists('%s.qix'%input_file[:-4]):
+            _layer.dataProvider().createSpatialIndex()       
     return _layer
 
 def shapefile_fields(input_file):
@@ -51,8 +57,10 @@ def shapefile_fields(input_file):
 
 def shapefile_projection(input_file):
     layer = load_shapefile(input_file, get_random_name())
-    crs_string = layer.crs().description()
-    del layer
+    crs_string = ''
+    if layer:
+        crs_string = layer.crs().description()
+        del layer
     return crs_string
 
 def remove_shapefile(input_file):    
@@ -139,13 +147,15 @@ def layer_multifields_stats(layer, fields):
             stats[_key]=1
     return stats
 
-def layer_fields_stats(layer, field):
+def layer_field_stats(layer, field):
     """ aggregate stats for field in layer """
     return layer_multifields_stats(layer, [field])
 
 def layer_features(layer):
     """ generator for traversing all features within given vector layer """
     provider = layer.dataProvider()
+    if provider is None:
+        raise Exception('Error accessing layer features in %s\n' % layer.name())
     provider.select(provider.attributeIndexes())
     f = QgsFeature()
     provider.rewind()

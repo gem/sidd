@@ -25,7 +25,7 @@ from qgis.gui import QgsMapCanvas, QgsMapCanvasLayer, \
                      QgsMapToolPan, QgsMapToolZoom, QgsMapToolEmitPoint, \
                      QgsRendererV2PropertiesDialog
 from qgis.core import QGis, QgsMapLayerRegistry, QgsCoordinateReferenceSystem, \
-                      QgsCoordinateTransform, QgsFeature, QgsRectangle, \
+                      QgsCoordinateTransform, QgsFeature, QgsRectangle, QgsPoint, \
                       QgsStyleV2, QgsFeatureRendererV2
 
 from utils.shapefile import load_shapefile, layer_field_index, layer_features
@@ -46,22 +46,24 @@ class WidgetResult(Ui_widgetResult, QWidget):
     ''' supported export formats '''
     EXPORT_FORMATS = {
         get_ui_string("app.extension.shapefile"):ExportTypes.Shapefile,
-        get_ui_string("app.extension.kml"):ExportTypes.KML,
+        #get_ui_string("app.extension.kml"):ExportTypes.KML,
         #get_ui_string("app.extension.nrml"):ExportTypes.NRML,
         get_ui_string("app.extension.csv"):ExportTypes.CSV,
     };
     ''' enumeration of Layer to be previewed '''
-    EXPOSURE, SURVEY, FOOTPRINT, ZONES = range(4);
+    EXPOSURE, SURVEY, POP_GRID, FOOTPRINT, ZONES = range(5);
     ''' name for Layer to be previewed '''
     LAYER_NAMES = [
         get_ui_string("widget.result.layer.exposure"),        
         get_ui_string("widget.result.layer.survey"),
-        get_ui_string("widget.result.layer.footprint"),
+        get_ui_string("widget.result.layer.popgrid"),
+        get_ui_string("widget.result.layer.footprint"),        
         get_ui_string("widget.result.layer.zones"),
     ];    
     LAYER_STYLES = [
         '<!DOCTYPE renderer><renderer-v2 symbollevels="0" type="singleSymbol"><symbols><symbol outputUnit="MM" alpha="1" type="fill" name="0"><layer pass="0" class="SimpleLine" locked="0"><prop k="capstyle" v="square"/><prop k="color" v="0,0,0,255"/><prop k="customdash" v="5;2"/><prop k="joinstyle" v="bevel"/><prop k="offset" v="0"/><prop k="penstyle" v="solid"/><prop k="use_custom_dash" v="0"/><prop k="width" v="0.26"/></layer></symbol></symbols><rotation field=""/><sizescale field=""/></renderer-v2>',
         '<!DOCTYPE renderer><renderer-v2 symbollevels="0" type="singleSymbol"><symbols><symbol outputUnit="MM" alpha="1" type="marker" name="0"><layer pass="0" class="SimpleMarker" locked="0"><prop k="angle" v="0"/><prop k="color" v="0,0,255,255"/><prop k="color_border" v="0,0,255,255"/><prop k="name" v="circle"/><prop k="offset" v="0,0"/><prop k="size" v="2"/></layer></symbol></symbols><rotation field=""/><sizescale field=""/></renderer-v2>',
+        '<!DOCTYPE renderer><renderer-v2 symbollevels="0" type="singleSymbol"><symbols><symbol outputUnit="MM" alpha="1" type="marker" name="0"><layer pass="0" class="SimpleMarker" locked="0"><prop k="angle" v="0"/><prop k="color" v="0,255,0,255"/><prop k="color_border" v="0,255,0,255"/><prop k="name" v="rectangle"/><prop k="offset" v="0,0"/><prop k="size" v="4"/></layer></symbol></symbols><rotation field=""/><sizescale field=""/></renderer-v2>',
         '<!DOCTYPE renderer><renderer-v2 symbollevels="0" type="singleSymbol"><symbols><symbol outputUnit="MM" alpha="1" type="fill" name="0"><layer pass="0" class="SimpleFill" locked="0"><prop k="color" v="170,250,170,255"/><prop k="color_border" v="0,0,0,255"/><prop k="offset" v="0,0"/><prop k="style" v="solid"/><prop k="style_border" v="solid"/><prop k="width_border" v="0.26"/></layer></symbol></symbols><rotation field=""/><sizescale field=""/></renderer-v2>',
         '<!DOCTYPE renderer><renderer-v2 symbollevels="0" type="singleSymbol"><symbols><symbol outputUnit="MM" alpha="1" type="fill" name="0"><layer pass="0" class="SimpleFill" locked="0"><prop k="color" v="211,211,158,200"/><prop k="color_border" v="0,0,0,255"/><prop k="offset" v="0,0"/><prop k="style" v="solid"/><prop k="style_border" v="solid"/><prop k="width_border" v="0.26"/></layer></symbol></symbols><rotation field=""/><sizescale field=""/></renderer-v2>',
     ]
@@ -70,8 +72,12 @@ class WidgetResult(Ui_widgetResult, QWidget):
     ###############################
     
     def __init__(self, app):
-        """ constructor """
-        QWidget.__init__(self)
+        """
+        constructor
+        - initialize UI elements
+        - connect UI elements to callback            
+        """
+        super(WidgetResult, self).__init__()
         self.ui = Ui_widgetResult()
         self.ui.setupUi(self)
                 
@@ -88,6 +94,10 @@ class WidgetResult(Ui_widgetResult, QWidget):
         self.canvas.enableAntiAliasing(True)
         self.canvas.mapRenderer().setProjectionsEnabled(True)
         self.canvas.mapRenderer().setDestinationCrs(QgsCoordinateReferenceSystem(4326, QgsCoordinateReferenceSystem.PostgisCrsId))
+        self.canvas.zoomNextStatusChanged.connect(self.checkRendering)
+        self.canvas.xyCoordinates.connect(self.currentLocation)
+        self.registry = QgsMapLayerRegistry.instance()
+        
         self.map_layers = [None] * len(self.LAYER_NAMES)
         self.map_layer_renderer = [None] * len(self.LAYER_NAMES)
         for idx, str_style in enumerate(self.LAYER_STYLES):
@@ -128,7 +138,8 @@ class WidgetResult(Ui_widgetResult, QWidget):
         self.ui.btn_zoom_full.clicked.connect(self.mapZoomFull)
         self.ui.btn_zoom_in.clicked.connect(self.mapZoomIn)
         self.ui.btn_zoom_out.clicked.connect(self.mapZoomOut)
-        self.ui.btn_zoom_layer.clicked.connect(self.mapZoomLayer)
+        self.ui.btn_stop.clicked.connect(self.stopRendering)
+        self.ui.btn_zoom_layer.clicked.connect(self.mapZoomLayer)        
         self.ui.btn_pan.clicked.connect(self.mapPan)
         self.ui.btn_theme.clicked.connect(self.mapEditTheme)
         self.ui.btn_info.clicked.connect(self.mapIdentify)
@@ -139,6 +150,12 @@ class WidgetResult(Ui_widgetResult, QWidget):
         self.ui.btn_export.clicked.connect(self.exportData)
         self.ui.btn_export_select_path.clicked.connect(self.selectExportFile)
 
+    @pyqtSlot(QgsPoint)
+    def currentLocation(self, point):
+        self.app.updateMapLocation(point.x(),point.y())
+        #self.canvas.mouseMoveEvent(mouseEvent)
+        
+
     # UI event handling calls (Qt slots)
     ###############################
     @pyqtSlot(QObject)
@@ -147,7 +164,7 @@ class WidgetResult(Ui_widgetResult, QWidget):
         # find left coordinate for right side panels
         x_right_side = self.width()-self.ui.widget_export.width()-UI_PADDING
         # adjust right side panels
-        self.ui.widget_export.move(x_right_side, 30)
+        self.ui.widget_export.move(x_right_side, self.ui.widget_map.y()+30)
         self.ui.widget_dq_test.move(x_right_side, self.ui.widget_export.y()+self.ui.widget_export.height()+UI_PADDING)
         # adjust map panel (left side)        
         self.ui.widget_map.resize(x_right_side-UI_PADDING, self.height()-2*UI_PADDING)
@@ -160,6 +177,8 @@ class WidgetResult(Ui_widgetResult, QWidget):
         self.ui.widget_map_menu_r.move(
             self.ui.widget_map.width()-self.ui.widget_map_menu_r.width(),   # right align with map panel 
             0)
+        # logo
+        self.ui.lb_gem_logo.move(self.width()-self.ui.lb_gem_logo.width(), self.ui.lb_gem_logo.y())
 
     @logUICall
     @pyqtSlot()
@@ -181,50 +200,81 @@ class WidgetResult(Ui_widgetResult, QWidget):
         """ event handler for btn_zoom_out - zoom out on map """
         self.canvas.unsetMapTool(self.toolInfo)
         self.canvas.setMapTool(self.toolZoomOut)
-        
+
     @logUICall
     @pyqtSlot()
     def mapZoomFull(self):
         """ event handler for btn_zoom_full - zoom to full map """
         self.canvas.zoomToFullExtent()
 
+    def checkRendering(self, changed):
+        self.canvas.setRenderFlag(True)
+        
+    @logUICall
+    @pyqtSlot()
+    def stopRendering(self):        
+        self.canvas.setRenderFlag(False)
+
     @logUICall
     @pyqtSlot()
     def mapZoomLayer(self):
         self.canvas.unsetMapTool(self.toolInfo)
-        cur_layer_name = self.ui.cb_layer_selector.currentText()                
+        cur_layer_name = self.ui.cb_layer_selector.currentText()
+        if cur_layer_name.isEmpty():
+            return
         self.zoomToLayer(self.map_layers[self.LAYER_NAMES.index(cur_layer_name)])
         
     @logUICall
     @pyqtSlot()
     def mapEditTheme(self):
         """ event handler for btn_edit - identify item on map """
-        cur_layer = self.ui.cb_layer_selector.currentText()
+        cur_layer_name = self.ui.cb_layer_selector.currentText()
+        if cur_layer_name.isEmpty():
+            return
         try:
-            cur_layer_idx = self.LAYER_NAMES.index(cur_layer)            
+            cur_layer_idx = self.LAYER_NAMES.index(cur_layer_name)
+            
+            # build layer render property Dialog for selected layer  
+            dlg_render = QDialog()
+            dlg_render.setWindowTitle(get_ui_string('widget.result.renderer.settings'))
+            dlg_render.setModal(True)
+            dlg_render.setFixedSize(530, 370)
+            dlg_render.renderer = QgsRendererV2PropertiesDialog(self.map_layers[cur_layer_idx], self.style, True)
+            dlg_render.renderer.setParent(dlg_render)        
+            dlg_render.renderer.setGeometry(QRect(10, 10, 510, 325))
+            dlg_render.buttonBox = QDialogButtonBox(dlg_render)
+            dlg_render.buttonBox.setGeometry(QRect(10, 335, 510, 25))
+            dlg_render.buttonBox.setStandardButtons(QDialogButtonBox.Cancel|QDialogButtonBox.Ok)
+            dlg_render.buttonBox.accepted.connect(dlg_render.accept)
+            dlg_render.buttonBox.accepted.connect(dlg_render.renderer.onOK)
+            dlg_render.buttonBox.rejected.connect(dlg_render.reject)
+            dlg_render.setVisible(True)
 
-            dlg_render = self._getRenderPropertyDialog(cur_layer_idx)         
+            # get user input and update renderer
             answer = dlg_render.exec_()
             if answer == QDialog.Accepted:
                 self.map_layer_renderer[cur_layer_idx] = None
                 self.map_layer_renderer[cur_layer_idx] = self.map_layers[cur_layer_idx].rendererV2().clone()             
                 self.canvas.refresh()
             dlg_render.destroy()
-            del dlg_render            
+            del dlg_render
         except Exception as err:
-            logUICall.log(str(err), logUICall.INFO)
+            # thematic is not-critical, allow continue on exception
+            logUICall.log(str(err), logUICall.WARNING)
 
     @logUICall
     @pyqtSlot()
     def searchFeature(self):        
-        cur_layer = self.ui.cb_layer_selector.currentText()
+        cur_layer_name = self.ui.cb_layer_selector.currentText()
+        if cur_layer_name.isEmpty():
+            return
         try:
-            cur_layer_idx = self.LAYER_NAMES.index(cur_layer)            
+            cur_layer_idx = self.LAYER_NAMES.index(cur_layer_name)            
             layer = self.map_layers[cur_layer_idx]
             fields = []
             for fidx in layer.dataProvider().fields():
                 fields.append(layer.dataProvider().fields()[fidx].name())
-            dlg_search = DialogSearchFeature(fields)            
+            dlg_search = DialogSearchFeature(fields)           
             answer = dlg_search.exec_()
             if answer == QDialog.Accepted:
                 extent = self.findFeatureExtentByAttribute(layer, dlg_search.attribute, dlg_search.value)
@@ -234,7 +284,8 @@ class WidgetResult(Ui_widgetResult, QWidget):
                     logUICall.log(get_ui_string("widget.result.info.notfound"), logUICall.WARNING)
             dlg_search.destroy()
         except Exception as err:
-            logUICall.log(str(err), logUICall.INFO)
+            # thematic is not-critical, allow continue on exception
+            logUICall.log(str(err), logUICall.WARNING)
             
     @logUICall
     @pyqtSlot()
@@ -252,13 +303,9 @@ class WidgetResult(Ui_widgetResult, QWidget):
         """
         event handler for btn_export_select_path 
         - open save file dialog box to select file name for export 
-        """     
-        #folder = QFileDialog.getExistingDirectory(self, get_ui_string("widget.result.export.path.dialog"))            
-        #if not folder.isNull():
-        #    self.ui.txt_export_select_path.setText(folder)
-        filename = QFileDialog.getSaveFileName(self,
+        """        filename = QFileDialog.getSaveFileName(self,
                                                get_ui_string("widget.result.export.file.open"),
-                                               ".",
+                                               ".", 
                                                self.ui.cb_export_format.currentText())
         if not filename.isNull():
             self.ui.txt_export_select_path.setText(filename) 
@@ -270,6 +317,7 @@ class WidgetResult(Ui_widgetResult, QWidget):
         event handler for cb_export_format 
         - update selected file after format change
         """
+        self.ui.txt_export_select_path.setText("")
         self.export_format = self.EXPORT_FORMATS[str(selected_val)]
         
     @logUICall
@@ -295,6 +343,8 @@ class WidgetResult(Ui_widgetResult, QWidget):
         point-polygon search on currently selected layer  
         """
         cur_layer_name = self.ui.cb_layer_selector.currentText()
+        if cur_layer_name.isEmpty():
+            return
         try:
             cur_layer_idx = self.LAYER_NAMES.index(cur_layer_name)
             cur_layer = self.map_layers[cur_layer_idx]
@@ -330,7 +380,7 @@ class WidgetResult(Ui_widgetResult, QWidget):
                 selected.append(feature.attributeMap())
 
             if len(selected)>0:
-                # display result
+                # display result if exists
                 if cur_layer_idx == self.EXPOSURE:
                     self.dlgResultDetail.showExposureData(provider.fields(), selected)                    
                 else:
@@ -339,7 +389,8 @@ class WidgetResult(Ui_widgetResult, QWidget):
             else:
                 logUICall.log(get_ui_string("widget.result.info.notfound"), logUICall.WARNING)
         except Exception as err:
-            print err     
+            # point-in-polygon search is not critical, continue on error 
+            logUICall.log(str(err), logUICall.WARNING)
         
     # public methods
     ###############################
@@ -347,8 +398,9 @@ class WidgetResult(Ui_widgetResult, QWidget):
         ''' set project to preview. force refresh view on set'''        
         self._project = project
         if project is None:
-            return   
-        self.refreshView()       
+            return
+        self.refreshView()
+        self.canvas.zoomToFullExtent()
         logUICall.log("Project preview initialized sucessfully", logUICall.INFO)
         
     def get_project(self):
@@ -358,50 +410,53 @@ class WidgetResult(Ui_widgetResult, QWidget):
     project = property(get_project, set_project)
     
     def refreshView(self):
+        ''' reload all QGIS layers in currently defined project '''
         if self._project is None:
             return
+        
         # display layers if exists                
         if self._project.fp_file is not None and exists(self._project.fp_file):
             if self.map_layers[self.FOOTPRINT] is None or self.map_layers[self.FOOTPRINT].source() != self._project.fp_file:                            
-                self.map_layers[self.FOOTPRINT] = load_shapefile(self._project.fp_file, 'footprint')
-                self.showDataLayer(self.map_layers[self.FOOTPRINT], self.map_layer_renderer[self.FOOTPRINT])
+                self.showDataLayer(self.FOOTPRINT, load_shapefile(self._project.fp_file, 'footprint'))
         else:            
             self.removeDataLayer(self.FOOTPRINT)
         
         if self._project.zone_file is not None and exists(self._project.zone_file):
             if self.map_layers[self.ZONES] is None or self.map_layers[self.ZONES].source() != self._project.zone_file:
-                self.map_layers[self.ZONES] = load_shapefile(self._project.zone_file, 'zones')
-                self.showDataLayer(self.map_layers[self.ZONES], self.map_layer_renderer[self.ZONES])
+                self.showDataLayer(self.ZONES, load_shapefile(self._project.zone_file, 'zones'))
         else:            
             self.removeDataLayer(self.ZONES)
             
         if self._project.survey_file is not None and exists(self._project.survey_file):
             if getattr(self._project, 'survey', None) is None:
                 self._project.load_survey()
-                self.map_layers[self.SURVEY] = self._project.survey 
-                self.showDataLayer(self.map_layers[self.SURVEY], self.map_layer_renderer[self.SURVEY])
+                self.showDataLayer(self.SURVEY, self._project.survey)
         else:            
             self.removeDataLayer(self.SURVEY)
+        
+        if self._project.popgrid_file is not None and exists(self._project.popgrid_file):
+            if getattr(self._project, 'popgrid', None) is None:
+                self.showDataLayer(self.POP_GRID, load_shapefile(self._project.popgrid_file, 'popgrid'))
+        else:            
+            self.removeDataLayer(self.POP_GRID)
         
         # set export options
         for idx, export_format in enumerate(self.EXPORT_FORMATS.values()):
             if export_format == self._project.export_type:
                 self.ui.cb_export_format.setCurrentIndex(idx)
         self.ui.txt_export_select_path.setText(self._project.export_path)
+        
+        # refreshResult contains refresh call to update all layers currently loaded
         self.refreshResult()
 
     def refreshResult(self):
-        exposure = getattr(self._project, 'exposure', None)
-        exposure_layer = self.EXPOSURE
-        exposure_renderer = self.EXPOSURE
-                
+        ''' reload result QGIS layer and data quality reports in currently defined project '''
+        exposure = getattr(self._project, 'exposure', None)        
         if exposure is not None:
-            self.map_layers[exposure_layer] = exposure 
-            self.showDataLayer(self.map_layers[exposure_layer], self.map_layer_renderer[exposure_renderer])
+            self.showDataLayer(self.EXPOSURE, exposure)
             has_result = True            
         else:
-            self.map_layers[exposure_layer] = None 
-            self.removeDataLayer(exposure_layer)
+            self.removeDataLayer(self.EXPOSURE)
             has_result = False
         
         if has_result:
@@ -426,11 +481,10 @@ class WidgetResult(Ui_widgetResult, QWidget):
             
             # detail for each test
             for key, report in self._project.quality_reports.iteritems():
-                report_lines.append(get_ui_string('widget.result.dq.tests.%s' % key))
+                report_lines.append(get_ui_string('widget.result.dq.tests.%s' % key))            
                 for title, value in report.iteritems():
                     report_lines.append( get_ui_string('widget.result.dq.tests.%s.%s' % (key, title), value) )
                 report_lines.append('')                    
-            
             self.ui.txt_dq_test_details.setText("\n".join(report_lines))
 
 
@@ -439,58 +493,60 @@ class WidgetResult(Ui_widgetResult, QWidget):
         self.ui.txt_export_select_path.setEnabled(has_result)
         self.ui.btn_export_select_path.setEnabled(has_result)
         self.ui.cb_export_format.setEnabled(has_result)        
-            
-    @logUICall
-    def closeResult(self):
-        self.removeDataLayer(self.EXPOSURE)
+
+        # this call refresh all layers currently loaded        
+        self.refreshLayers()      
 
     @logUICall
+    def closeResult(self):
+        ''' remove from map result QGIS layer and reset quality report display '''
+        self.canvas.setLayerSet([]) # call necessary to remove all layers to avoid disconnect errors  
+        self.removeDataLayer(self.EXPOSURE)
+        self.refreshLayers()
+        self.ui.txt_dq_test_details.setText("")
+        
+    @logUICall
     def closeAll(self):
+        ''' remove from map all QGIS layer in currently defined project '''
         self.ui.cb_layer_selector.clear()
-        if getattr(self, 'registry', None) is None:
-            self.registry = QgsMapLayerRegistry.instance()
         try:
+            self.canvas.setLayerSet([]) # call necessary to remove all layers to avoid disconnect errors 
             for i in range(5):
-                self.removeDataLayer(i)
-            self.registry.removeAllMapLayers ()
+                self.removeDataLayer(i)            
+            self.ui.txt_dq_test_details.setText("")
+            self.refreshLayers()
         except:            
             pass    # exception will is thrown when registry is empty
-        finally:
-            self.canvas.setLayerSet([])
-            self.canvas.refresh()
     
     # internal helper methods
     ###############################
-    def showDataLayer(self, layer, renderer=None, zoom_to=True):
-        """ display result layer """
-        if getattr(self, 'registry', None) is None:
-            self.registry = QgsMapLayerRegistry.instance()
+    def showDataLayer(self, index, layer):
+        """ display given QGIS layer on map """
         try:
             # add to QGIS registry and refresh view
+            if self.map_layers[index] is not None:
+                self.removeDataLayer(index)
+            self.map_layers[index] = layer
             self.registry.addMapLayer(layer)
-            if renderer is not None:
-                layer.setRendererV2(renderer)            
-            self.refreshLayers()
-            if (zoom_to):
-                self.zoomToLayer(layer)
+            layer.setRendererV2(self.map_layer_renderer[index])            
         except:
-            return None
+            pass
 
     def removeDataLayer(self, index):
-        if getattr(self, 'registry', None) is None:
-            self.registry = QgsMapLayerRegistry.instance()
+        """ remove from map the layer identified with index """
         layer = self.map_layers[index]
-        self.map_layers[index] = None        
+        self.map_layers[index] = None    
         if layer is not None:                
-            try:    
-                self.canvas.clear()
-                self.canvas.setLayerSet([])
-                self.registry.removeMapLayer(layer.getLayerID(), False)            
+            try:
+                self.registry.removeMapLayer(layer.getLayerID(), False)
+                del layer      
             except:
                 pass # do nothing if it fails. probably already deleted
-            self.refreshLayers()        
 
     def findFeatureExtentByAttribute(self, layer, field, value):
+        """ 
+        find extent of all objects in QGIS layer matching condition "field=value"         
+        """
         fidx = layer_field_index(layer, field)
         if fidx == -1:
             return None
@@ -523,15 +579,15 @@ class WidgetResult(Ui_widgetResult, QWidget):
             pass
     
     def zoomToExtent(self, extent):
+        """ zoom canvas to given extent """
         try:
             self.canvas.setExtent(extent)
             self.canvas.zoomByFactor(1.1)
-            self.canvas.refresh()
         except:
             self.mapZoomFull()
     
     def refreshLayers(self):
-        """ refresh all layers """
+        """ refresh all layers in canvas """
         # add each layer according to order
         layerSet = []
         self.ui.cb_layer_selector.clear()
@@ -539,23 +595,6 @@ class WidgetResult(Ui_widgetResult, QWidget):
             if lyr is not None:
                 layerSet.append(QgsMapCanvasLayer(lyr))
                 self.ui.cb_layer_selector.addItem(self.LAYER_NAMES[idx])
-        self.canvas.setLayerSet(layerSet)
-        self.canvas.refresh()
-
-    def _getRenderPropertyDialog(self, cur_layer_idx):
-        dlg = QDialog()
-        dlg.setWindowTitle(get_ui_string('widget.result.renderer.settings'))
-        dlg.setModal(True)
-        dlg.setFixedSize(530, 370)
-        dlg.renderer = QgsRendererV2PropertiesDialog(self.map_layers[cur_layer_idx], self.style, True)
-        dlg.renderer.setParent(dlg)        
-        dlg.renderer.setGeometry(QRect(10, 10, 510, 325))
-        dlg.buttonBox = QDialogButtonBox(dlg)
-        dlg.buttonBox.setGeometry(QRect(10, 335, 510, 25))
-        dlg.buttonBox.setStandardButtons(QDialogButtonBox.Cancel|QDialogButtonBox.Ok)
-        dlg.buttonBox.accepted.connect(dlg.accept)
-        dlg.buttonBox.accepted.connect(dlg.renderer.onOK)
-        dlg.buttonBox.rejected.connect(dlg.reject)
-        dlg.setVisible(True)        
-        return dlg
-                
+        if len(layerSet) > 0:            
+            self.canvas.setLayerSet(layerSet)
+        

@@ -25,6 +25,10 @@ class VerticalQLabel(QPushButton):
     """
     def __init__(self, parent):        
         super(VerticalQLabel,self).__init__(parent)
+        self.selected = False
+    
+    def setSelected(self, selected):
+        self.selected = selected
     
     def paintEvent(self, event):
         """ custom paint event to draw vertical text """
@@ -41,7 +45,8 @@ class VerticalQLabel(QPushButton):
         painter.drawArc(0,0, arc_size*2, arc_size*2, 180*16, -90*16)
         painter.drawArc(0,self.height()-arc_size*2, arc_size*2, arc_size*2, 180*16, 90*16)
         # draw box around
-        if (self.isEnabled()):  
+        #if (self.isEnabled()):
+        if self.selected:  
             painter.setPen(QtCore.Qt.black)
         else:
             painter.setPen(QtCore.Qt.gray)

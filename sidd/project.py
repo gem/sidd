@@ -20,7 +20,6 @@ main SIDD application controller
 import os
 import bsddb
 import shutil
-import types
 import json
 
 from utils.enum import makeEnum
@@ -29,10 +28,10 @@ from utils.shapefile import remove_shapefile
 
 from sidd.constants import logAPICall, \
                            FILE_PROJ_TEMPLATE, \
-                           FootprintTypes, OutputTypes, SurveyTypes, ZonesTypes, \
-                           ProjectStatus, ExtrapolateOptions, SyncModes, ExportTypes, \
+                           FootprintTypes, OutputTypes, SurveyTypes, ZonesTypes, PopGridTypes, \
+                           ProjectStatus, ExtrapolateOptions, SyncModes, ExportTypes, MSExportTypes, \
                            ProjectErrors
-from sidd.ms import MappingScheme
+from sidd.ms import MappingSchemeZone, MappingScheme, Statistics
 from sidd.exception import SIDDException, SIDDProjectException, WorkflowException
 from sidd.workflow import Workflow, WorkflowBuilder
 
@@ -50,8 +49,8 @@ class Project (object):
         self.app_config = app_config
         self.operator_options = {
             'tmp_dir': self.temp_dir,
-            'taxonomy':taxonomy,
-            'skips': app_config.get('options', 'skips', [], types.ListType),            
+            'taxonomy':taxonomy,    
+            'parse_modifiers':app_config.get('options', 'parse_modifier', True, bool),        
         }
         self.reset()
 
@@ -73,7 +72,7 @@ class Project (object):
             if os.path.exists(self.temp_dir):                
                 del self.workflow
                 if self.exposure is not None:
-                    del self.exposure   # must delete layer, otherwise exposure_file becomes locked
+                    del self.exposure   # must delete QGIS layer, otherwise exposure_file becomes locked
                                         # and will generate error on shutil.rmtree
                 shutil.rmtree(self.temp_dir)
         except Exception as err:            
@@ -92,14 +91,14 @@ class Project (object):
             if (not os.path.exists(project_file)):
                 shutil.copyfile(FILE_PROJ_TEMPLATE, project_file)
             self.db = bsddb.btopen(project_file, 'c')
-            self.version_major = self._get_project_data('version_major')
-            self.version_minor = self._get_project_data('version_minor')
+            self.version_major = self.get_project_data('version_major')
+            self.version_minor = self.get_project_data('version_minor')
             logAPICall.log('opening project file version %s.%s' %(self.version_major, self.version_minor),
                            logAPICall.INFO)
             self.project_file = project_file
             self.require_save = True
         except:
-            raise SIDDProjectException(ProjectErrors.FileFormatError)                
+            raise SIDDProjectException(ProjectErrors.FileFormatError)
     
     @logAPICall
     def set_footprint(self, fp_type, fp_file='', ht_field=''):
@@ -109,12 +108,13 @@ class Project (object):
         self.require_save = True
 
     @logAPICall
-    def set_zones(self, zone_type, zone_file='', zone_field='', zone_count_field=''):
+    def set_zones(self, zone_type, zone_file='', zone_field='', zone_count_field='', zone_area_field=''):
         """ load zone data """
         self.zone_file = zone_file
         self.zone_type = zone_type
         self.zone_field = zone_field
         self.zone_count_field = zone_count_field
+        self.zone_area_field = zone_area_field
         self.require_save = True        
 
     @logAPICall
@@ -124,7 +124,14 @@ class Project (object):
         self.survey_type = survey_type
         self.survey_format = survey_format
         self.require_save = True
-        
+
+    @logAPICall
+    def set_popgrid(self, popgrid_type, popgrid_file='', pop_field='', pop_to_bldg=1):
+        self.popgrid_type = popgrid_type
+        self.popgrid_file = popgrid_file
+        self.pop_field = pop_field
+        self.pop_to_bldg = pop_to_bldg
+
     @logAPICall
     def set_output_type(self, output_type):
         self.output_type = output_type
@@ -153,6 +160,12 @@ class Project (object):
         self.zone_file = ''
         self.zone_field = '' 
         self.zone_count_field = ''
+        self.zone_area_field = ''
+
+        self.popgrid_type= PopGridTypes.None
+        self.popgrid_file = ''
+        self.pop_field = ''
+        self.pop_to_bldg = 1
         
         self.ms = None
         self.output_type = OutputTypes.Grid
@@ -185,7 +198,7 @@ class Project (object):
         if self.fp_type == FootprintTypes.FootprintHt and self.fp_ht_field == '':
             return            
         
-        self.fp, self.fp_tmp_file = self._load_data('fp_file', 'fp', 'fp_file')
+        self.fp, self.fp_tmp_file = self.load_data('fp_file', 'fp', 'fp_file')
         return
 
     @logAPICall
@@ -198,12 +211,20 @@ class Project (object):
         if self.fp_type ==  ZonesTypes.LanduseCount and self.zone_count_field == '':
             return
                 
-        self.zone, self.zone_tmp_file = self._load_data('zone_file', 'zone', 'zone_file') 
+        self.zone, self.zone_tmp_file = self.load_data('zone_file', 'zone', 'zone_file') 
         return 
 
     @logAPICall
     def load_survey(self):
-        self.survey, self.survey_tmp_file = self._load_data('survey_file', 'survey', 'survey_file') 
+        self.survey, self.survey_tmp_file = self.load_data('survey_file', 'survey', 'survey_file') 
+        return 
+    
+    @logAPICall
+    def load_popgrid(self):
+        if self.popgrid_type == PopGridTypes.None:
+            return
+                
+        self.survey, self.survey_tmp_file = self.load_data('popgrid_file', 'popgrid', 'popgrid_file') 
         return 
     
     @logAPICall
@@ -237,7 +258,13 @@ class Project (object):
     def build_exposure_steps(self):
         """ building exposure database from workflow """
         if not self.workflow.ready:
-            raise SIDDException('cannot create exposure with current datasets')
+            raise SIDDException('Cannot create exposure with current datasets. Please revise input')
+        
+        if not self.ms.is_valid:
+            raise SIDDException('Current mapping scheme is not valid')
+        
+        for zone in self.ms.zones:
+            zone.stats.refresh_leaves(with_modifier=True, order_attributes=True)
         
         if getattr(self, 'exposure', None) is not None:
             del self.exposure
@@ -263,42 +290,55 @@ class Project (object):
         # try to create ms using random
         try: 
             use_sampling = self.operator_options['stratified.sampling']
-            return self._build_ms(isEmpty=False, useSampling=use_sampling)
+            return self.do_build_ms(isEmpty=False, useSampling=use_sampling)
         except Exception as err:
-            self._build_ms(isEmpty=True)
+            self.create_empty_ms()
             raise SIDDException('Unable to create Mapping Scheme:%s' % str(err))
 
     @logAPICall
     def create_empty_ms(self):
+        """ create an empty mapping scheme """
         # build mapping scheme
-        return self._build_ms(isEmpty=True)
+        return self.do_build_ms(isEmpty=True)
 
     @logAPICall
-    def export_data(self):
-        builder = WorkflowBuilder(self.operator_options)
-        try:
-            export_workflow = builder.build_export_workflow(self)
-            # process workflow 
-            for step in export_workflow.nextstep():
-                step.do_operation()
-            logAPICall.log('data export completed', logAPICall.INFO)            
-        except WorkflowException:
-            return False
-        except Exception as err:
-            logAPICall.log(err, logAPICall.ERROR)
-            return False
+    def load_ms(self, path):
+        """ load mapping scheme from XML """
+        if self.zone_type != ZonesTypes.None:
+            self.create_empty_ms()
+        builder= WorkflowBuilder(self.operator_options)
+        ms_workflow = builder.build_load_ms_workflow(self, path)        
+        ms_workflow.process()
+        ms = ms_workflow.operator_data['ms'].value  
+        if self.ms is not None:              
+            # include existing zones from current ms
+            new_zones = [zone.name for zone in ms.zones]    
+            for existing_zone in self.ms.zones:
+                try:
+                    new_zones.index(existing_zone.name)
+                except:
+                    # not found
+                    statistics = Statistics(self.ms.taxonomy)
+                    zone = MappingSchemeZone(existing_zone.name)
+                    ms.assign(zone, statistics)
+        self.ms = ms
     
     @logAPICall
-    def export_ms_leaves(self, path):
+    def export_ms(self, path, export_format):
+        """ 
+        export mapping scheme according to given format
+        see constants.MSExportTypes for type supported
+        """
         if self.ms is None:
             raise SIDDException('Mapping Scheme is required for this action')
         
         builder= WorkflowBuilder(self.operator_options)
         try:
-            export_workflow = builder.build_export_distribution_workflow(self, path)
-            # process workflow
-            for step in export_workflow.nextstep():
-                step.do_operation()
+            if export_format == MSExportTypes.XML:
+                export_workflow = builder.build_export_ms_workflow(self, path)
+            else:
+                export_workflow = builder.build_export_distribution_workflow(self, path)
+            export_workflow.process()
             logAPICall.log('data export completed', logAPICall.INFO)
         except WorkflowException:
             return False
@@ -308,31 +348,56 @@ class Project (object):
     
     @logAPICall
     def verify_result(self):
+        """
+        run data quality tests 
+        """
         builder = WorkflowBuilder(self.operator_options)
         try:
             verify_workflow = builder.build_verify_result_workflow(self)
-            # process workflow
-            for step in verify_workflow.nextstep():
+        except WorkflowException as err:
+            raise SIDDException("error creating workflow for result verification\n%s" % err)
+        # process workflow
+        for step in verify_workflow.nextstep():
+            try:
                 step.do_operation()
-            
-            self.quality_reports={}
-            if verify_workflow.operator_data.has_key('frag_report'):
-                self.quality_reports['fragmentation'] = verify_workflow.operator_data['frag_report'].value
-            if verify_workflow.operator_data.has_key('count_report'):
-                self.quality_reports['count'] = verify_workflow.operator_data['count_report'].value
-            logAPICall.log('result verification completed', logAPICall.INFO)
-        except WorkflowException:
-            return False
-        except Exception as err:
-            logAPICall.log(err, logAPICall.ERROR)
-            return False
+            except Exception as err:
+                logAPICall.log(err, logAPICall.WARNING)
+                pass                
 
+        self.quality_reports={}
+        if verify_workflow.operator_data.has_key('frag_report'):
+            self.quality_reports['fragmentation'] = verify_workflow.operator_data['frag_report'].value
+        if verify_workflow.operator_data.has_key('count_report'):
+            self.quality_reports['count'] = verify_workflow.operator_data['count_report'].value
+            try:
+                if self.zone_type == ZonesTypes.LanduseCount and self.output_type == OutputTypes.Grid:
+                    self.quality_reports['count']['_note'] = ''
+            except:
+                pass
+                
+        logAPICall.log('result verification completed', logAPICall.INFO)
+    
+    @logAPICall
+    def export_data(self):
+        """ export exposure data """
+        builder = WorkflowBuilder(self.operator_options)
+        try:
+            export_workflow = builder.build_export_workflow(self)
+        except WorkflowException as err:
+            raise SIDDException("error creating workflow for exporting data\n%s" % err)
+        try:
+            # process workflow 
+            export_workflow.process()
+            logAPICall.log('data export completed', logAPICall.INFO)            
+        except Exception as err:
+            raise SIDDException("error exporting data\n" % err)
+    
     # project database access methods
     ##################################
     
     @logAPICall
     def sync(self, direction=SyncModes.Read):
-        """ synchorize data with DB """
+        """ synchronize data with DB """
         if self.project_file is None or self.db is None:
             raise SIDDProjectException(ProjectErrors.FileNotSet)
         
@@ -340,162 +405,187 @@ class Project (object):
             logAPICall.log("reading existing datasets from DB", logAPICall.DEBUG)
             
             # load footprint
-            _fp_type = self._get_project_data('data.footprint')
-            if _fp_type is None:
+            fp_type = self.get_project_data('data.footprint')
+            if fp_type is None:
                 self.footprint = None
                 self.fp_file = None
                 self.fp_type = FootprintTypes.None
             else:
-                if (_fp_type == str(FootprintTypes.FootprintHt)):
+                if (fp_type == str(FootprintTypes.FootprintHt)):
                     self.set_footprint(FootprintTypes.FootprintHt,
-                                       self._get_project_data('data.footprint.file'),
-                                       self._get_project_data('data.footprint.ht_field'))
+                                       self.get_project_data('data.footprint.file'),
+                                       self.get_project_data('data.footprint.ht_field'))
                 else:
                     self.set_footprint(FootprintTypes.Footprint,
-                                       self._get_project_data('data.footprint.file'))
+                                       self.get_project_data('data.footprint.file'))
             # load survey
-            _survey_type = self._get_project_data('data.survey')
-            if _survey_type is None:
+            survey_type = self.get_project_data('data.survey')
+            if survey_type is None:
                 self.survey = None
                 self.survey_file = None
                 self.survey_type = SurveyTypes.None
             else:                
-                if self._get_project_data('data.survey.is_complete') == 'True':
+                if self.get_project_data('data.survey.is_complete') == 'True':
                     self.set_survey(SurveyTypes.CompleteSurvey,
-                                    self._get_project_data('data.survey.file'))
+                                    self.get_project_data('data.survey.file'))
                 else:
                     self.set_survey(SurveyTypes.SampledSurvey,
-                                    self._get_project_data('data.survey.file'))
+                                    self.get_project_data('data.survey.file'))
             
             # load zone
-            _zone_type = self._get_project_data('data.zones')
-            if _zone_type is None:
+            zone_type = self.get_project_data('data.zones')
+            if zone_type is None:
                 self.zones = None
                 self.zone_file = None                
                 self.zone_type = ZonesTypes.None
             else:
-                if _zone_type == str(ZonesTypes.Landuse):                    
+                if zone_type == str(ZonesTypes.Landuse):                    
                     self.set_zones(ZonesTypes.Landuse,
-                                   self._get_project_data('data.zones.file'),
-                                   self._get_project_data('data.zones.class_field'))
+                                   self.get_project_data('data.zones.file'),
+                                   self.get_project_data('data.zones.class_field'))
                 else:
                     self.set_zones(ZonesTypes.LanduseCount,
-                                   self._get_project_data('data.zones.file'),
-                                   self._get_project_data('data.zones.class_field'),
-                                   self._get_project_data('data.zones.count_field'))
+                                   self.get_project_data('data.zones.file'),
+                                   self.get_project_data('data.zones.class_field'),
+                                   self.get_project_data('data.zones.count_field'),
+                                   self.get_project_data('data.zones.area_field'))
+                    
+            # load popgrid
+            pop_type = self.get_project_data('data.popgrid')
+            if pop_type is None:
+                self.popgrid =None
+                self.popgrid_type = PopGridTypes.None
+                self.popgrid_file = None
+                self.pop_field = ''
+            else:
+                self.set_popgrid(PopGridTypes.Grid,
+                                 self.get_project_data('data.popgrid.file'),
+                                 self.get_project_data('data.popgrid.pop_field'),
+                                 self.get_project_data('data.popgrid.pop_to_bldg')) 
+            
             # load output type
-            _output_type = self._get_project_data('data.output')
-            if _output_type == "Zone":
+            output_type = self.get_project_data('data.output')
+            if output_type == "Zone":
                 self.output_type = OutputTypes.Zone
             else:
                 self.output_type = OutputTypes.Grid
             
             # load mapping scheme
-            _ms_str = self._get_project_data('data.ms')
-            if _ms_str is not None:
+            ms_str = self.get_project_data('data.ms')
+            if ms_str is not None:
                 self.ms = MappingScheme(None)
-                self.ms.from_text(_ms_str)
+                self.ms.from_text(ms_str)
 
-            use_sampling = self._get_project_data('stratified.sampling')
+            use_sampling = self.get_project_data('stratified.sampling')
             if use_sampling is None:
                 self.operator_options['stratified.sampling']= False # default to not use sampling method
             else:
                 self.operator_options['stratified.sampling']= (use_sampling == "True")
                 
             # load taxonomy related options
-            attr_order = self._get_project_data('attribute.order')
+            attr_order = self.get_project_data('attribute.order')
             if attr_order is not None:
                 self.operator_options['attribute.order'] = json.loads(attr_order)                
             for attr in self.operator_options['taxonomy'].attributes:
-                _attr_options = self._get_project_data(attr.name)
-                if _attr_options is not None:
-                    self.operator_options[attr.name] = json.loads(_attr_options)
+                attr_options = self.get_project_data(attr.name)
+                if attr_options is not None:
+                    self.operator_options[attr.name] = json.loads(attr_options)
                
-            extrapolation = self._get_project_data("proc.extrapolation")
+            extrapolation = self.get_project_data("proc.extrapolation")
             if extrapolation is not None:
                 # NOTE: converting extrapolation to enum is required
                 #       because comparison of str vs. enum is not valid            
                 self.operator_options["proc.extrapolation"] = makeEnum(ExtrapolateOptions, extrapolation)
             else:
-                self.operator_options["proc.extrapolation"] = ExtrapolateOptions.RandomWalk
+                self.operator_options["proc.extrapolation"] = ExtrapolateOptions.Fraction
             
             # load export settings 
-            export_type = self._get_project_data('export.type')
+            export_type = self.get_project_data('export.type')
             if export_type is not None:
                 self.export_type = makeEnum(ExportTypes, export_type)
-            export_path = self._get_project_data('export.path')
+            export_path = self.get_project_data('export.path')
             if export_path is not None:
                 self.export_path = export_path
             
         else:
-            if not self.require_save:
-                logAPICall.log("nothing changed since last save", logAPICall.DEBUG)
-                return 
-                
             logAPICall.log("store existing datasets into DB", logAPICall.DEBUG)            
             # store footprint            
             if self.fp_type == FootprintTypes.None:
-                self._save_project_data('data.footprint', None)
-                self._save_project_data('data.footprint.file', None)
-                self._save_project_data('data.footprint.ht_field', None)
+                self.save_project_data('data.footprint', None)
+                self.save_project_data('data.footprint.file', None)
+                self.save_project_data('data.footprint.ht_field', None)
             else:
-                self._save_project_data('data.footprint', self.fp_type)
-                self._save_project_data('data.footprint.file', self.fp_file)
+                self.save_project_data('data.footprint', self.fp_type)
+                self.save_project_data('data.footprint.file', self.fp_file)
                 if self.fp_type == FootprintTypes.FootprintHt:
-                    self._save_project_data('data.footprint.ht_field', self.fp_ht_field)
+                    self.save_project_data('data.footprint.ht_field', self.fp_ht_field)
                 else:
-                    self._save_project_data('data.footprint.ht_field', None)
+                    self.save_project_data('data.footprint.ht_field', None)
                 
             # store survey
             if self.survey_type == SurveyTypes.None:
-                self._save_project_data('data.survey', None)
-                self._save_project_data('data.survey.file', None)
+                self.save_project_data('data.survey', None)
+                self.save_project_data('data.survey.file', None)
             else:
-                self._save_project_data('data.survey', self.survey_type)
-                self._save_project_data('data.survey.file', self.survey_file)
-                self._save_project_data('data.survey.is_complete', (self.survey_type == SurveyTypes.CompleteSurvey))
+                self.save_project_data('data.survey', self.survey_type)
+                self.save_project_data('data.survey.file', self.survey_file)
+                self.save_project_data('data.survey.is_complete', (self.survey_type == SurveyTypes.CompleteSurvey))
 
             # store zone
             if self.zone_type == ZonesTypes.None:
-                self._save_project_data('data.zones', None)
-                self._save_project_data('data.zones.file', None)
-                self._save_project_data('data.zones.class_field', None)
-                self._save_project_data('data.zones.count_field', None)
+                self.save_project_data('data.zones', None)
+                self.save_project_data('data.zones.file', None)
+                self.save_project_data('data.zones.class_field', None)
+                self.save_project_data('data.zones.count_field', None)
             else:
-                self._save_project_data('data.zones', self.zone_type)
-                self._save_project_data('data.zones.file', self.zone_file)
-                self._save_project_data('data.zones.class_field', self.zone_field)
+                self.save_project_data('data.zones', self.zone_type)
+                self.save_project_data('data.zones.file', self.zone_file)
+                self.save_project_data('data.zones.class_field', self.zone_field)
                 if self.zone_type == ZonesTypes.LanduseCount:
-                    self._save_project_data('data.zones.count_field', self.zone_count_field)
+                    self.save_project_data('data.zones.count_field', self.zone_count_field)
+                    self.save_project_data('data.zones.area_field', self.zone_area_field)
                 else:
-                    self._save_project_data('data.zones.count_field', None)
+                    self.save_project_data('data.zones.count_field', None)
+                    self.save_project_data('data.zones.area_field', None)
+            
+            # store popgrid
+            if self.popgrid_type == PopGridTypes.None:
+                self.save_project_data('data.popgrid', None)
+                self.save_project_data('data.popgrid.file', None)
+                self.save_project_data('data.popgrid.pop_field', None)
+                self.save_project_data('data.popgrid.pop_to_bldg', None)
+            else:
+                self.save_project_data('data.popgrid', self.popgrid_type)
+                self.save_project_data('data.popgrid.file', self.popgrid_file)
+                self.save_project_data('data.popgrid.pop_field', self.pop_field)
+                self.save_project_data('data.popgrid.pop_to_bldg', self.pop_to_bldg)
             
             # store output type
-            self._save_project_data('data.output', self.output_type)
+            self.save_project_data('data.output', self.output_type)
             
             # store mapping scheme
             if self.ms is None:
-                self._save_project_data('data.ms', None)
+                self.save_project_data('data.ms', None)
             else:
-                self._save_project_data('data.ms', self.ms.to_xml())
+                self.save_project_data('data.ms', self.ms.to_xml())
             
             if self.operator_options.has_key('stratified.sampling'):
-                self._save_project_data('stratified.sampling',  self.operator_options['stratified.sampling'])            
+                self.save_project_data('stratified.sampling',  self.operator_options['stratified.sampling'])            
 
             # save taxonomy order 
             if self.operator_options.has_key('attribute.order'):
-                self._save_project_data('attribute.order',  json.dumps(self.operator_options['attribute.order']))
+                self.save_project_data('attribute.order',  json.dumps(self.operator_options['attribute.order']))
             for attr in self.operator_options['taxonomy'].attributes:
                 if self.operator_options.has_key(attr.name):
-                    self._save_project_data(attr.name, json.dumps(self.operator_options[attr.name]))
+                    self.save_project_data(attr.name, json.dumps(self.operator_options[attr.name]))
             
             # save processing attributes
             if self.operator_options.has_key("proc.extrapolation"):
-                self._save_project_data("proc.extrapolation", self.operator_options["proc.extrapolation"])
+                self.save_project_data("proc.extrapolation", self.operator_options["proc.extrapolation"])
             
             # save export settings
-            self._save_project_data('export.type', getattr(self, 'export_type', None))
-            self._save_project_data('export.path', getattr(self, 'export_path', None))
+            self.save_project_data('export.type', getattr(self, 'export_type', None))
+            self.save_project_data('export.path', getattr(self, 'export_path', None))
             
             # flush to disk
             self.db.sync()
@@ -506,7 +596,7 @@ class Project (object):
 
     # bsddb help functions
     ##################################    
-    def _get_project_data(self, attrib):        
+    def get_project_data(self, attrib):        
         if self.db.has_key(attrib):
             logAPICall.log('read from db %s => %s ' % (attrib, str(self.db[attrib])[0:25]), logAPICall.DEBUG_L2)
             return self.db[attrib]
@@ -514,7 +604,7 @@ class Project (object):
             logAPICall.log('%s does not exist in db' % attrib, logAPICall.DEBUG_L2)
             return None
 
-    def _save_project_data(self, attrib, value):
+    def save_project_data(self, attrib, value):
         if value is None:
             # delete
             logAPICall.log('delete from db %s ' % (attrib), logAPICall.DEBUG_L2)
@@ -527,34 +617,30 @@ class Project (object):
     # protected helper functions
     ##################################
     
-    def _load_data(self, input_param, layer, output_file):
+    def load_data(self, input_param, layer, output_file):
         input_file = getattr(self, input_param, None)
         if input_file is not None:
             builder = WorkflowBuilder(self.operator_options)
-            try:
-                # create workflow
-                if input_param == 'fp_file':
-                    workflow = builder.build_load_fp_workflow(self)
-                elif input_param == 'zone_file':
-                    workflow = builder.build_load_zones_workflow(self)
-                elif input_param == 'survey_file':
-                    workflow = builder.build_load_survey_workflow(self)
-                else:
-                    raise Exception('Data Type Not Recognized %s' % input_param)
-                
-                if not workflow.ready:
-                    raise Exception('Cannot load data with %s' % input_param)
-                workflow.process()
-                
-                logAPICall.log('data file %s loaded' % input_file, logAPICall.INFO)
-                return workflow.operator_data[layer].value, workflow.operator_data[output_file].value
-            except WorkflowException:
-                logAPICall.log('Error Loading file %s' % input_file, logAPICall.ERROR)
-            except Exception as err:
-                logAPICall.log(err, logAPICall.ERROR)
-                return False           
+            # create workflow
+            if input_param == 'fp_file':
+                workflow = builder.build_load_fp_workflow(self)
+            elif input_param == 'zone_file':
+                workflow = builder.build_load_zones_workflow(self)
+            elif input_param == 'survey_file':
+                workflow = builder.build_load_survey_workflow(self)
+            elif input_param == 'popgrid_file':
+                workflow = builder.build_load_popgrid_workflow(self)
+            else:
+                raise Exception('Data Type Not Recognized %s' % input_param)
+            
+            if not workflow.ready:
+                raise Exception('Cannot load data with %s' % input_param)
+            workflow.process()
+            
+            logAPICall.log('data file %s loaded' % input_file, logAPICall.INFO)
+            return workflow.operator_data[layer].value, workflow.operator_data[output_file].value
 
-    def _build_ms(self, isEmpty=False, useSampling=False):
+    def do_build_ms(self, isEmpty=False, useSampling=False):
         """ create mapping scheme """
         builder = WorkflowBuilder(self.operator_options)
         # force reload existing survey
@@ -569,13 +655,12 @@ class Project (object):
             raise SIDDException(ms_workflow.errors)
         
         # process workflow 
-        for step in ms_workflow.nextstep():
-            step.do_operation()
+        ms_workflow.process()
         self.ms = ms_workflow.operator_data['ms'].value
         if useSampling:
             self.zone_stats = ms_workflow.operator_data['zone_stats'].value
         for zone, stats in self.ms.assignments():
-            stats.get_leaves(True)
+            stats.refresh_leaves()
             
         logAPICall.log('mapping scheme created', logAPICall.INFO)
         self.require_save = True

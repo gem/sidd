@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qt\win_main.ui'
 #
-# Created: Thu May 09 09:08:06 2013
+# Created: Fri Jun 21 14:01:30 2013
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -35,8 +35,6 @@ class Ui_mainWindow(object):
         self.menubar.setObjectName(_fromUtf8("menubar"))
         self.menuFile = QtGui.QMenu(self.menubar)
         self.menuFile.setObjectName(_fromUtf8("menuFile"))
-        self.menuCreate_New = QtGui.QMenu(self.menuFile)
-        self.menuCreate_New.setObjectName(_fromUtf8("menuCreate_New"))
         self.menuHelp = QtGui.QMenu(self.menubar)
         self.menuHelp.setObjectName(_fromUtf8("menuHelp"))
         self.menuView = QtGui.QMenu(self.menubar)
@@ -69,9 +67,8 @@ class Ui_mainWindow(object):
         self.actionProject_Blank.setObjectName(_fromUtf8("actionProject_Blank"))
         self.actionSave_as = QtGui.QAction(mainWindow)
         self.actionSave_as.setObjectName(_fromUtf8("actionSave_as"))
-        self.menuCreate_New.addAction(self.actionProject_Blank)
-        self.menuCreate_New.addAction(self.actionUsing_Data_Wizard)
-        self.menuFile.addAction(self.menuCreate_New.menuAction())
+        self.menuFile.addAction(self.actionProject_Blank)
+        self.menuFile.addAction(self.actionUsing_Data_Wizard)
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionOpen_Existing)
         self.menuFile.addSeparator()
@@ -96,7 +93,6 @@ class Ui_mainWindow(object):
     def retranslateUi(self, mainWindow):
         mainWindow.setWindowTitle(QtGui.QApplication.translate("mainWindow", "Spatial Inventory Data Developer", None, QtGui.QApplication.UnicodeUTF8))
         self.menuFile.setTitle(QtGui.QApplication.translate("mainWindow", "File", None, QtGui.QApplication.UnicodeUTF8))
-        self.menuCreate_New.setTitle(QtGui.QApplication.translate("mainWindow", "Create Project", None, QtGui.QApplication.UnicodeUTF8))
         self.menuHelp.setTitle(QtGui.QApplication.translate("mainWindow", "Help", None, QtGui.QApplication.UnicodeUTF8))
         self.menuView.setTitle(QtGui.QApplication.translate("mainWindow", "View", None, QtGui.QApplication.UnicodeUTF8))
         self.menuProcessing.setTitle(QtGui.QApplication.translate("mainWindow", "Options", None, QtGui.QApplication.UnicodeUTF8))

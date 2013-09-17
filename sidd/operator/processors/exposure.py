@@ -19,16 +19,15 @@ module contains class for applying mapping scheme
 import bsddb 
 
 from PyQt4.QtCore import QVariant
-from qgis.core import QgsVectorFileWriter, QgsFeature, QgsField, QgsGeometry
+from qgis.core import QgsVectorFileWriter, QgsFeature, QgsField
 
 from utils.shapefile import load_shapefile, layer_features, layer_field_index, remove_shapefile
 from utils.system import get_unique_filename
-from utils.grid import latlon_to_grid
- 
-from sidd.constants import logAPICall, \
-                           ExtrapolateOptions, \
-                           GID_FIELD_NAME, LON_FIELD_NAME, LAT_FIELD_NAME, CNT_FIELD_NAME, TAX_FIELD_NAME, ZONE_FIELD_NAME, \
-                           DEFAULT_GRID_SIZE, MAX_FEATURES_IN_MEMORY
+from utils.grid import latlon_to_grid, grid_to_latlon
+ from sidd.constants import logAPICall, ExtrapolateOptions, \
+    GID_FIELD_NAME, LON_FIELD_NAME, LAT_FIELD_NAME, CNT_FIELD_NAME, TAX_FIELD_NAME, \
+    ZONE_FIELD_NAME, AREA_FIELD_NAME, COST_FIELD_NAME, \
+    MAX_FEATURES_IN_MEMORY
 from sidd.operator import Operator, OperatorError
 from sidd.operator.data import OperatorDataTypes
 
@@ -42,14 +41,16 @@ class GridMSApplier(Operator):
         if options.has_key('proc.extrapolation'):
             self._extrapolationOption = options['proc.extrapolation']
         else:
-            self._extrapolationOption = ExtrapolateOptions.RandomWalk
+            self._extrapolationOption = ExtrapolateOptions.Fraction
             
         self._fields = {0: QgsField(GID_FIELD_NAME, QVariant.Int),
                         1: QgsField(LON_FIELD_NAME, QVariant.Double),
                         2: QgsField(LAT_FIELD_NAME, QVariant.Double),
-                        3: QgsField(TAX_FIELD_NAME, QVariant.String),
+                        3: QgsField(TAX_FIELD_NAME, QVariant.String, "", 255),
                         4: QgsField(ZONE_FIELD_NAME, QVariant.String),
-                        5: QgsField(CNT_FIELD_NAME, QVariant.Int)}        
+                        5: QgsField(CNT_FIELD_NAME, QVariant.Int),
+                        6: QgsField(AREA_FIELD_NAME, QVariant.Double),
+                        7: QgsField(COST_FIELD_NAME, QVariant.Double),}
         if self._extrapolationOption != ExtrapolateOptions.RandomWalk:
             self._fields[5]=QgsField(CNT_FIELD_NAME, QVariant.Double)
         
@@ -119,11 +120,14 @@ class GridMSApplier(Operator):
         count_idx = layer_field_index(src_layer, count_field)
         if count_idx == -1:
             raise OperatorError("field %s not found in input layer" % count_field, self.__class__)
-         
+        gid_idx = layer_field_index(src_layer, GID_FIELD_NAME)
+        if gid_idx == -1:
+            raise OperatorError("field %s not found in input layer" % GID_FIELD_NAME, self.__class__)
+        area_idx = layer_field_index(src_layer, AREA_FIELD_NAME)
+        
         provider.select(provider.attributeIndexes(), provider.extent())
         provider.rewind()
 
-        default_stats = ms.get_assignment(ms.get_zones()[0])
         try:
             writer = QgsVectorFileWriter(exposure_file, "utf-8", self._fields, provider.geometryType(), self._crs, "ESRI Shapefile")
             out_feature = QgsFeature()
@@ -132,28 +136,52 @@ class GridMSApplier(Operator):
             for in_feature in layer_features(src_layer):
                 geom = in_feature.geometry()
                 centroid = geom.centroid().asPoint ()
+                gid = in_feature.attributeMap()[gid_idx]
                 zone_str = str(in_feature.attributeMap()[zone_idx].toString())
                 count = in_feature.attributeMap()[count_idx].toDouble()[0]
+                if area_idx > 0:
+                    area = in_feature.attributeMap()[area_idx].toDouble()[0]
+                else:
+                    area = 0
                 
                 count = int(count+0.5)
+                if count == 0:
+                    continue                            
+                
                 stats = ms.get_assignment_by_name(zone_str)
                 
                 # use default stats if missing
                 if stats is None:
-                    stats = default_stats
-                    
-                gid += 1
-                for _l, _c in stats.get_samples(count, self._extrapolationOption).iteritems():
+                    raise Exception("no mapping scheme found for zone %s" % zone_str)
+                
+                for _sample in stats.get_samples(count, self._extrapolationOption):
                     # write out if there are structures assigned
-                    if _c > 0:
+                    _type = _sample[0]
+                    _cnt = _sample[1]
+                    
+                    if area > 0:
+                        # use area provided by footprint/zone if defined
+                        _size = area * ( float(_sample[1]) / count )
+                        if _sample[3] > 0 and _sample[2] > 0:
+                            _cost = (_sample[3] / _sample[2]) * area
+                        else:
+                            _cost = 0
+                    else:
+                        # use mapping scheme generic area otherwise
+                        _size = _sample[2]
+                        _cost = _sample[3]
+                    
+                    if _cnt > 0:
                         out_feature.setGeometry(geom)
                         #out_feature.addAttribute(0, QVariant(gid))
-                        out_feature.addAttribute(0, QVariant(latlon_to_grid(centroid.y(), centroid.x())))
+                        out_feature.addAttribute(0, gid)
                         out_feature.addAttribute(1, QVariant(centroid.x()))
                         out_feature.addAttribute(2, QVariant(centroid.y()))
-                        out_feature.addAttribute(3, QVariant(_l))
+                        out_feature.addAttribute(3, QVariant(_type))
                         out_feature.addAttribute(4, QVariant(zone_str))
-                        out_feature.addAttribute(5, QVariant(_c))
+                        out_feature.addAttribute(5, QVariant(_cnt))
+                        out_feature.addAttribute(6, QVariant(_size))
+                        out_feature.addAttribute(7, QVariant(_cost))
                         writer.addFeature(out_feature)
             del writer, out_feature
         except Exception as err:
@@ -239,27 +267,28 @@ class SurveyAggregator(GridMSApplier, ToGrid):
         if total_features > MAX_FEATURES_IN_MEMORY:
             # use bsddb to store temporary lat/lon
             tmp_db_file = '%sdb_%s.db' % (self._tmp_dir, get_unique_filename())
-            db = bsddb.btopen(tmp_db_file, 'c')
+            db = bsddb.btopen(tmp_db_file, 'c')            
         else:
             db = {}
 
+        # tally statistics for each grid_id/building type combination
         tax_idx = layer_field_index(svy_layer, TAX_FIELD_NAME)
         for f in layer_features(svy_layer):
             geom = f.geometry()
+            centroid  = geom.centroid().asPoint()
+            grid_id = latlon_to_grid(centroid.y(), centroid.x())                        
             tax_str = str(f.attributeMap()[tax_idx].toString())
-            centroid  = geom.centroid().asPoint()                        
-            x = round(centroid.x() / DEFAULT_GRID_SIZE)
-            y = round(centroid.y() / DEFAULT_GRID_SIZE)            
-            key = '%s %d %d' % (tax_str, x,y)
+
+            key = '%s %s' % (tax_str, grid_id)
             if db.has_key(key):
-                db[key] = str(int(db[key]) + 1)
+                db[key] = str(int(db[key]) + 1) # value as string required by bsddb
             else:
-                db[key] = '1'
+                db[key] = '1'                   # value as string required by bsddb
 
         # loop through all zones and assign mapping scheme
         # outputs
         exposure_layername = 'exp_%s' % get_unique_filename()
-        exposure_file = '%sexp_%s.shp' % (self._tmp_dir, exposure_layername)
+        exposure_file = '%s%s.shp' % (self._tmp_dir, exposure_layername)
 
         try:
             writer = QgsVectorFileWriter(exposure_file, "utf-8", 
@@ -268,12 +297,13 @@ class SurveyAggregator(GridMSApplier, ToGrid):
             f = QgsFeature()            
             gid = 0
             for key, val in db.iteritems():
-                (tax_str, x, y) = key.split(' ')
-                lon, lat = int(x)*DEFAULT_GRID_SIZE, int(y)*DEFAULT_GRID_SIZE
-                f.setGeometry(self._outputGeometryFromLatLon(lat, lon))
-                f.addAttribute(0, QVariant(latlon_to_grid(lat, lon)))
-                f.addAttribute(1, QVariant(lat))
-                f.addAttribute(2, QVariant(lon))
+                (tax_str, grid_id) = key.split(' ')
+                lon, lat = grid_to_latlon(int(grid_id))
+                
+                f.setGeometry(self._outputGeometryFromGridId(grid_id))
+                f.addAttribute(0, QVariant(grid_id))
+                f.addAttribute(1, QVariant(lon))
+                f.addAttribute(2, QVariant(lat))
                 f.addAttribute(3, QVariant(tax_str))
                 f.addAttribute(4, QVariant(''))
                 f.addAttribute(5, QVariant(val))

@@ -18,6 +18,7 @@ Module contains all mapping scheme handling class
 """
 
 from xml.etree.ElementTree import ElementTree, fromstring
+from operator import attrgetter
 
 from utils.xml import get_node_attrib
 from sidd.constants import logAPICall
@@ -64,7 +65,17 @@ class MappingScheme (object):
     @property
     def is_valid(self):
         """ verify that the mapping scheme is valid """
-        return True;
+        for zone in self.zones:
+            if not zone.stats.is_valid:
+                return False
+        return True
+    
+    @property
+    def is_empty(self):
+        for zone in self.zones:
+            if len(zone.stats.root.children) > 0:
+                return False
+        return True 
     
     @logAPICall
     def read(self, xml_file):
@@ -99,25 +110,26 @@ class MappingScheme (object):
             ms_zone.stats = stats
             self.zones.append(ms_zone)
                       
+        self.sort_zones()
     
     @logAPICall
-    def save(self, xml_file):
+    def save(self, xml_file, pretty=False):
         """ Store mapping scheme into given input file """
         f = open(xml_file, 'w')
-        f.write(self.to_xml())
+        f.write(self.to_xml(pretty))
         f.close()
     
     @logAPICall
-    def to_xml(self):
+    def to_xml(self, pretty=False):
         outstr = (
             '<mapping_scheme><taxonomy><name>%s</name><description>%s</description><version>%s</version></taxonomy>' %
             (self.taxonomy.name, self.taxonomy.description,self.taxonomy.version))
         for zone in self.zones:
             outstr += '<zone name="%s">'%(zone.name)
-            outstr += zone.stats.to_xml()
+            outstr += zone.stats.to_xml(pretty)
             outstr += '</zone>'
         outstr += '</mapping_scheme>'
-        return outstr    
+        return outstr
 
     @logAPICall
     def append_branch(self, node, branch):
@@ -131,11 +143,8 @@ class MappingScheme (object):
             node_to_attach = node.stats.get_tree()
         else:
             node_to_attach = node
-            for assignment in self.assignments():
-                stat = assignment[1]
-                if stat.has_node(node):
-                    stat_tree = stat
-                    break
+            stat_tree = self.get_assignment_by_node(node_to_attach)
+            
         if stat_tree is None:
             raise SIDDException('selected node does not belong to mapping scheme')
             
@@ -143,9 +152,17 @@ class MappingScheme (object):
         if type(branch) == MappingSchemeZone:
             # branch starts from zone node, so it is a full stats tree
             # add only the child nodes
-            logAPICall.log('branch is zone, add children', logAPICall.DEBUG_L2)            
+            logAPICall.log('branch is zone, add children', logAPICall.DEBUG_L2)
+            
+            # test to make sure append is valid
+            # exception will be thrown is case of error
+            for child in branch.stats.get_tree().children:
+                stat_tree.test_repeated_attribute(node_to_attach, child)
+                stat_tree.test_repeated_value(node_to_attach, child)
+                     
             for child in branch.stats.get_tree().children:                
-                stat_tree.add_branch(node_to_attach, child, update_stats=False)
+                stat_tree.add_branch(node_to_attach, child, test_repeating=False, update_stats=False)
+            node_to_attach.balance_weights()            
         else:
             # branch is from a tree
             # add branch as child node
@@ -186,7 +203,8 @@ class MappingScheme (object):
         """
         statistics.get_tree().value = zone.name
         zone.stats = statistics
-        self.zones.append(zone)        
+        self.zones.append(zone)   
+        self.sort_zones()     
     
     @logAPICall
     def get_assignment(self, ms_zone):
@@ -207,6 +225,19 @@ class MappingScheme (object):
             return None
     
     @logAPICall
+    def get_assignment_by_node(self, node):
+        """ Retrieve statistic contains given StatisticNode """
+        if node is None:
+            return None
+        for assignment in self.assignments():
+            stat = assignment[1]
+            if stat.has_node(node):
+                # found
+                return stat
+        # not found
+        return None
+    
+    @logAPICall
     def get_zones(self):
         """ Retrieve all zones in current mapping scheme """
         return self.zones
@@ -220,3 +251,5 @@ class MappingScheme (object):
         for zone in self.zones:            
             yield zone, zone.stats
 
+    def sort_zones(self):
+        self.zones.sort(key=attrgetter('name'))

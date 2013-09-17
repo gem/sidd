@@ -17,9 +17,9 @@
 Module class for statistic tree handling
 """
 from xml.etree import ElementTree
+from random import random 
 
 from sidd.constants import logAPICall, ExtrapolateOptions
-from sidd.taxonomy import TaxonomyParseError
 from sidd.ms.exceptions import StatisticError
 from sidd.ms.node import StatisticNode
 
@@ -43,21 +43,33 @@ class Statistics (object):
         self.root = StatisticNode(None, 'root', 'root')
         self.attributes = []
         self.leaves = []
+        self.leaves_ordered = False
         self.taxonomy = taxonomy
         self.skips.append(False)
         self.finalized = False
+        self.default_parse_order =  [x.name for x in self.taxonomy.attributes]
         
         for attr in self.taxonomy.attributes:
             self.defaults.append(attr.default)
             self.skips.append(False)
-        StatisticNode.set_separator(taxonomy.level_separator)
-        StatisticNode.set_defaults(self.defaults)
 
-    @logAPICall
     def __str__(self):
         """ return string representation of the underlying tree  """        
         return str(self.root)
     
+    @property
+    def is_valid(self):
+        if not self.root.max_level > 0:
+            return False
+        if not self.root.is_valid:
+            return False
+        return True
+    
+    @property
+    def max_level(self):
+        """ get depth for underlying tree """
+        return self.root.max_level
+        
     @logAPICall
     def set_attribute_skip(self, level, skip):
         """ change skip condition for given level """        
@@ -67,58 +79,59 @@ class Statistics (object):
 
     @logAPICall
     def has_node(self, node):
-        return self.root.has_child_node(node)
+        return self.root.matches(node)
 
     @logAPICall
-    def add_case(self, taxstr, parse_order=None, parse_modifiers=True):
+    def add_case(self, taxstr, parse_order=None, parse_modifiers=True, additional_data={}, add_times=1):
         """
-        add new case of the strutural type (taxstr) to the distribution tree
+        add new case of the structural type (taxstr) to the distribution tree
+        using given parse_order
+        additional_data is aggregated at the leaf node only                
         """
         # assert valid condition
         if self.finalized:
-            raise StatisticError('stat is already finalized and cannot be modified')
+            raise StatisticError('Statistics is already finalized and cannot be modified')
         
+        # set parse_order
         if parse_order is None:
-            parse_order = [x.name for x in self.taxonomy.attributes]                        
-        try:
-            bldg_attrs = self.taxonomy.parse(taxstr)
-            self.root.add(bldg_attrs, 0, parse_order, self.taxonomy.defaults, parse_modifiers)
-        except TaxonomyParseError as perr:
-            logAPICall.log("error parsing case %s, %s" % (str(taxstr), str(perr)), logAPICall.WARNING)
-        except Exception as err:     
-            import traceback
-            traceback.print_exc()       
-            logAPICall.log("error adding case %s, %s" % (str(taxstr), str(err)), logAPICall.WARNING)         
+            parse_order = self.default_parse_order
+
+        # parse string
+        bldg_attrs = self.taxonomy.parse(taxstr)
+        # update tree starting from root
+        for i in range(add_times):
+            self.root.add(bldg_attrs, parse_order, 0, additional_data)
 
     @logAPICall
     def finalize(self):
         """
         collapse the statistic tree and create weights
         required step before sampling and modification can be performed
+        NOTE: add case accumulates counts, finalize call is required to 
+              convert the counts into weights
         """
+        # do nothing if finalized
         if self.finalized:
             return
         
-        new_root = StatisticNode(None, 'root')
-        self.root.collapse_tree(new_root)
-        new_root.calculate_weights()
-        self.root = new_root
+        # collapse tree to eliminate empty levels        
+        self.root.eliminate_empty()
+        # convert counts into weight         
+        self.root.calculate_weights()
         self.attributes = self.get_attributes(self.root)
-        
-        defaults = []
-        for skip, default in map(None, self.skips, self.defaults):            
-            if not skip:
-                defaults.append(default)
-        self.defaults_collapsed = defaults
-        self.finalized = True        
+        self.finalized = True
 
     @logAPICall
-    def get_leaves(self, refresh=False, with_modifier=True):
-        if len(self.leaves)==0 or refresh:
-            self.leaves = []
-            for _child in self.root.children:
-                for _val, _wt in _child.leaves(self.taxonomy.attribute_separator, with_modifier):                    
-                    self.leaves.append([_val, _wt])
+    def refresh_leaves(self, with_modifier=True, order_attributes=False):     
+        """
+        collapse weights at all levels of tree into distribution (leaves)
+        """
+        # do nothing if finalized            
+        self.leaves = []
+        for val, wt, node in self.root.leaves(self.taxonomy, 
+                                              with_modifier,
+                                              order_attributes):
+            self.leaves.append([val, wt, node])
         return self.leaves
     
     @logAPICall
@@ -130,12 +143,14 @@ class Statistics (object):
         if len(values) == 0:
             return None
         node = self.root
+        # non-recursive search implementation
+        # can be optimized by using a recursive search        
         for value in values:
-            for child in node.children:
+            for child in node.children: 
                 if value == child.value:
                     node = child
-                    break        
-        if node == self.root:
+                    break
+        if node == self.root:   # this means not find
             return None
         return node
     
@@ -148,11 +163,45 @@ class Statistics (object):
         # assert valid condition
         if not self.finalized:
             raise StatisticError('stat must be finalized before modification')
+        
+        # recursive delete, see StatisticNodes.delete_node
         parent = node.parent
         parent.delete_node(node)
     
     @logAPICall
-    def add_branch(self, node, branch, not_allow_repeat=True, update_stats=True):
+    def test_repeated_value(self, dest_node, branch):
+        """
+        test if value in root node of branch conflict with values in dest_node's child
+        """
+        for child in dest_node.children:
+            if child.value == branch.value:
+                raise StatisticError("Source node value [%s] already exists as destination node's children" % branch.value)
+    
+    @logAPICall
+    def test_repeated_attribute(self, dest_node, branch):
+        """
+        test if node from is already child node
+        """
+        # make sure attributes above node does not have the attribute
+        # already defined
+        existing_attributes = dest_node.ancestor_names
+        existing_attributes.append(dest_node.name)
+        attributes_to_insert = branch.descendant_names
+        attributes_to_insert.insert(0, branch.name)
+                    
+        for attr in attributes_to_insert:
+            try:
+                existing_attributes.index(attr)
+                # if attr already in attribute list, it means repeat
+                # which in this case is an error
+                raise StatisticError('Repeating attribute [%s] already exists in source and destination' % attr)                
+            except ValueError:
+                # error means attr not in attributes
+                # which is the acceptable condition
+                pass
+    
+    @logAPICall
+    def add_branch(self, node, branch, test_repeating=True, update_stats=True):
         """
         add branch to node as child
         only limitation is that the same attribute does not appear
@@ -162,26 +211,10 @@ class Statistics (object):
         if not self.finalized:
             raise StatisticError('stat must be finalized before modification')
         
-        if not_allow_repeat:
-            #attributes = self.get_attributes(branch)
-            # make sure attributes above node does not have the attribute
-            # already defined
-            existing_attributes = node.ancestor_names
-            existing_attributes.append(node.name)
-            attributes_to_insert = branch.descendant_names
-            attributes_to_insert.insert(0, branch.name)
-                        
-            for attr in attributes_to_insert:
-                try:
-                    existing_attributes.index(attr)
-                    # if attr already in attribute list, it means repeat
-                    # which in this case is an error
-                    raise StatisticError('Cannot perform append to node, Repeating attributes\nexisting attributes %s\nnew attributes %s' % (existing_attributes, attributes_to_insert))
-                except ValueError:
-                    # error means attr not in attributes
-                    # which is the acceptable condition
-                    pass
-        
+        if test_repeating:
+            self.test_repeated_attribute(node, branch)
+            self.test_repeated_value(node, branch)
+            
         # no exception means no repeating attributes or repeating not checked
         # add branch to node as child
         
@@ -192,14 +225,7 @@ class Statistics (object):
         node.children.append(branch_to_add)
         # adjust weights proportionally
         if update_stats:
-            sum_weights = sum([child.weight for child in node.children])
-            total_children = len(node.children)                
-            adj_factor = sum_weights / 100
-            for child in node.children:
-                if adj_factor == 0:
-                    child.weight = 100.0 / total_children
-                else:
-                    child.weight = child.weight / adj_factor
+            node.balance_weights()
     
     @logAPICall
     def delete_branch(self, node):
@@ -213,33 +239,18 @@ class Statistics (object):
         
         parent = node.parent
         parent.children.remove(node)
-        children_count = len(parent.children)
-        if  children_count > 1:
-            weight_to_distribute = node.weight / float(children_count)
-            for child in parent.children:
-                child.weight += weight_to_distribute
+        parent.balance_weights()
+        
+#        children_count = len(parent.children)
+#        if  children_count > 1:
+#            weight_to_distribute = node.weight / float(children_count)
+#            for child in parent.children:
+#                child.weight += weight_to_distribute
     
     @logAPICall
     def get_attributes(self, rootnode):
-        """ get name of all attributes in the tree"""
+        """ get name of all attributes in the for given rootnode """
         return rootnode.descendant_names
-        """
-        names = []
-        node = rootnode
-        found_leaf = False
-        while not found_leaf:
-            if (node.level > 0):
-                attr_values = self.taxonomy.parse(node.value)                
-                for attr_val, attr in map(None, attr_values, self.taxonomy.attributes):                    
-                    if not attr_val.is_empty:
-                        names.append(attr.name)
-                        break                        
-            if node.is_leaf:
-                found_leaf=True
-            else:
-                node = node.children[0]
-        return names
-        """
     
     @logAPICall
     def set_child_weights(self, node, weights):
@@ -249,7 +260,7 @@ class Statistics (object):
         # assert valid condition
         if not self.finalized:
             raise StatisticError('stat must be finalized before modification')
-        # TODO assert node is in tree        
+        # recursively set weights, see StatisticNodes.set_child_weights
         node.set_child_weights(weights)
     
     @logAPICall
@@ -259,25 +270,38 @@ class Statistics (object):
         pre-condition: finalize() must be called first
         """
         samples = {}
-        _sample = ''
+        if len(self.leaves)==0:
+            self.refresh_leaves(with_modifier=True, order_attributes=True)
         
-        if method == ExtrapolateOptions.Fraction or method == ExtrapolateOptions.FractionRounded: 
-            leaves = self.get_leaves(refresh=True, with_modifier=True)
-            for leaf in leaves:
-                value = leaf[1] * total
+        if method == ExtrapolateOptions.Fraction or method == ExtrapolateOptions.FractionRounded:            
+            # multiple weights, size and replacement cost
+            for val, wt, node in self.leaves:
+                t_count = wt * total
                 if method == ExtrapolateOptions.FractionRounded:
-                    value = round(value)
-                samples[leaf[0]] = value
-                                            
-        else: # default / method=ExtrapolateOptions.RandomWalk
+                    t_count = round(t_count)
+                size = node.get_additional_float(StatisticNode.AverageSize)
+                cost = node.get_additional_float(StatisticNode.UnitCost)
+                samples[val] = (val, t_count, t_count*size, t_count*size*cost)
+        else: 
+            # method=ExtrapolateOptions.RandomWalk
+            def get_leaf(leaves, thresh):                                
+                for val, wt, node in leaves:
+                    if wt < thresh:
+                        thresh -= wt
+                    else:
+                        return val, node
+                return val, node
+            
             for i in range(total):
-                #while _sample == '':
-                _sample = self.get_sample_walk(False)
-                if samples.has_key(_sample):
-                    samples[_sample]+=1
+                val, node = get_leaf(self.leaves, random())
+                size = node.get_additional_float(StatisticNode.AverageSize)
+                cost = node.get_additional_float(StatisticNode.UnitCost)   
+                if samples.has_key(val):
+                    t_val, t_count, t_size, t_cost = samples[val]
+                    samples[val] = (val, t_count+1, t_size+size, t_cost+size*cost)
                 else:
-                    samples[_sample]=1        
-        return samples
+                    samples[val]=(val, 1, size, size*cost)
+        return samples.values()
     
     @logAPICall
     def get_tree(self):
@@ -286,21 +310,9 @@ class Statistics (object):
 
     @logAPICall
     def get_modifiers(self, max_level):
-        """ get list of modifiers up to max_level """
+        """ generator for modifiers up to max_level """
         for node, idx, mod in self.root.get_modifiers(max_level):            
             yield node, idx, mod
-
-    @logAPICall
-    def get_depth(self):
-        """ get depth for underlying tree """
-        return self.root.max_level()
-
-    @logAPICall
-    def get_sample_walk(self, skip_details=True):
-        """ get one sample from underlying tree """
-        return self.root.random_walk(self.taxonomy.attribute_separator,
-                                     "",
-                                     skip_details)
 
     @logAPICall
     def to_xml(self, pretty=False):
@@ -330,3 +342,4 @@ class Statistics (object):
         if not isinstance(xmlstr, str):
             raise StatisticError('input must be string')
         self.from_xml(ElementTree.fromstring(xmlstr))
+

@@ -22,14 +22,17 @@ from sidd.logger import SIDDLogging
 class SIDDUILogging(SIDDLogging):
     def __init__(self, name, level=0):
         super(SIDDUILogging, self).__init__(name, level)
+        self.get_ui_string = None
     
     def log(self, msg, level=SIDDLogging.INFO):
         """ write log message according to internal configuration """
-        from ui.constants import get_ui_string  # this call is intentionally placed in the function
-                                                # because SIDDUILogging object is defined in ui.constants module
-                                                # this line avoids the circular include
-        super(SIDDUILogging, self).log(msg, level)                
+        super(SIDDUILogging, self).log(msg, level)
+        if self.get_ui_string is None:
+            from ui.constants import get_ui_string  # this call is intentionally placed in the function
+                                                    # because SIDDUILogging object is defined in ui.constants module
+                                                    # this line avoids the circular include
+            self.get_ui_string = get_ui_string
         if level == self.WARNING:
-            QMessageBox.warning(None, get_ui_string("app.error.unexpected"), str(msg))
+            QMessageBox.warning(None, self.get_ui_string("app.error.unexpected"), str(msg))
         if level == self.ERROR:            
-            QMessageBox.critical(None, get_ui_string("app.error.ui"), str(msg))
+            QMessageBox.critical(None, self.get_ui_string("app.error.ui"), str(msg))

@@ -33,7 +33,11 @@ class WidgetSecondaryModifier(Ui_widgetSecondaryModifier, QWidget):
     # constructor / destructor
     ###############################        
     def __init__(self, app):
-        """ constructor """
+        """
+        constructor
+        - initialize UI elements
+        - connect UI elements to callback            
+        """
         super(WidgetSecondaryModifier, self).__init__()
         self.ui = Ui_widgetSecondaryModifier()
         self.ui.setupUi(self)
@@ -55,9 +59,12 @@ class WidgetSecondaryModifier(Ui_widgetSecondaryModifier, QWidget):
     ###############################
     def resizeEvent(self, event):
         """ handle window resize """
+        # logo - resized first, so table can be on top
+        self.ui.lb_gem_logo.move(self.width()-self.ui.lb_gem_logo.width(), self.ui.lb_gem_logo.y())
+         
         self.ui.btn_build_exposure.move(self.width()-self.ui.btn_build_exposure.width()-UI_PADDING,
                                         self.height()-self.ui.btn_build_exposure.height()-UI_PADDING)
-        self.ui.widget_buttons.move(self.width()-self.ui.widget_buttons.width()-UI_PADDING,
+        self.ui.widget_buttons.move(UI_PADDING,
                                     self.ui.widget_buttons.y())
         self.ui.table_mod.resize(self.width()-2*UI_PADDING,
                                  self.height()-self.ui.table_mod.y()-self.ui.btn_build_exposure.height()-2*UI_PADDING)
@@ -66,7 +73,7 @@ class WidgetSecondaryModifier(Ui_widgetSecondaryModifier, QWidget):
         self.ui.table_mod.horizontalHeader().resizeSection(1, self.ui.table_mod.width() * 0.6)
         self.ui.table_mod.horizontalHeader().resizeSection(2, self.ui.table_mod.width() * 0.1)
         self.ui.table_mod.horizontalHeader().resizeSection(3, self.ui.table_mod.width() * 0.1)
-        
+    
     @logUICall
     @pyqtSlot()
     def addModifier(self):
@@ -99,7 +106,7 @@ class WidgetSecondaryModifier(Ui_widgetSecondaryModifier, QWidget):
             return
         # confirm delete 
         answer = QMessageBox.warning(self,
-                                     get_ui_string("app.popup.delete.confirm"),
+                                     get_ui_string("app.confirm.title"),
                                      get_ui_string("widget.mod.warning.delete"),
                                      QMessageBox.Yes | QMessageBox.No)
         if answer == QMessageBox.Yes:
@@ -145,9 +152,10 @@ class WidgetSecondaryModifier(Ui_widgetSecondaryModifier, QWidget):
 
     # public methods
     ###############################
+    @logUICall
     def showMappingScheme(self, ms):
         self.ms = ms
-        self.ui.table_mod.setModel(MSTableModel(ms))        
+        self.ui.table_mod.setModel(MSTableModel(ms))
         self.ui.table_mod.resizeRowsToContents()        
         # adjust columns size
         self.ui.table_mod.horizontalHeader().resizeSection(0, self.ui.table_mod.width() * 0.1)
@@ -161,6 +169,7 @@ class WidgetSecondaryModifier(Ui_widgetSecondaryModifier, QWidget):
         self.ui.btn_build_exposure.setEnabled(True)
 
     
+    @logUICall
     def closeMappingScheme(self):
         """ clear current view """
         self.ui.table_mod.setModel(None)

@@ -31,7 +31,7 @@ from utils.system import get_unique_filename
 from sidd.taxonomy.gem import GemTaxonomyAttribute
 from sidd.constants import logAPICall, \
                            GID_FIELD_NAME, LON_FIELD_NAME, LAT_FIELD_NAME, TAX_FIELD_NAME, \
-                           GRP_FIELD_NAME, AREA_FIELD_NAME, HT_FIELD_NAME
+                           GRP_FIELD_NAME, AREA_FIELD_NAME, HT_FIELD_NAME, COST_FIELD_NAME
 from sidd.operator import Operator,OperatorError, OperatorDataError
 from sidd.operator.data import OperatorDataTypes
 
@@ -65,24 +65,25 @@ class GEMDBSurveyLoader(Operator):
                 self.yr_ranges = options[self.YR_ATTRIBUTE_NAME]
             
         self._fields = {
-            0 : QgsField(GID_FIELD_NAME, QVariant.Int),
+            0 : QgsField(GID_FIELD_NAME, QVariant.String),
             1 : QgsField(LON_FIELD_NAME, QVariant.Double),
             2 : QgsField(LAT_FIELD_NAME, QVariant.Double),
-            3 : QgsField(TAX_FIELD_NAME, QVariant.String),
+            3 : QgsField(TAX_FIELD_NAME, QVariant.String, "", 255),
             4 : QgsField(GRP_FIELD_NAME, QVariant.String),
             5 : QgsField(AREA_FIELD_NAME, QVariant.String),
             6 : QgsField(HT_FIELD_NAME, QVariant.String),
+            7 : QgsField(COST_FIELD_NAME, QVariant.String),
         }
     # self documenting method override
     ###########################
  
     @property
     def input_types(self):
-        return [OperatorDataTypes.File, OperatorDataTypes.StringAttribute]
+        return [OperatorDataTypes.File, OperatorDataTypes.StringAttribute, OperatorDataTypes.StringAttribute]
         
     @property    
     def input_names(self):
-        return ["Survey Input File", "Survey data type"]
+        return ["Survey Input File", "Survey data type", "Project Filter"]
     
     input_descriptions = input_names
 
@@ -103,15 +104,16 @@ class GEMDBSurveyLoader(Operator):
         """ perform survey data loading """        
         # input/output data checking already done during property set
         survey = self.inputs[0].value
+        project = self.inputs[2].value
         
         tmp_survey_file = '%ssurvey_%s.shp' % (self._tmp_dir, get_unique_filename())
         # load survey        
         try:
-            self._loadSurvey(survey, tmp_survey_file)
+            self._loadSurvey(survey, tmp_survey_file, project)
             
         except Exception as err:
             remove_shapefile(tmp_survey_file)
-            raise OperatorError("Error Loading Survey: %s" % err,
+            raise OperatorError("Error Loading Survey\n%s" % err,
                                 self.__class__)
         try:
             # store loaded data
@@ -119,7 +121,7 @@ class GEMDBSurveyLoader(Operator):
             tmp_survey_layer = load_shapefile_verify(tmp_survey_file, tmp_survey_layername,
                                                      [self._lon_field, self._lat_field, self._tax_field])            
         except Exception as err:
-            raise OperatorError("Error Loading Survey: %s" % err,
+            raise OperatorError("Error Loading Survey\n%s" % err,
                                 self.__class__)
         
         self.outputs[0].value = tmp_survey_layer
@@ -139,11 +141,11 @@ class GEMDBSurveyLoader(Operator):
 
     # internal helper methods
     ####################################
-    def _loadSurvey(self, sqlitepath, shapefilepath):
+    def _loadSurvey(self, sqlitepath, shapefilepath, proj_uid=None):
         # load data
-        sql = """select X, Y, SAMPLE_GRP, PLAN_AREA,
-                MAT_TYPE_L, MAT_TECH_L, MAS_REIN_L, MAS_MORT_L, STEEL_CON_L, 
-                LLRS_L, LLRS_DUCT_L,  
+        sql = """select OBJ_UID, X, Y, SAMPLE_GRP, PLAN_AREA, REPLC_COST,
+                MAT_TYPE_L, MAT_TECH_L, MAS_REIN_L, MAS_MORT_L, STEELCON_L, 
+                LLRS_L, LLRS_DCT_L,  
                 ROOFSYSMAT, ROOFSYSTYP,  
                 FLOOR_MAT, FLOOR_TYPE, 
                 STORY_AG_Q, STORY_AG_1, STORY_AG_2,
@@ -151,9 +153,12 @@ class GEMDBSurveyLoader(Operator):
                 STR_IRREG, STR_HZIR_P, STR_HZIR_S, STR_VEIR_P, STR_VEIR_S, 
                 OCCUPCY, OCCUPCY_DT
                 from GEM_OBJECT o LEFT JOIN GED g on o.OBJ_UID=g.GEMOBJ_UID"""
+        # SQL injection check not too important here given that data format is SQLite         
+        if proj_uid is not None:
+            sql = "%s WHERE PROJ_UID='%s'" % (sql, proj_uid)
         conn = sqlite3.connect(sqlitepath)
         c = conn.cursor()
-        c.execute(sql)        
+        c.execute(sql)
         self._buildSurveyLayer(c, shapefilepath)
         c.close()
         conn.close()
@@ -161,41 +166,43 @@ class GEMDBSurveyLoader(Operator):
     def _buildSurveyLayer(self, data,  shapefilepath):
         writer = QgsVectorFileWriter(shapefilepath, "utf-8", self._fields, QGis.WKBPoint, self._crs, "ESRI Shapefile")
         f = QgsFeature()
-        gid = 0
         for row in data:
-            lon = self._tofloat(row[0])
-            lat = self._tofloat(row[1])
-            sample_grp = str(row[2])
-            plan_area = self._tofloat(row[3])
-            tax_string = self._make_gem_taxstring(row[4:])
-            ht = self._get_height(row[4:]) 
+            obj_uid = str(row[0])
+            lon = self._tofloat(row[1])
+            lat = self._tofloat(row[2])
+            sample_grp = str(row[3])
+            plan_area = self._tofloat(row[4])
+            rep_cost = self._tofloat(row[5])
+            tax_string = self._make_gem_taxstring(row[6:])
+            ht = self._get_height(row[6:]) 
             
             f.setGeometry(QgsGeometry.fromPoint(QgsPoint(lon, lat)))
-            gid+=1
-            f.addAttribute(0, QVariant(gid))
+            f.addAttribute(0, QVariant(obj_uid))
             f.addAttribute(1, QVariant(lon))
             f.addAttribute(2, QVariant(lat))
             f.addAttribute(3, QVariant(tax_string))
             f.addAttribute(4, QVariant(sample_grp))
             f.addAttribute(5, QVariant(plan_area))
             f.addAttribute(6, QVariant(ht))
+            f.addAttribute(7, QVariant(rep_cost))
             writer.addFeature(f)
         del writer, f
         
     def _make_gem_taxstring(self, data):
         (mat_type_l, mat_tech_l, mas_rein_l, mas_mort_l, steel_con_l, 
          llrs_l, llrs_duct_l, 
-         roofsysmat, roofsystyp,  
+         roofsysmat, roofsystyp,
          floor_mat, floor_type, 
          story_ag_q, story_ag_1, story_ag_2,
          yr_built_q, yr_built_1, yr_built_2,
          str_irreg, str_hzir_p, str_hzir_s, str_veir_p, str_veir_s, 
          occupcy, occupcy_dt) = [(x) for x in data]
         
-        # attribute names
+        # attribute group names
         # 'Material', 'Lateral Load-Resisting System', 'Roof', 'Floor', 'Height', 'Date of Construction', 'Irregularity', 'Occupancy'
-    
-        separator = "+"
+
+        # separator for individual attributes in group
+        separator = self.taxonomy.get_separator(self.taxonomy.Separators.Attribute)
         
         # material
         mat_string = self._coalesce(mat_type_l) \
@@ -203,7 +210,7 @@ class GEMDBSurveyLoader(Operator):
             + self._append_not_null(mas_mort_l, separator)  + self._append_not_null(steel_con_l, separator) 
         
         # lateral load
-        ll_string = llrs_l + self._append_not_null(llrs_duct_l,separator) 
+        ll_string = self._coalesce(llrs_l) + self._append_not_null(llrs_duct_l,separator) 
         
         # roof 
         roof_string = self._coalesce(roofsysmat) + self._append_not_null(roofsystyp,separator) 
@@ -216,20 +223,17 @@ class GEMDBSurveyLoader(Operator):
         _qualifier = self._coalesce(story_ag_q)
         _story1, _story2 = self._toint(story_ag_1), self._toint(story_ag_2)
         if getattr(self, 'ht_ranges', None) is None:            
-#            ht_string = self._make_height_string(self._coalesce(story_ag_q), 
-#                                                 self._toint(story_ag_1), self._toint(story_ag_2))            
-            if _qualifier == 'CIRCA':
-                _qualifier =  GemTaxonomyAttribute.RANGE
-            elif _qualifier == 'BETWEEN':
-                _qualifier = GemTaxonomyAttribute.AVERAGE
+            if _qualifier == 'HBET':
+                ht_string = attribute.make_string([_story2, _story1], GemTaxonomyAttribute.RANGE)                  
+            elif _qualifier == 'HAPP':
+                ht_string = attribute.make_string([_story2, 0], GemTaxonomyAttribute.APP) 
             else:
-                _qualifier = GemTaxonomyAttribute.EXACT
-            ht_string = attribute.make_string([_story1, _story2], _qualifier)            
+                ht_string = attribute.make_string([_story1, 0], GemTaxonomyAttribute.EXACT)            
         else:
-            if _qualifier == "BETWEEN":
+            if _qualifier == "HBET":
                 ht_range = self._find_range((_story1 + _story2) / 2.0,
                                              self.ht_ranges['min_values'], self.ht_ranges['max_values'])
-            else: # EXACT or CIRCA
+            else: # EXACT or APPROXIMATE
                 ht_range = self._find_range(_story1, 
                                             self.ht_ranges['min_values'], self.ht_ranges['max_values'])
             if _story1 is None or _story1 == 0:
@@ -244,23 +248,22 @@ class GEMDBSurveyLoader(Operator):
             
         # yr_built
         attribute = self.taxonomy.get_attribute_by_name('Date of Construction')
-        _qualifier = self._coalesce(story_ag_q)
+        _qualifier = self._coalesce(yr_built_q)
         _year1, _year2 = self._toint(yr_built_1), self._toint(yr_built_2)
         if getattr(self, 'yr_ranges', None) is None:
-#            yr_string = self._make_year_string(self._coalesce(yr_built_q), 
-#                                               self._toint(yr_built_1), self._toint(yr_built_2))
-            if _qualifier == 'CIRCA':
-                _qualifier =  GemTaxonomyAttribute.RANGE
-            elif _qualifier == 'BETWEEN':
-                _qualifier = GemTaxonomyAttribute.AVERAGE
+            if _qualifier == 'YAPP':
+                yr_string = attribute.make_string([_year2, 0], GemTaxonomyAttribute.APP)
+            elif _qualifier== 'YPRE':                
+                yr_string = attribute.make_string([_year2, 0], GemTaxonomyAttribute.PRE)
+            elif _qualifier == 'YBET':
+                yr_string = attribute.make_string([_year2, _year1], GemTaxonomyAttribute.RANGE)
             else:
-                _qualifier = GemTaxonomyAttribute.EXACT
-            yr_string = attribute.make_string([_year1, _year2], _qualifier)
+                yr_string = attribute.make_string([_year1, 0], GemTaxonomyAttribute.EXACT)
         else:
-            if _qualifier == "BETWEEN":
+            if _qualifier == "YBET":
                 yr_ranges = self._find_range((_year1 + _year2) / 2.0,
                                               self.yr_ranges['min_values'], self.yr_ranges['max_values'])
-            else: # EXACT or CIRCA
+            else: # EXACT or APPROXIMATE
                 yr_ranges = self._find_range(_year1, 
                                              self.yr_ranges['min_values'], self.yr_ranges['max_values'])
             if _year1 is None or _year1 == 0:
@@ -274,14 +277,13 @@ class GEMDBSurveyLoader(Operator):
             yr_string = attribute.make_string(yr_ranges, GemTaxonomyAttribute.RANGE)
             
         # irregularity
-        ir_string = self._coalesce(str_irreg) \
-            + self._append_not_null(str_hzir_p,separator) + self._append_not_null(str_hzir_s,separator) \
-            + self._append_not_null(str_veir_p,separator) + self._append_not_null(str_veir_s,separator) 
-        
+        ir_string = self._append_no_repeat([str_irreg, str_hzir_p, str_hzir_s, str_veir_p, str_veir_s], 
+                                           separator, exclude="IRN")
         # occupancy
         occ_string = self._coalesce(occupcy) + self._append_not_null(occupcy_dt,separator)
         
-        separator = "/"
+        # constructs output string
+        separator = self.taxonomy.get_separator(self.taxonomy.Separators.AttributeGroup)
         return (mat_string + self._append_not_null(ll_string,separator)
                            + self._append_not_null(roof_string,separator)
                            + self._append_not_null(floor_string,separator)
@@ -291,65 +293,56 @@ class GEMDBSurveyLoader(Operator):
                            + self._append_not_null(occ_string,separator))
     
     def _get_height(self, data):
+        """ retrieve height as numeric value from SQLite Query Result """ 
         story_ag_q, story_ag_1, story_ag_2 = data[11:14]
         ht = 0
         if story_ag_1 is None:
             ht = 0
-        elif story_ag_q.upper() == "CIRCA":
-            ht = self._toint(story_ag_1)
-        elif story_ag_q.upper() == "BETWEEN":
+        elif self._coalesce(story_ag_q) == "HBET":
             ht = (self._toint(story_ag_1) + self._toint(story_ag_2)) / 2
         else:
             ht = self._toint(story_ag_1)
         return int(ht)
     
-    def _coalesce(self, val):
-        return str(val).upper() if (val is not None) else ""
+    def _coalesce(self, val):        
+        """ returns val or blank string if val is null (None) """
+        if (val is not None):
+            return str(val).upper()
+        else:
+            return ""
     
     def _toint(self, val):
+        """ convert val to integer, return 0 if conversion fails """
         try:
             return int(val)
         except:
             return 0
         
     def _tofloat(self, val):
+        """ convert val to floating point, return 0.0 if conversion fails """
         try:
             return float(val) 
         except:
             return 0.0        
      
     def _append_not_null(self, val, separator):        
+        """ append val with separator if val is not empty """
         if (val is None or val == ""):
             return ""
         else:
             return separator + str(val)
 
-    def _make_height_string(self, story_ag_q, story_ag_1, story_ag_2):
-        # create story string from given qualifier and parameters
-        ht_string = "H99"
-        if story_ag_1 is None:
-            ht_string = "H99"
-        elif story_ag_q.upper() == "CIRCA":
-            ht_string = "H:" + self._coalesce(story_ag_1)
-        elif story_ag_q.upper() == "BETWEEN":
-            ht_string = "H" + story_ag_1 + "," + story_ag_2
-        else:
-            ht_string = "H:" + self._coalesce(story_ag_1)
-        return ht_string
-    
-    def _make_year_string(self, yr_built_q, yr_built_1, yr_built_2):
-        yr_string = "Y99"
-        if yr_built_1 is None:
-            yr_string = "Y99"
-        elif yr_built_q.upper() == "CIRCA":
-            yr_string = "YA:" + self._coalesce(yr_built_1)
-        elif yr_built_q.upper() == "BETWEEN":
-            yr_string = "YA" + int((yr_built_1 + yr_built_2)/2)
-        else:
-            yr_string = "YN:" + self._coalesce(yr_built_1)
-        return yr_string
+    def _append_no_repeat(self, vals, separator, exclude=''):
+        """ concatenate list of values using separator if value is not empty and not excluded """
+        no_repeat = {}
+        for val in vals:
+            if val is None or val == "" or val == exclude:
+                continue
+            no_repeat[val]=1
+        return str(separator).join(no_repeat.keys())
 
     def _find_range(self, value, min_values, max_values):
+        """ find min/max values surrounding given value """
         # less than minimum
         if value < min_values[0]:
             return None, min_values[0]

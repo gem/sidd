@@ -17,7 +17,7 @@
 dialog for editing secondary modifiers
 """
 from PyQt4.QtGui import QDialog, QDialogButtonBox
-from PyQt4.QtCore import pyqtSlot
+from PyQt4.QtCore import pyqtSlot, QObject
 
 from ui.constants import logUICall, UI_PADDING 
 from ui.qt.dlg_edit_attributes_ui import Ui_editAttributesDialog
@@ -29,7 +29,7 @@ class DialogEditAttributes(Ui_editAttributesDialog, QDialog):
     """
     BUILD_EMPTY, BUILD_FROM_SURVEY=range(2)
     
-    def __init__(self, app, taxonomy, attribute, attribute_value, modifier_value, allow_blank=True):
+    def __init__(self, app, taxonomy, attribute_group, node, modifier_value, allow_blank=True):
         """ constructor """
         super(DialogEditAttributes, self).__init__()
         self.ui = Ui_editAttributesDialog()
@@ -37,123 +37,99 @@ class DialogEditAttributes(Ui_editAttributesDialog, QDialog):
         self.app = app
         self.allow_blank=allow_blank
 
-        self.ui.btn_add.clicked.connect(self.add_code)        
-        self.ui.btn_delete.clicked.connect(self.del_code)
         self.ui.buttonBox.accepted.connect(self.accept)
         self.ui.buttonBox.rejected.connect(self.reject)
 
-        self._taxonomy = taxonomy
-        self.set_modifier_value(attribute, attribute_value, modifier_value)
-    
+        self.taxonomy = taxonomy
+        self.separator = str(self.taxonomy.get_separator(self.taxonomy.Separators.Attribute))
+        self.attribute_group = attribute_group
+        self.node = node
+        
+        self.code_widgets = []
+        self.code_attribute = {}
+        for idx, attribute in enumerate(attribute_group.attributes):
+            widget = WidgetSelectAttribute(self.ui.boxAttributes, attribute.name, {}, "")
+            if idx > 0:
+                widget.setEnabled(False)
+            self.code_widgets.append(widget)
+            self.code_attribute[attribute.name] = idx        
+        self.fill_attribute_input(self.code_widgets[0],
+                                  self.code_widgets[0].attribute_name,
+                                  '', None)
+        
+        for widget in self.code_widgets:
+            widget.codeUpdated.connect(self.updateAttributeValue)
+
+        self.ui.txt_attribute_name.setText(attribute_group.name)
+        self.set_modifier_value(modifier_value)
+
+    @pyqtSlot(QObject)
+    def resizeEvent(self, event):
+        """ 
+        adjust UI, based on input widgets 
+        and resize window 
+        """        
+        # adjust all widget
+        _width = self.width()
+        _widget_y = 10;
+        for _widget in self.code_widgets:
+            _widget.move(10, _widget_y)                
+            _widget_y+= _widget.height()
+            _widget.resizeUI(_width-4*UI_PADDING, _widget.height())
+            
+        # adjust rest of UI
+        self.ui.boxAttributes.resize(_width-2*UI_PADDING, _widget_y)
+        self.ui.buttonBox.move(_width - self.ui.buttonBox.width()-UI_PADDING, 
+                               self.ui.boxAttributes.y()+self.ui.boxAttributes.height()+UI_PADDING)
+        self.resize(_width, self.ui.buttonBox.y()+self.ui.buttonBox.height()+2*UI_PADDING)   
+
     @property
     def modifier_value(self):
         """ return attribute value from combining the selection of all input widget """
-        codes = []
-        for _widget in self._code_widgets:
-            if _widget.selected_code == '':
-                continue
-            try:
-                # check for existing
-                codes.index(_widget.selected_code)
-                # no error means found, which is actually the error case                                
-                logUICall.log('value %s already exists' % _widget.selected_code, logUICall.WARNING)
-                self.ui.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
-                return ''
-            except:
-                # this means not found, no error
-                pass
-            codes.append(_widget.selected_code)
-        self.ui.buttonBox.button(QDialogButtonBox.Ok).setEnabled(True)
-        return str(self._taxonomy.level_separator).join(codes)
-
-    def add_code(self):
-        """ event handler for adding new empty attribute input widget """
-        has_blank=False
-        for _widget in self._code_widgets:
-            if _widget.selected_code == '':
-                has_blank=True
-                break  
-        if (not self.allow_blank) and has_blank:
-            logUICall.log('Please set values before adding additional modifiers', logUICall.WARNING)
-            return          
-        self.add_blank()
-        self.refreshUI()
-    
-    def del_code(self):
-        """ event handler for deleting the last attribute input widget """
-        _widget = self._code_widgets.pop()
-        _widget.setParent(None)
-        _widget.destroy()
-        del _widget
-        if len(self._code_widgets) == 0:
-            self.add_blank()
-        self.refreshUI()
-    
-    def updateAttributeValue(self):
-        """ event handler for attribute value combo box """
-        self.ui.txt_modifier_value.setText(self.modifier_value)
+        return str(self.ui.txt_modifier_value.text())
 
     # public methods
     ###############################
     @logUICall
-    def set_modifier_value(self, attribute, attribute_value, modifier_value):
-        """ 
-        set data to display 
-        - attribute: name of the attribute
-        - modifier_value: attribute value 
-        """
-        self._attribute = attribute
-        self._attribute_value = attribute_value
-        self._attribute_code = self._taxonomy.get_code_by_name(attribute_value)
-        self.ui.txt_attribute_name.setText(attribute.name)
-        self.ui.txt_attribute.setText(attribute_value)
-        self.ui.txt_modifier_value.setText(modifier_value)
+    def set_modifier_value(self, modifier_value):
+        """ set UI with given modifier value """
+        vals = self.taxonomy.parse(modifier_value)
+        for val in vals:
+            cIdx = self.code_attribute[val.code.attribute.name]
+            self.code_widgets[cIdx].selected_code = val.code
 
-        self._code_widgets = []
-        try:
-            if modifier_value is not None and modifier_value != "":
-                _str_values = modifier_value.split(self._taxonomy.level_separator)
-            else:
-                _str_values = ['']
-            for _value in _str_values:                
-                if self._taxonomy.codes.has_key(_value):
-                    _valid_codes = {}
-                    for _valid_code in self._attribute.get_valid_codes(parent=self._attribute_code):
-                        _valid_codes[_valid_code.code]=_valid_code.description    
-                    _widget = WidgetSelectAttribute(self.ui.boxAttributes, self._attribute.name, _valid_codes, _value)
-                    _widget.codeUpdated.connect(self.updateAttributeValue)                    
-                    self._code_widgets.append(_widget)
-                else:
-                    self.add_blank()
-        except Exception as err:
-            print err
-        self.refreshUI()
-    
     # internal helper methods
     ###############################
-    def add_blank(self):
-        """ add a blank row with new widget """ 
-        _valid_codes = {}
-        _valid_codes['']=''
-        #for _valid_code in self._taxonomy.get_codes_for_attribute(self._attribute):
-        for _valid_code in self._attribute.get_valid_codes(parent=self._attribute_code):
-            _valid_codes[_valid_code.code]=_valid_code.description        
-        _widget = WidgetSelectAttribute(self.ui.boxAttributes, self._attribute, _valid_codes, "")
-        _widget.codeUpdated.connect(self.updateAttributeValue)
-        self._code_widgets.append(_widget)
+    def fill_attribute_input(self, widget, attribute_name, current, code_filter=None):
+        valid_codes = {}
+        valid_codes['']=''
+        for code in self.taxonomy.get_code_by_attribute(attribute_name, code_filter):
+            valid_codes[code.description] = code                    
+        widget.set_attribute(attribute_name, valid_codes, current)
+    
+    def updateAttributeValue(self, source):
+        """ event handler for attribute value combo box """
+        # filter available options        
+        filter_code = None
+        if self.taxonomy.has_rule(source.attribute_name):
+            filter_code = source.selected_code
         
-    def refreshUI(self):
-        """ 
-        adjust UI, based on input widgets 
-        and resize window 
-        """
-        # adjust all widget
-        _widget_y = 10;
-        for _widget in self._code_widgets:
-                _widget.setGeometry(10, _widget_y, _widget.width(), _widget.height())
-                _widget.setVisible(True)
-                _widget_y+= _widget.height()
-        # adjust rest of UI
-        self.ui.boxAttributes.resize(self.ui.boxAttributes.width(), _widget_y)
-        self.ui.buttonBox.move(self.ui.buttonBox.x(), self.ui.boxAttributes.y()+self.ui.boxAttributes.height()+UI_PADDING)
-        self.resize(self.width(), self.ui.buttonBox.y()+self.ui.buttonBox.height()+2*UI_PADDING)
+        attribute_idx = self.code_attribute[source.attribute_name]+1
+        if attribute_idx < len(self.code_widgets) :
+            widget = self.code_widgets[attribute_idx]
+            self.fill_attribute_input(widget, 
+                                      widget.attribute_name, 
+                                      widget.selected_code, filter_code)
+            widget.setEnabled(True)
+        
+        # build modifier_value
+        codes = []        
+        for widget in self.code_widgets:
+            if str(widget.selected_code) == '':
+                continue
+            codes.append(str(widget.selected_code.code))
+        if len(codes)>0:
+            self.ui.buttonBox.button(QDialogButtonBox.Ok).setEnabled(True)
+            self.ui.txt_modifier_value.setText(self.separator.join(codes))
+        else:
+            self.ui.txt_modifier_value.setText('')

@@ -17,7 +17,6 @@
 dialog for editing secondary modifiers
 """
 from PyQt4.QtGui import QDialog
-from PyQt4.QtCore import pyqtSlot
 
 from ui.qt.dlg_edit_zone_ui import Ui_editZoneNameDialog
 

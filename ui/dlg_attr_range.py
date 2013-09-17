@@ -54,25 +54,25 @@ class DialogAttrRanges(Ui_attrRangesDialog, QDialog):
     
     @property
     def min_values(self):
-        return self._values[0]
+        return self.range_values[0]
     
     @property
     def max_values(self):
-        return self._values[1]
+        return self.range_values[1]
         
     @logUICall
     @pyqtSlot()
     def add_range(self):
         self.ui.table_ranges.insertRow(self.ui.table_ranges.rowCount())
-        self._values[0].append(None)
-        self._values[1].append(None)
+        self.range_values[0].append(None)
+        self.range_values[1].append(None)
     
     @logUICall
     @pyqtSlot()
     def remove_range(self):        
         self.ui.table_ranges.removeRow(self.ui.table_ranges.rowCount()-1)
-        self._values[0].pop()
-        self._values[1].pop()
+        self.range_values[0].pop()
+        self.range_values[1].pop()
     
     @logUICall
     @pyqtSlot(QObject)
@@ -89,7 +89,7 @@ class DialogAttrRanges(Ui_attrRangesDialog, QDialog):
         row, col = item.row(), item.column()        
         if int_val[1]:  # is integer            
             # set value
-            self._values[col][row] = int_val[0]
+            self.range_values[col][row] = int_val[0]
             
             # allow set range only if is valid 
             range_is_valid = False
@@ -106,14 +106,14 @@ class DialogAttrRanges(Ui_attrRangesDialog, QDialog):
             # not integer
             # restore
             logUICall.log(get_ui_string('dlg.attr.value.error'), logUICall.WARNING)
-            self.ui.table_ranges.setItem(row, col, QTableWidgetItem('%s'%self._values[col][row]))
+            self.ui.table_ranges.setItem(row, col, QTableWidgetItem('%s'%self.range_values[col][row]))
 
     # public method
     ###############################
     def set_values(self, attribute, min_values, max_values):
         """ set data for the table """
         self.ui.lb_attribute.setText(attribute)
-        self._values = [min_values, max_values]        
+        self.range_values = [min_values, max_values]        
         table = self.ui.table_ranges 
         table.clearContents()
         table.setRowCount(0)             
@@ -128,17 +128,17 @@ class DialogAttrRanges(Ui_attrRangesDialog, QDialog):
     def is_range_valid(self):
         is_valid = True
         self.ui.lb_notes.setText("")
-        for i in range(len(self._values[0])):
+        for i in range(len(self.range_values[0])):
             # minimum must be less than maximum in same row
-            max_val = self._values[1][i]
-            min_val = self._values[0][i]                         
+            max_val = self.range_values[1][i]
+            min_val = self.range_values[0][i]                         
             is_valid = (min_val <= max_val)
             if not is_valid:
                 # use exception to stop additional checks 
                 raise SIDDRangeGroupException(get_ui_string("dlg.attr.error.max", (max_val, min_val)))
             # and minimum must be exactly 1 larger than maximum from previous row  
             if i > 0:   # first row does not have previous
-                max_last = self._values[1][i-1]
+                max_last = self.range_values[1][i-1]
                 is_valid = (min_val == max_last+1)
                 if not is_valid:
                     # use exception to stop additional checks

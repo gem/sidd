@@ -44,8 +44,8 @@ class MSTreeModel(QAbstractItemModel):
         self.rootNode = object()
         self.zones = ms.get_zones()
         for zone in self.zones:
-            #print zone, type(zone.stats.root), zone.stats.root.value
             zone.stats.get_tree().value = zone.name
+            
 
     def nodeFromIndex(self, index):
         """ (override function) retrieve internal stored node from given index """
@@ -111,7 +111,10 @@ class MSTreeModel(QAbstractItemModel):
                 # statistic node 
                 # show weight for node
                 logUICall.log("\tindex is node %s %s" % (item.value, item.weight), logUICall.DEBUG_L2)
-                return '%s - %2.1f%%' % (item.value, item.weight)
+                if item.value is None:
+                    return ' - %2.1f%%' % (item.weight)
+                else:
+                    return '%s - %2.1f%%' % (item.value, item.weight)
         elif role == Qt.ToolTipRole: 
             # lookup data to show in tool tip
             item = index.internalPointer()
@@ -120,7 +123,9 @@ class MSTreeModel(QAbstractItemModel):
             elif isinstance(item, StatisticNode):                
                 return build_attribute_tooltip(self.valid_codes, self.ms.taxonomy.parse(item.value))
             else:
-                return ""                
+                return "" 
+        elif role == Qt.UserRole:            
+            return index.internalPointer()
         else:
             return None
         
@@ -190,15 +195,15 @@ class MSTreeModel(QAbstractItemModel):
             if (parentItem.level == 0):                
                 # top level, get zone
                 logUICall.log("\tchild is node level 1. parent is zone", logUICall.DEBUG_L2)
-                for _idx, _zone in enumerate(self.zones):
-                    if _zone.name == parentItem.value:
-                        return self.createIndex(_idx, 0, _zone)
+                for idx, zone in enumerate(self.zones):
+                    if zone.name == parentItem.value:
+                        return self.createIndex(idx, 0, zone)
                 return QModelIndex()
             else:
                 # not top level, get node's parent
                 logUICall.log("\tchild is node below level 1. parent is node", logUICall.DEBUG_L2)
-                _row_idx = parentItem.parent.children.index(parentItem) 
-                return self.createIndex(_row_idx, 0, parentItem)
+                row_idx = parentItem.parent.children.index(parentItem)
+                return self.createIndex(row_idx, 0, parentItem)
         else:
             return QModelIndex()
     
@@ -216,24 +221,12 @@ class MSTreeModel(QAbstractItemModel):
 
     def match(self, index, role, value, hits=1, flags=Qt.MatchStartsWith | Qt.MatchWrap):
         found = []
-        if index.isValid():
-            item = index.internalPointer()
-            if item == self.rootNode:
-                # root node
-                node_value = 'ROOT'
-            elif isinstance(item, MappingSchemeZone):
-                # zone node(first level under root node)
-                # statistic in each zone should be 100%
-                node_value = item.name
-            else:
-                # statistic node 
-                # show weight for node                
-                node_value = item.value           
-        else:
-            node_value = 'ROOT'                
-        if node_value == value:
+        data = self.data(index, role)
+        if isinstance(data, MappingSchemeZone):
+            data = data.stats.root            
+        if data == value:
             found.append(index)
-            hits -= 1
+            hits -= 1            
         if hits>0:
             for i in range(self.rowCount(index)):
                 child = self.index(i, 1, index)

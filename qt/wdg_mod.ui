@@ -30,9 +30,9 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>40</y>
+     <y>70</y>
      <width>901</width>
-     <height>561</height>
+     <height>531</height>
     </rect>
    </property>
    <attribute name="verticalHeaderVisible">
@@ -65,16 +65,16 @@
   <widget class="QWidget" name="widget_buttons" native="true">
    <property name="geometry">
     <rect>
-     <x>730</x>
-     <y>10</y>
-     <width>181</width>
+     <x>10</x>
+     <y>40</y>
+     <width>151</width>
      <height>31</height>
     </rect>
    </property>
    <widget class="QPushButton" name="btn_del_mod">
     <property name="geometry">
      <rect>
-      <x>120</x>
+      <x>30</x>
       <y>0</y>
       <width>31</width>
       <height>23</height>
@@ -94,7 +94,7 @@
    <widget class="QPushButton" name="btn_edit_mod">
     <property name="geometry">
      <rect>
-      <x>150</x>
+      <x>60</x>
       <y>0</y>
       <width>31</width>
       <height>23</height>
@@ -114,7 +114,7 @@
    <widget class="QPushButton" name="btn_add_mod">
     <property name="geometry">
      <rect>
-      <x>90</x>
+      <x>0</x>
       <y>0</y>
       <width>31</width>
       <height>23</height>
@@ -132,6 +132,30 @@
     </property>
    </widget>
   </widget>
+  <widget class="QLabel" name="lb_gem_logo">
+   <property name="geometry">
+    <rect>
+     <x>800</x>
+     <y>0</y>
+     <width>121</width>
+     <height>61</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="pixmap">
+    <pixmap resource="resources/SIDDResource.qrc">:/imgs/gem_logo_120X60.png</pixmap>
+   </property>
+   <property name="scaledContents">
+    <bool>false</bool>
+   </property>
+  </widget>
+  <zorder>lb_gem_logo</zorder>
+  <zorder>btn_build_exposure</zorder>
+  <zorder>table_mod</zorder>
+  <zorder>lb_panel_title</zorder>
+  <zorder>widget_buttons</zorder>
  </widget>
  <resources>
   <include location="resources/SIDDResource.qrc"/>

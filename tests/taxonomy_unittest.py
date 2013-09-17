@@ -16,8 +16,7 @@
 #
 
 # import sidd packages for testing
-from sidd.taxonomy import get_taxonomy, \
-                          TaxonomyAttributeMulticodeValue, TaxonomyAttributePairValue
+from sidd.taxonomy import get_taxonomy, TaxonomyAttributePairValue
 
 from common import SIDDTestCase
 
@@ -31,34 +30,40 @@ class TaxonomyTestCase(SIDDTestCase):
         self.taxonomy = get_taxonomy("gem")
     
     def test_Load(self):
-        self.assertEquals(len(self.taxonomy.attributes), 8)
+        self.assertEquals(len(self.taxonomy.attribute_groups), 8)
+        self.assertEquals(len(self.taxonomy.attributes), 22)
         
-        material = self.taxonomy.get_attribute_by_name('Material')
-        codes = [c for c in material.get_valid_codes()]        
-        self.assertEqual(len(codes), 66)
-        codes1 = [c for c in material.get_valid_codes(levels=1)]
-        self.assertEqual(len(codes1), 16)        
-        codes2 = [c for c in material.get_valid_codes(levels=2)]
-        self.assertEqual(len(codes2), 36)        
-        codes3 = [c for c in material.get_valid_codes(levels=3)]
-        self.assertEqual(len(codes3), 14)
-    
-        cr = self.taxonomy.get_code_by_name('CR')
-        cr_codes = [c for c in material.get_valid_codes(parent=cr, levels=2)]
-        self.assertEquals(len(cr_codes), 5)
+        material = self.taxonomy.get_attribute_group_by_name('Material')
+        self.assertEquals(len(material.attributes), 5)
+        self.assertEquals([a.name for a in material.attributes],
+                          ['Material Type', 'Material Technology', 'Masonry Mortar Type', 'Masonry Reinforce Type', 'Steel Connection Type'])
+        self.assertEquals([len(a.codes) for a in material.attributes],
+                          [16, 36, 14, 6, 4])
         
-        
+        wood = self.taxonomy.get_code_by_name('W')        
+        codes = [str(code.code) for code in self.taxonomy.get_code_by_attribute('Material Technology', wood)]
+        self.assertEqual(len(codes), 7)
+                
     def test_Parse(self):
-        tax_string = 'MUR+CLBRS+MOL/LWAL+ND/RWO+RWO1/FE+FM1/H:3/Y99/IRHO/RES+RES2C'
+        tax_string = 'MUR+CLBRS+MOL/LWAL/RWO+RWO1/FE+FM1/HEX:3/Y99/IRHO/RES+RES2C'
         attrs = self.taxonomy.parse(tax_string)
-        self.assertEquals(len(attrs), 8)
-        self.assertTrue(isinstance(attrs[0], TaxonomyAttributeMulticodeValue))
-        self.assertTrue(isinstance(attrs[4], TaxonomyAttributePairValue))
+        self.assertEquals(len(attrs), 13)        
+        self.assertTrue(isinstance(self._get_attribute_by_name(attrs, 'Height'), TaxonomyAttributePairValue))
+                
+        tax_string = 'MUR+CLBRS+MOL/RWO+RWO1/FE+FM1/HEX:3/RES+RES2C'        
+        attrs = self.taxonomy.parse(tax_string)
+        self.assertEquals(len(attrs), 10)
+        self.assertTrue(isinstance(self._get_attribute_by_name(attrs, 'Height'), TaxonomyAttributePairValue))
         
-        tax_string = 'MUR+CLBRS+MOL/RWO+RWO1/FE+FM1/H:3/RES+RES2C'        
+        tax_string = 'CR+CIP/LFINF+DNO/HBET:1,3/'
         attrs = self.taxonomy.parse(tax_string)
         self.assertEquals(len(attrs), 5)
-        self.assertTrue(isinstance(attrs[0], TaxonomyAttributeMulticodeValue))
-        self.assertTrue(isinstance(attrs[3], TaxonomyAttributePairValue))
-    
-    
+        self.assertTrue(isinstance(self._get_attribute_by_name(attrs, 'Height'), TaxonomyAttributePairValue))
+
+    def _get_attribute_by_name(self, attrs, name):
+        value = None
+        for val in attrs:
+            if val.attribute.name == name:
+                value = val
+                break
+        return value
